@@ -1,9 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Esquema y tipo para el formulario de login (ya definido en LoginForm, pero puede ser centralizado)
 export const loginSchema = z.object({
-  emailOrUsername: z.string().min(1, 'El correo o nombre de usuario es requerido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  emailOrUsername: z
+    .string()
+    .min(1, "El correo o nombre de usuario es requerido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 export type LoginFormInputs = z.infer<typeof loginSchema>;
 
@@ -28,7 +30,6 @@ const userSchema = z.object({
   role: z.object({ id: z.number() }).optional(), // Asumiendo ID numérico para rol
 });
 export type User = z.infer<typeof userSchema>;
-
 
 // DTO para la respuesta del login del backend
 export const loginResponseDtoSchema = z.object({

@@ -1,5 +1,7 @@
 import { create } from "apisauce";
 import { API_BASE_URL } from "@env";
+import EncryptedStorage from "react-native-encrypted-storage";
+import { useAuthStore } from "../store/authStore";
 
 // Define la URL base de tu API
 const apiClient = create({
@@ -9,20 +11,42 @@ const apiClient = create({
   // timeout: 10000,
 });
 
-// --- Interceptores (Ejemplos Opcionales) ---
+// Interceptor para añadir el token de autenticación
+apiClient.addAsyncRequestTransform((request) => async () => {
+  try {
+    const token = await EncryptedStorage.getItem("auth_token");
+    if (token) {
+      if (!request.headers) request.headers = {};
+      request.headers["Authorization"] = `Bearer ${token}`;
+    }
+  } catch (error) {
+    console.error("Error al recuperar el token de autenticación:", error);
+  }
+});
 
-// Ejemplo: Añadir token de autenticación a todas las peticiones (si usas tokens)
-// import EncryptedStorage from 'react-native-encrypted-storage'; // Asumiendo que guardas el token aquí
-// apiClient.addAsyncRequestTransform(request => async () => {
-//   try {
-//     const token = await EncryptedStorage.getItem('authToken'); // Clave donde guardas el token
-//     if (token) {
-//       request.headers['Authorization'] = `Bearer ${token}`;
-//     }
-//   } catch (error) {
-//     console.error("Error retrieving auth token:", error);
-//   }
-// });
+// Monitor para manejar errores de autenticación (401)
+apiClient.addMonitor((response) => {
+  if (response.status === 401 && !response.config?.url?.includes("/auth")) {
+    console.warn("Acceso no autorizado detectado (401). Cerrando sesión...");
+    // Obtener la función de logout del store y ejecutarla
+    const logout = useAuthStore.getState().logout;
+    if (logout) {
+      logout();
+    }
+  }
+
+  // Log de errores generales
+  if (!response.ok) {
+    console.error("Problema en la petición API:", {
+      problema: response.problem,
+      url: response.config?.url,
+      método: response.config?.method,
+      estado: response.status,
+    });
+  }
+});
+
+// --- Interceptores (Ejemplos Opcionales) ---
 
 // Ejemplo: Monitor para manejar errores comunes como 401 Unauthorized
 // import { tuAuthStore } from '../store/authStore'; // Asumiendo un store Zustand para auth
