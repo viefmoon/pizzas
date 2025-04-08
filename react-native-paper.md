@@ -1924,6 +1924,71 @@ export default MyComponent;
 | ---- | ----------------------------- |
 | -    | theme.colors.inverseOnSurface |
 
+### Surface
+
+Surface es un contenedor básico que puede dar profundidad a un elemento con sombra de elevación. En el tema oscuro con modo adaptativo, la superficie se construye también colocando una superposición blanca semitransparente sobre la superficie del componente. Consulta el tema oscuro para obtener más información. La superposición y la sombra se pueden aplicar especificando la propiedad de elevación tanto en Android como en iOS.
+
+Modos disponibles:
+
+- elevated
+- flat
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Surface, Text } from "react-native-paper";
+import { StyleSheet } from "react-native";
+
+const MyComponent = () => (
+  <Surface style={styles.surface} elevation={4}>
+    <Text>Surface</Text>
+  </Surface>
+);
+
+export default MyComponent;
+
+const styles = StyleSheet.create({
+  surface: {
+    padding: 8,
+    height: 80,
+    width: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+```
+
+#### Propiedades
+
+- **children** (requerido): React.ReactNode - Contenido del Surface.
+
+- **style**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo personalizado para el componente.
+
+- **elevation**: 0 | 1 | 2 | 3 | 4 | 5 | Animated.Value - (Disponible en v5.x con theme version 3) Cambia las sombras y el fondo en iOS y Android. Se utiliza para crear jerarquía UI entre componentes. Valor por defecto: 1.
+
+  Nota: Si el modo está establecido en flat, Surface no tiene sombra.
+
+  Nota: En la versión 2, la prop elevation se aceptaba a través de la prop style, es decir, style={{ elevation: 4 }}. Ya no es compatible con la versión 3 del tema y debe usar la propiedad elevation en su lugar.
+
+- **mode**: 'flat' | 'elevated' - (Disponible en v5.x con theme version 3) Modo del Surface. Valor por defecto: 'elevated'.
+
+  - **elevated** - Surface con una sombra y color de fondo correspondiente al valor de elevación establecido.
+  - **flat** - Surface sin sombra, con el color de fondo correspondiente al valor de elevación establecido.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+- **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'surface'.
+
+- **ref**: React.RefObject<View> - Referencia para el componente.
+
+#### Colores del Tema (MD3)
+
+| modo     | backgroundColor                   |
+| -------- | --------------------------------- |
+| flat     | theme.colors.elevation[elevation] |
+| elevated | theme.colors.elevation[elevation] |
+
 ## Guía de Implementación
 
 ### Instalación
