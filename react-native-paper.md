@@ -1,0 +1,883 @@
+# Documentación de React Native Paper
+
+## Introducción
+
+React Native Paper es una colección de componentes personalizables y listos para producción para React Native, siguiendo las directrices de Material Design de Google. Esta biblioteca proporciona una amplia gama de componentes UI que facilitan el desarrollo de aplicaciones móviles con una apariencia profesional y consistente tanto en iOS como en Android.
+
+## Componentes
+
+### ActivityIndicator
+
+El componente ActivityIndicator muestra un indicador de carga circular.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { ActivityIndicator } from "react-native-paper";
+
+const MyComponent = () => (
+  <ActivityIndicator animating={true} color="#00ff00" />
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **animating**: boolean - Determina si el indicador está animándose.
+- **color**: string - Color del indicador.
+- **size**: 'small' | 'large' | number - Tamaño del indicador.
+- **hidesWhenStopped**: boolean - Oculta el indicador cuando no está animándose.
+
+### Appbar
+
+El componente Appbar muestra información y acciones relacionadas con la pantalla actual.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Appbar } from "react-native-paper";
+
+const MyComponent = () => (
+  <Appbar.Header>
+    <Appbar.BackAction onPress={() => {}} />
+    <Appbar.Content title="Título" subtitle="Subtítulo" />
+    <Appbar.Action icon="magnify" onPress={() => {}} />
+    <Appbar.Action icon="dots-vertical" onPress={() => {}} />
+  </Appbar.Header>
+);
+
+export default MyComponent;
+```
+
+#### Subcomponentes
+
+- **Appbar.Header**: Contenedor principal para la barra de aplicaciones.
+- **Appbar.BackAction**: Botón de retroceso.
+- **Appbar.Content**: Contenido principal (título y subtítulo).
+- **Appbar.Action**: Botón de acción con icono.
+
+#### Propiedades principales
+
+- **dark**: boolean - Determina si la barra de aplicaciones utiliza el tema oscuro.
+- **statusBarHeight**: number - Altura de la barra de estado.
+- **elevated**: boolean - Determina si la barra de aplicaciones tiene elevación.
+- **style**: object - Estilo personalizado para la barra de aplicaciones.
+
+### Avatar
+
+El componente Avatar muestra una imagen de perfil, iniciales o icono.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Avatar } from "react-native-paper";
+
+const MyComponent = () => (
+  <>
+    <Avatar.Icon size={24} icon="folder" />
+    <Avatar.Image size={24} source={require("../assets/avatar.png")} />
+    <Avatar.Text size={24} label="XD" />
+  </>
+);
+
+export default MyComponent;
+```
+
+#### Subcomponentes
+
+- **Avatar.Icon**: Avatar con un icono.
+- **Avatar.Image**: Avatar con una imagen.
+- **Avatar.Text**: Avatar con texto (iniciales).
+
+#### Propiedades principales
+
+- **size**: number - Tamaño del avatar.
+- **style**: object - Estilo personalizado para el avatar.
+- **icon**: string - Nombre del icono (para Avatar.Icon).
+- **source**: object - Fuente de la imagen (para Avatar.Image).
+- **label**: string - Texto a mostrar (para Avatar.Text).
+
+### Badge
+
+El componente Badge muestra un pequeño indicador numérico o de estado.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Badge } from "react-native-paper";
+
+const MyComponent = () => <Badge>3</Badge>;
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **visible**: boolean - Determina si el badge es visible.
+- **size**: number - Tamaño del badge.
+- **style**: object - Estilo personalizado para el badge.
+
+### Banner
+
+El componente Banner muestra un mensaje importante y acciones relacionadas.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Banner } from "react-native-paper";
+
+const MyComponent = () => {
+  const [visible, setVisible] = React.useState(true);
+
+  return (
+    <Banner
+      visible={visible}
+      actions={[
+        {
+          label: "Arreglar ahora",
+          onPress: () => setVisible(false),
+        },
+        {
+          label: "Más tarde",
+          onPress: () => setVisible(false),
+        },
+      ]}
+      icon={({ size }) => (
+        <Image
+          source={require("../assets/notification.png")}
+          style={{ width: size, height: size }}
+        />
+      )}
+    >
+      Hay problemas con tu conexión a internet.
+    </Banner>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **visible**: boolean - Determina si el banner es visible.
+- **actions**: Array - Acciones disponibles en el banner.
+- **icon**: ({ size }) => React.ReactNode - Icono a mostrar.
+- **children**: React.ReactNode - Contenido del banner.
+
+### BottomNavigation
+
+El componente BottomNavigation proporciona navegación entre vistas principales en una aplicación.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { BottomNavigation, Text } from "react-native-paper";
+
+const MusicRoute = () => <Text>Music</Text>;
+const AlbumsRoute = () => <Text>Albums</Text>;
+const RecentsRoute = () => <Text>Recents</Text>;
+
+const MyComponent = () => {
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    { key: "music", title: "Music", icon: "music" },
+    { key: "albums", title: "Albums", icon: "album" },
+    { key: "recents", title: "Recents", icon: "history" },
+  ]);
+
+  const renderScene = BottomNavigation.SceneMap({
+    music: MusicRoute,
+    albums: AlbumsRoute,
+    recents: RecentsRoute,
+  });
+
+  return (
+    <BottomNavigation
+      navigationState={{ index, routes }}
+      onIndexChange={setIndex}
+      renderScene={renderScene}
+    />
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **navigationState**: object - Estado de navegación con índice y rutas.
+- **onIndexChange**: function - Función llamada cuando cambia el índice.
+- **renderScene**: function - Función para renderizar la escena para una ruta.
+- **shifting**: boolean - Determina si la navegación utiliza el modo shifting.
+- **labeled**: boolean - Determina si se muestran las etiquetas.
+
+### Button
+
+El componente Button permite a los usuarios realizar acciones y tomar decisiones con un solo toque.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Button } from "react-native-paper";
+
+const MyComponent = () => (
+  <>
+    <Button
+      icon="camera"
+      mode="contained"
+      onPress={() => console.log("Pressed")}
+    >
+      Press me
+    </Button>
+    <Button
+      icon="camera"
+      mode="outlined"
+      onPress={() => console.log("Pressed")}
+    >
+      Press me
+    </Button>
+    <Button icon="camera" mode="text" onPress={() => console.log("Pressed")}>
+      Press me
+    </Button>
+  </>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **mode**: 'text' | 'outlined' | 'contained' - Modo del botón.
+- **dark**: boolean - Determina si el botón utiliza el tema oscuro.
+- **compact**: boolean - Determina si el botón es compacto.
+- **icon**: string - Icono a mostrar.
+- **loading**: boolean - Muestra un indicador de carga.
+- **disabled**: boolean - Deshabilita el botón.
+- **onPress**: function - Función llamada cuando se presiona el botón.
+- **style**: object - Estilo personalizado para el botón.
+
+### CardComponent
+
+El componente Card es una hoja de material que sirve como punto de entrada a información más detallada.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Avatar, Button, Card, Text } from "react-native-paper";
+
+const LeftContent = (props) => <Avatar.Icon {...props} icon="folder" />;
+
+const MyComponent = () => (
+  <Card>
+    <Card.Title
+      title="Card Title"
+      subtitle="Card Subtitle"
+      left={LeftContent}
+    />
+    <Card.Content>
+      <Text variant="titleLarge">Card title</Text>
+      <Text variant="bodyMedium">Card content</Text>
+    </Card.Content>
+    <Card.Cover source={{ uri: "https://picsum.photos/700" }} />
+    <Card.Actions>
+      <Button>Cancel</Button>
+      <Button>Ok</Button>
+    </Card.Actions>
+  </Card>
+);
+
+export default MyComponent;
+```
+
+#### Subcomponentes
+
+- **Card.Title**: Título de la tarjeta.
+- **Card.Content**: Contenido de la tarjeta.
+- **Card.Cover**: Imagen de portada de la tarjeta.
+- **Card.Actions**: Acciones de la tarjeta.
+
+#### Propiedades principales
+
+- **mode**: 'elevated' | 'outlined' | 'contained' - Modo de la tarjeta.
+- **elevation**: number - Elevación de la tarjeta.
+- **onPress**: function - Función llamada cuando se presiona la tarjeta.
+- **style**: object - Estilo personalizado para la tarjeta.
+
+### Checkbox
+
+El componente Checkbox permite la selección de múltiples opciones de un conjunto.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Checkbox } from "react-native-paper";
+
+const MyComponent = () => {
+  const [checked, setChecked] = React.useState(false);
+
+  return (
+    <Checkbox
+      status={checked ? "checked" : "unchecked"}
+      onPress={() => {
+        setChecked(!checked);
+      }}
+    />
+  );
+};
+
+export default MyComponent;
+```
+
+#### Subcomponentes
+
+- **Checkbox.Android**: Checkbox con estilo de Android.
+- **Checkbox.IOS**: Checkbox con estilo de iOS.
+- **Checkbox.Item**: Checkbox con etiqueta.
+
+#### Propiedades principales
+
+- **status**: 'checked' | 'unchecked' | 'indeterminate' - Estado del checkbox.
+- **disabled**: boolean - Deshabilita el checkbox.
+- **onPress**: function - Función llamada cuando se presiona el checkbox.
+- **color**: string - Color del checkbox cuando está marcado.
+- **uncheckedColor**: string - Color del checkbox cuando no está marcado.
+
+### Chip
+
+El componente Chip es un elemento compacto que representa una entrada, atributo o acción.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Chip } from "react-native-paper";
+
+const MyComponent = () => (
+  <Chip icon="information" onPress={() => console.log("Pressed")}>
+    Example Chip
+  </Chip>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **mode**: 'flat' | 'outlined' - Modo del chip.
+- **selected**: boolean - Determina si el chip está seleccionado.
+- **disabled**: boolean - Deshabilita el chip.
+- **icon**: string - Icono a mostrar.
+- **avatar**: React.ReactNode - Avatar a mostrar.
+- **onPress**: function - Función llamada cuando se presiona el chip.
+- **onClose**: function - Función llamada cuando se presiona el botón de cierre.
+- **style**: object - Estilo personalizado para el chip.
+
+### DataTable
+
+El componente DataTable permite mostrar conjuntos de datos.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { DataTable } from "react-native-paper";
+
+const MyComponent = () => {
+  const [page, setPage] = React.useState(0);
+  const [numberOfItemsPerPageList] = React.useState([2, 3, 4]);
+  const [itemsPerPage, onItemsPerPageChange] = React.useState(
+    numberOfItemsPerPageList[0]
+  );
+
+  const [items] = React.useState([
+    {
+      key: 1,
+      name: "Cupcake",
+      calories: 356,
+      fat: 16,
+    },
+    {
+      key: 2,
+      name: "Eclair",
+      calories: 262,
+      fat: 16,
+    },
+    {
+      key: 3,
+      name: "Frozen yogurt",
+      calories: 159,
+      fat: 6,
+    },
+    {
+      key: 4,
+      name: "Gingerbread",
+      calories: 305,
+      fat: 3.7,
+    },
+  ]);
+
+  return (
+    <DataTable>
+      <DataTable.Header>
+        <DataTable.Title>Dessert</DataTable.Title>
+        <DataTable.Title numeric>Calories per piece</DataTable.Title>
+        <DataTable.Title numeric>Fat (g)</DataTable.Title>
+      </DataTable.Header>
+
+      {items
+        .slice(page * itemsPerPage, (page + 1) * itemsPerPage)
+        .map((item) => (
+          <DataTable.Row key={item.key}>
+            <DataTable.Cell>{item.name}</DataTable.Cell>
+            <DataTable.Cell numeric>{item.calories}</DataTable.Cell>
+            <DataTable.Cell numeric>{item.fat}</DataTable.Cell>
+          </DataTable.Row>
+        ))}
+
+      <DataTable.Pagination
+        page={page}
+        numberOfPages={Math.ceil(items.length / itemsPerPage)}
+        onPageChange={(page) => setPage(page)}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={onItemsPerPageChange}
+        numberOfItemsPerPageList={numberOfItemsPerPageList}
+        showFastPaginationControls
+        selectPageDropdownLabel={"Rows per page"}
+      />
+    </DataTable>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Subcomponentes
+
+- **DataTable.Header**: Encabezado de la tabla.
+- **DataTable.Title**: Título de columna.
+- **DataTable.Row**: Fila de la tabla.
+- **DataTable.Cell**: Celda de la tabla.
+- **DataTable.Pagination**: Paginación de la tabla.
+
+### Dialog
+
+El componente Dialog informa a los usuarios sobre una tarea específica y puede contener información crítica, requerir decisiones o involucrar múltiples tareas.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { View } from "react-native";
+import {
+  Button,
+  Dialog,
+  Portal,
+  PaperProvider,
+  Text,
+} from "react-native-paper";
+
+const MyComponent = () => {
+  const [visible, setVisible] = React.useState(false);
+
+  const showDialog = () => setVisible(true);
+  const hideDialog = () => setVisible(false);
+
+  return (
+    <PaperProvider>
+      <View>
+        <Button onPress={showDialog}>Show Dialog</Button>
+        <Portal>
+          <Dialog visible={visible} onDismiss={hideDialog}>
+            <Dialog.Title>Alert</Dialog.Title>
+            <Dialog.Content>
+              <Text variant="bodyMedium">This is simple dialog</Text>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={hideDialog}>Done</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      </View>
+    </PaperProvider>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Subcomponentes
+
+- **Dialog.Title**: Título del diálogo.
+- **Dialog.Content**: Contenido del diálogo.
+- **Dialog.Actions**: Acciones del diálogo.
+- **Dialog.Icon**: Icono del diálogo.
+
+#### Propiedades principales
+
+- **visible**: boolean - Determina si el diálogo es visible.
+- **dismissable**: boolean - Determina si el diálogo se puede cerrar tocando fuera de él.
+- **onDismiss**: function - Función llamada cuando se cierra el diálogo.
+
+### Divider
+
+Un Divider es un separador delgado y ligero que agrupa contenido en listas y diseños de página.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { View } from "react-native";
+import { Divider, Text } from "react-native-paper";
+
+const MyComponent = () => (
+  <View>
+    <Text>Lemon</Text>
+    <Divider />
+    <Text>Mango</Text>
+    <Divider />
+  </View>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **leftInset**: boolean - (Renombrado de `inset` en v5.x) Determina si el divisor tiene un margen izquierdo.
+- **horizontalInset**: boolean - (Disponible en v5.x con versión de tema 3, valor predeterminado: `false`) Determina si el divisor tiene un margen horizontal en ambos lados.
+- **bold**: boolean - (Disponible en v5.x con versión de tema 3, valor predeterminado: `false`) Determina si el divisor debe ser más grueso (negrita).
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el divisor.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+#### Colores del Tema (MD3)
+
+- **dividerColor**: `theme.colors.outlineVariant`
+
+**Nota:** Puedes personalizar los colores utilizando la prop `theme`. Ejemplo: `<Divider theme={{ colors: { dividerColor: 'red' } }} />`
+
+## Guía de Implementación
+
+### Instalación
+
+Para instalar React Native Paper en tu proyecto, ejecuta uno de los siguientes comandos dependiendo de tu gestor de paquetes:
+
+```bash
+npm install react-native-paper
+```
+
+o
+
+```bash
+yarn add react-native-paper
+```
+
+React Native Paper tiene dependencias que requieren instalación adicional:
+
+```bash
+npm install react-native-vector-icons
+```
+
+Para proyectos que utilizan Expo, puedes simplemente instalar:
+
+```bash
+expo install react-native-paper
+```
+
+### Configuración básica
+
+Para utilizar React Native Paper en tu aplicación, debes envolver tu componente raíz con el proveedor `PaperProvider`:
+
+```jsx
+import * as React from "react";
+import { Provider as PaperProvider } from "react-native-paper";
+import App from "./src/App";
+
+export default function Main() {
+  return (
+    <PaperProvider>
+      <App />
+    </PaperProvider>
+  );
+}
+```
+
+### Configuración de iconos
+
+React Native Paper utiliza `react-native-vector-icons` para mostrar iconos. Necesitas configurar los iconos según la plataforma:
+
+#### Para proyectos React Native CLI:
+
+**Android**: Edita `android/app/build.gradle`:
+
+```gradle
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+```
+
+**iOS**: Edita `ios/Podfile` y ejecuta `pod install`:
+
+```ruby
+pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+```
+
+#### Para proyectos Expo:
+
+No se requiere configuración adicional, ya que Expo incluye los iconos por defecto.
+
+### Tema
+
+React Native Paper proporciona un sistema de temas completo que te permite personalizar la apariencia de tu aplicación.
+
+#### Tema básico
+
+```jsx
+import * as React from "react";
+import { Provider as PaperProvider, DefaultTheme } from "react-native-paper";
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#3498db",
+    accent: "#f1c40f",
+  },
+};
+
+export default function Main() {
+  return (
+    <PaperProvider theme={theme}>
+      <App />
+    </PaperProvider>
+  );
+}
+```
+
+#### Tema oscuro
+
+```jsx
+import * as React from "react";
+import { Provider as PaperProvider, DarkTheme } from "react-native-paper";
+
+export default function Main() {
+  return (
+    <PaperProvider theme={DarkTheme}>
+      <App />
+    </PaperProvider>
+  );
+}
+```
+
+#### Cambio dinámico de tema
+
+```jsx
+import * as React from "react";
+import {
+  Provider as PaperProvider,
+  DefaultTheme,
+  DarkTheme,
+} from "react-native-paper";
+import { useColorScheme } from "react-native";
+
+export default function Main() {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? DarkTheme : DefaultTheme;
+
+  return (
+    <PaperProvider theme={theme}>
+      <App />
+    </PaperProvider>
+  );
+}
+```
+
+### Mejores Prácticas
+
+#### Organización del código
+
+1. **Estructura de componentes**: Organiza tus componentes en carpetas lógicas.
+2. **Reutilización**: Crea componentes reutilizables basados en React Native Paper.
+3. **Temas**: Define un tema consistente para toda tu aplicación.
+
+#### Rendimiento
+
+1. **Memoización**: Utiliza React.memo para componentes que no cambian frecuentemente.
+2. **Lazy loading**: Carga componentes solo cuando sean necesarios.
+3. **Optimización de listas**: Utiliza FlatList o SectionList con renderización optimizada.
+
+#### Accesibilidad
+
+1. **Etiquetas de accesibilidad**: Proporciona etiquetas de accesibilidad para todos los elementos interactivos.
+2. **Contraste**: Asegúrate de que el contraste de color sea suficiente.
+3. **Tamaño de toque**: Haz que los elementos táctiles sean lo suficientemente grandes.
+
+### Ejemplos de Uso Común
+
+#### Formulario de inicio de sesión
+
+```jsx
+import * as React from "react";
+import { View, StyleSheet } from "react-native";
+import { TextInput, Button, HelperText } from "react-native-paper";
+
+const LoginForm = () => {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [secureTextEntry, setSecureTextEntry] = React.useState(true);
+
+  const hasErrors = () => {
+    return !email.includes("@");
+  };
+
+  return (
+    <View style={styles.container}>
+      <TextInput
+        label="Email"
+        value={email}
+        onChangeText={(text) => setEmail(text)}
+        style={styles.input}
+        mode="outlined"
+      />
+      <HelperText type="error" visible={hasErrors()}>
+        Email address is invalid!
+      </HelperText>
+
+      <TextInput
+        label="Password"
+        value={password}
+        onChangeText={(text) => setPassword(text)}
+        secureTextEntry={secureTextEntry}
+        right={
+          <TextInput.Icon
+            icon={secureTextEntry ? "eye" : "eye-off"}
+            onPress={() => setSecureTextEntry(!secureTextEntry)}
+          />
+        }
+        style={styles.input}
+        mode="outlined"
+      />
+
+      <Button
+        mode="contained"
+        onPress={() => console.log("Login")}
+        style={styles.button}
+      >
+        Login
+      </Button>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
+  input: {
+    marginBottom: 8,
+  },
+  button: {
+    marginTop: 16,
+  },
+});
+
+export default LoginForm;
+```
+
+#### Lista de elementos con acciones
+
+```jsx
+import * as React from "react";
+import { View, StyleSheet, FlatList } from "react-native";
+import { List, Divider, FAB } from "react-native-paper";
+
+const data = [
+  { id: "1", title: "Item 1", description: "Description for Item 1" },
+  { id: "2", title: "Item 2", description: "Description for Item 2" },
+  { id: "3", title: "Item 3", description: "Description for Item 3" },
+];
+
+const ItemList = () => {
+  const renderItem = ({ item }) => (
+    <List.Item
+      title={item.title}
+      description={item.description}
+      left={(props) => <List.Icon {...props} icon="folder" />}
+      right={(props) => <List.Icon {...props} icon="dots-vertical" />}
+      onPress={() => console.log("Pressed", item.id)}
+    />
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        ItemSeparatorComponent={() => <Divider />}
+      />
+      <FAB
+        style={styles.fab}
+        icon="plus"
+        onPress={() => console.log("Add new item")}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+  },
+});
+
+export default ItemList;
+```
+
+### Solución de Problemas
+
+#### Problemas comunes y soluciones
+
+1. **Los iconos no se muestran**
+
+   - Asegúrate de haber configurado correctamente react-native-vector-icons.
+   - Verifica que estás utilizando los nombres de iconos correctos.
+
+2. **Problemas de rendimiento**
+
+   - Utiliza componentes puros (React.memo) para evitar renderizaciones innecesarias.
+   - Optimiza las listas con FlatList y sus propiedades de rendimiento.
+
+3. **Problemas de estilo**
+
+   - Utiliza el sistema de temas de React Native Paper en lugar de estilos inline.
+   - Asegúrate de que tus estilos personalizados no entren en conflicto con los estilos de los componentes.
+
+4. **Problemas con el Portal**
+
+   - Asegúrate de que el componente Portal esté dentro de un PaperProvider.
+   - Verifica que no haya múltiples instancias de PaperProvider.
+
+5. **Problemas con la navegación**
+   - Si utilizas react-navigation, asegúrate de integrar correctamente los temas.
+   - Utiliza los componentes de navegación de React Native Paper (Appbar, BottomNavigation) de manera consistente.
+
+### Recursos adicionales
+
+- [Documentación oficial de React Native Paper](https://callstack.github.io/react-native-paper/)
+- [GitHub de React Native Paper](https://github.com/callstack/react-native-paper)
+- [Ejemplos de React Native Paper](https://callstack.github.io/react-native-paper/docs/showcase)
+- [Comunidad de React Native](https://reactnative.dev/community/overview)
