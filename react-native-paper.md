@@ -1460,6 +1460,93 @@ export default MyComponent;
 | ---- | --------------------- |
 | -    | theme.colors.backdrop |
 
+### Portal
+
+El componente Portal permite renderizar un componente en un lugar diferente del árbol de componentes padre. Puedes usarlo para renderizar contenido que debería aparecer por encima de otros elementos, similar a Modal. Requiere que un componente Portal.Host se renderice en algún lugar del árbol padre. Ten en cuenta que si estás usando el componente Provider, este ya incluye un Portal.Host.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Portal, Text } from "react-native-paper";
+
+const MyComponent = () => (
+  <Portal>
+    <Text>Esto se renderiza en un lugar diferente</Text>
+  </Portal>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **children**: React.ReactNode (requerido) - Contenido del Portal.
+- **theme**: InternalTheme - Tema para aplicar al componente.
+
+### Portal.Host
+
+Portal.Host renderiza todos sus elementos Portal hijos. Por ejemplo, puedes envolver una pantalla en Portal.Host para renderizar elementos por encima de la pantalla. Si estás usando el componente Provider, este ya incluye Portal.Host.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Text } from "react-native";
+import { Portal } from "react-native-paper";
+
+const MyComponent = () => (
+  <Portal.Host>
+    <Text>Contenido de la aplicación</Text>
+  </Portal.Host>
+);
+
+export default MyComponent;
+```
+
+Aquí, cualquier elemento Portal bajo `<App />` se renderiza junto a `<App />` y aparecerá por encima de `<App />` como un Modal.
+
+#### Propiedades
+
+- **children**: React.ReactNode (requerido) - Contenido del Portal.Host.
+
+### Divider
+
+Un Divider es un separador delgado y ligero que agrupa contenido en listas y diseños de página.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { View } from "react-native";
+import { Divider, Text } from "react-native-paper";
+
+const MyComponent = () => (
+  <View>
+    <Text>Lemon</Text>
+    <Divider />
+    <Text>Mango</Text>
+    <Divider />
+  </View>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **leftInset**: boolean - (Renombrado de `inset` en v5.x) Determina si el divisor tiene un margen izquierdo.
+- **horizontalInset**: boolean - (Disponible en v5.x con versión de tema 3, valor predeterminado: `false`) Determina si el divisor tiene un margen horizontal en ambos lados.
+- **bold**: boolean - (Disponible en v5.x con versión de tema 3, valor predeterminado: `false`) Determina si el divisor debe ser más grueso (negrita).
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el divisor.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+#### Colores del Tema (MD3)
+
+- **dividerColor**: `theme.colors.outlineVariant`
+
+**Nota:** Puedes personalizar los colores utilizando la prop `theme`. Ejemplo: `<Divider theme={{ colors: { dividerColor: 'red' } }} />`
+
 ## Guía de Implementación
 
 ### Instalación
