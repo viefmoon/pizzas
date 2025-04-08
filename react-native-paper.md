@@ -565,6 +565,208 @@ export default MyComponent;
 
 **Nota:** Puedes personalizar los colores utilizando la prop `theme`. Ejemplo: `<Divider theme={{ colors: { dividerColor: 'red' } }} />`
 
+### Drawer.CollapsedItem
+
+El componente Drawer.CollapsedItem se utiliza para mostrar un elemento de acción con un icono y opcionalmente una etiqueta en un cajón de navegación colapsado.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Drawer } from "react-native-paper";
+
+const MyComponent = () => (
+  <Drawer.CollapsedItem
+    focusedIcon="inbox"
+    unfocusedIcon="inbox-outline"
+    label="Inbox"
+  />
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **label**: string - El texto de la etiqueta del elemento.
+- **badge**: string | number | boolean - Insignia para mostrar en el icono, puede ser true para mostrar un punto, string o número para mostrar texto.
+- **disabled**: boolean - Determina si el elemento está deshabilitado.
+- **focusedIcon**: IconSource - Icono a utilizar como icono de destino enfocado, puede ser una cadena, una fuente de imagen o un componente de React.
+- **unfocusedIcon**: IconSource - Icono a utilizar como icono de destino no enfocado, puede ser una cadena, una fuente de imagen o un componente de React.
+- **active**: boolean - Determina si se debe resaltar el elemento del cajón como activo.
+- **onPress**: function - Función a ejecutar al presionar.
+- **labelMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente de la etiqueta.
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el botón.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el elemento.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+#### Colores del Tema (MD3)
+
+| modo     | backgroundColor                 | textColor                     | iconColor                         |
+| -------- | ------------------------------- | ----------------------------- | --------------------------------- |
+| active   | theme.colors.secondaryContainer | theme.colors.onSurface        | theme.colors.onSecondaryContainer |
+| inactive |                                 | theme.colors.onSurfaceVariant | theme.colors.onSurfaceVariant     |
+
+### Drawer.Item
+
+El componente Drawer.Item se utiliza para mostrar un elemento de acción con un icono y una etiqueta en un cajón de navegación.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Drawer } from "react-native-paper";
+
+const MyComponent = () => (
+  <Drawer.Item
+    style={{ backgroundColor: "#64ffda" }}
+    icon="star"
+    label="First Item"
+  />
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **label**: string (requerido) - El texto de la etiqueta del elemento.
+- **icon**: IconSource - Icono a mostrar para el DrawerItem.
+- **active**: boolean - Determina si se debe resaltar el elemento del cajón como activo.
+- **disabled**: boolean - Determina si el elemento está deshabilitado.
+- **onPress**: function - Función a ejecutar al presionar.
+- **background**: PressableAndroidRippleConfig - Tipo de fondo para mostrar el feedback (Android).
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el botón.
+- **right**: function - Callback que devuelve un elemento React para mostrar en el lado derecho.
+- **labelMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente de la etiqueta.
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el elemento.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+#### Colores del Tema (MD3)
+
+| modo     | backgroundColor                 | iconColor/textColor               |
+| -------- | ------------------------------- | --------------------------------- |
+| active   | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer |
+| inactive |                                 | theme.colors.onSurfaceVariant     |
+
+### Drawer.Section
+
+El componente Drawer.Section se utiliza para agrupar contenido dentro de un cajón de navegación.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Drawer } from "react-native-paper";
+
+const MyComponent = () => {
+  const [active, setActive] = React.useState("");
+
+  return (
+    <Drawer.Section title="Some title">
+      <Drawer.Item
+        label="First Item"
+        active={active === "first"}
+        onPress={() => setActive("first")}
+      />
+      <Drawer.Item
+        label="Second Item"
+        active={active === "second"}
+        onPress={() => setActive("second")}
+      />
+    </Drawer.Section>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **title**: string - Título para mostrar como encabezado de la sección.
+- **children**: React.ReactNode (requerido) - Contenido del Drawer.Section.
+- **showDivider**: boolean - Determina si se muestra un Divider al final de la sección. True por defecto.
+- **titleMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente del título.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para la sección.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+#### Colores del Tema (MD3)
+
+| modo | titleColor                    |
+| ---- | ----------------------------- |
+| -    | theme.colors.onSurfaceVariant |
+
+### FAB (Floating Action Button)
+
+El componente FAB (Floating Action Button) representa la acción principal en una pantalla. Aparece por encima de todo el contenido de la pantalla.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { StyleSheet } from "react-native";
+import { FAB } from "react-native-paper";
+
+const MyComponent = () => (
+  <FAB icon="plus" style={styles.fab} onPress={() => console.log("Pressed")} />
+);
+
+const styles = StyleSheet.create({
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+  },
+});
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **icon**: IconSource - Icono a mostrar en el FAB. Es opcional solo si label está definido.
+- **label**: string - Etiqueta opcional para FAB extendido. Es opcional solo si icon está definido.
+- **uppercase**: boolean - Hace que el texto de la etiqueta esté en mayúsculas.
+- **background**: PressableAndroidRippleConfig - Tipo de fondo para mostrar el feedback (Android).
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el FAB. Usa label por defecto si está especificado.
+- **accessibilityState**: AccessibilityState - Estado de accesibilidad para el FAB.
+- **animated**: boolean - Determina si el cambio de icono está animado. Valor por defecto: true.
+- **small**: boolean - (Obsoleto en v.5x - use prop size="small") Determina si el FAB es de tamaño mini.
+- **color**: string - Color personalizado para el icono y la etiqueta del FAB.
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+- **disabled**: boolean - Determina si el FAB está deshabilitado.
+- **visible**: boolean - Determina si el FAB está actualmente visible. Valor por defecto: true.
+- **loading**: boolean - Determina si se muestra un indicador de carga.
+- **onPress**: function - Función a ejecutar al presionar.
+- **onLongPress**: function - Función a ejecutar al mantener presionado.
+- **delayLongPress**: number - Número de milisegundos que un usuario debe tocar el elemento antes de ejecutar onLongPress.
+- **size**: 'small' | 'medium' | 'large' - Tamaño del FAB. Valor por defecto: 'medium'.
+  - small - FAB con altura pequeña (40).
+  - medium - FAB con altura media predeterminada (56).
+  - large - FAB con altura grande (96).
+- **customSize**: number - Tamaño personalizado para el FAB. Esta prop tiene prioridad sobre la prop size.
+- **mode**: 'flat' | 'elevated' - Modo del FAB. Valor por defecto: 'elevated'.
+  - flat - botón sin sombra.
+  - elevated - botón con sombra.
+- **variant**: 'primary' | 'secondary' | 'tertiary' | 'surface' - Variante de mapeo de colores para combinaciones de colores de contenedor e icono. Valor por defecto: 'primary'.
+- **labelMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente de la etiqueta.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el FAB.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'fab'.
+- **ref**: React.RefObject<View> - Referencia para el componente.
+
+#### Colores del Tema (MD3)
+
+| modo      | backgroundColor                 | textColor/iconColor               |
+| --------- | ------------------------------- | --------------------------------- |
+| disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled    |
+| primary   | theme.colors.primaryContainer   | theme.colors.onPrimaryContainer   |
+| secondary | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer |
+| tertiary  | theme.colors.tertiaryContainer  | theme.colors.onTertiaryContainer  |
+| surface   | theme.colors.elevarion.level3   | theme.colors.primary              |
+
 ## Guía de Implementación
 
 ### Instalación
