@@ -1832,6 +1832,98 @@ export default MyComponent;
 | unchecked |                                 |                                   |                      |
 | disabled  |                                 |                                   |                      |
 
+### Snackbar
+
+Los Snackbars proporcionan retroalimentación breve sobre una operación a través de un mensaje renderizado en la parte inferior del contenedor en el que está envuelto.
+
+Nota: Para mostrarlo como un popup, independientemente de la posición del padre, envuélvelo con un componente Portal.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { View, StyleSheet } from "react-native";
+import { Button, Snackbar } from "react-native-paper";
+
+const MyComponent = () => {
+  const [visible, setVisible] = React.useState(false);
+
+  const onToggleSnackBar = () => setVisible(!visible);
+
+  const onDismissSnackBar = () => setVisible(false);
+
+  return (
+    <View style={styles.container}>
+      <Button onPress={onToggleSnackBar}>{visible ? "Hide" : "Show"}</Button>
+      <Snackbar
+        visible={visible}
+        onDismiss={onDismissSnackBar}
+        action={{
+          label: "Undo",
+          onPress: () => {
+            // Do something
+          },
+        }}
+      >
+        Hey there! I'm a Snackbar.
+      </Snackbar>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+});
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **visible** (requerido): boolean - Determina si el Snackbar está actualmente visible.
+
+- **action**: $RemoveChildren<typeof Button> & { label: string; } - Etiqueta y callback de presión para el botón de acción. Debe contener las siguientes propiedades:
+
+  - **label**: string - Etiqueta del botón de acción
+  - **onPress**: function - Callback que se llama cuando se presiona el botón de acción
+
+- **icon**: IconSource - (Disponible en v5.x con theme version 3) Icono a mostrar cuando onIconPress está definido. Por defecto será el icono de cierre.
+
+- **rippleColor**: ColorValue - (Disponible en v5.x con theme version 3) Color del efecto de ondulación.
+
+- **onIconPress**: () => void - (Disponible en v5.x con theme version 3) Función a ejecutar al presionar el botón de icono. El botón de icono aparece solo cuando se especifica esta prop.
+
+- **iconAccessibilityLabel**: string - (Disponible en v5.x con theme version 3) Etiqueta de accesibilidad para el botón de icono. Esto es leído por el lector de pantalla cuando el usuario toca el botón. Valor por defecto: 'Close icon'.
+
+- **duration**: number - La duración durante la cual se muestra el Snackbar. Valor por defecto: 7000.
+
+- **onDismiss** (requerido): () => void - Callback llamado cuando se descarta el Snackbar. La prop visible debe actualizarse cuando se llama a esto.
+
+- **children** (requerido): React.ReactNode - Contenido de texto del Snackbar.
+
+- **elevation**: 0 | 1 | 2 | 3 | 4 | 5 | Animated.Value - (Disponible en v5.x con theme version 3) Cambia la sombra y el fondo del Snackbar en iOS y Android. Valor por defecto: 2.
+
+- **maxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente del texto.
+
+- **wrapperStyle**: StyleProp<ViewStyle> - Estilo para el contenedor del snackbar.
+
+- **style**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo personalizado para el Snackbar.
+
+- **ref**: React.RefObject<View> - Referencia para el componente.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+- **testID**: string - ID de prueba utilizado con fines de testing.
+
+#### Colores del Tema (MD3)
+
+| modo | iconColor                     |
+| ---- | ----------------------------- |
+| -    | theme.colors.inverseOnSurface |
+
 ## Guía de Implementación
 
 ### Instalación
