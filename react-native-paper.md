@@ -2446,6 +2446,59 @@ export default MyComponent;
 | ---- | ---------------------- | -------------------- |
 | -    | theme.colors.onSurface | theme.colors.surface |
 
+### TouchableRipple
+
+Un contenedor para vistas que deben responder a toques. Proporciona un efecto de interacción de "ondulación de tinta" material para plataformas compatibles (>= Android Lollipop). En plataformas no compatibles, se recurre a un efecto de resaltado.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { View } from "react-native";
+import { Text, TouchableRipple } from "react-native-paper";
+
+const MyComponent = () => (
+  <TouchableRipple
+    onPress={() => console.log("Pressed")}
+    rippleColor="rgba(0, 0, 0, .32)"
+  >
+    <Text>Press anywhere</Text>
+  </TouchableRipple>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **...Pressable props** - Extiende todas las propiedades del componente Pressable.
+
+- **borderless**: boolean - Determina si se debe renderizar el efecto de ondulación fuera de los límites de la vista. Valor por defecto: false.
+
+- **background**: Object - Tipo de fondo drawable para mostrar el feedback (Android). https://reactnative.dev/docs/pressable#rippleconfig
+
+- **centered**: boolean - Determina si el efecto de ondulación debe comenzar desde el centro (Web).
+
+- **disabled**: boolean - Determina si se debe prevenir la interacción con el touchable.
+
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar. Si no se establece, causará que el touchable se deshabilite.
+
+- **onLongPress**: (e: GestureResponderEvent) => void - Función a ejecutar al mantener presionado.
+
+- **onPressIn**: (e: GestureResponderEvent) => void - Función a ejecutar inmediatamente cuando se inicia un toque, antes de onPressOut y onPress.
+
+- **onPressOut**: (e: GestureResponderEvent) => void - Función a ejecutar cuando se libera un toque.
+
+- **rippleColor**: ColorValue - Color del efecto de ondulación (Android >= 5.0 y Web).
+
+- **underlayColor**: string - Color del subrayado para el efecto de resaltado (Android < 5.0 e iOS).
+
+- **children** (requerido): ((state: PressableStateCallbackType) => React.ReactNode) | React.ReactNode - Contenido del TouchableRipple.
+
+- **style**: StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>) | undefined - Estilo personalizado para el componente.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
 ## Guía de Implementación
 
 ### Instalación
@@ -2755,10 +2808,3 @@ export default ItemList;
 5. **Problemas con la navegación**
    - Si utilizas react-navigation, asegúrate de integrar correctamente los temas.
    - Utiliza los componentes de navegación de React Native Paper (Appbar, BottomNavigation) de manera consistente.
-
-### Recursos adicionales
-
-- [Documentación oficial de React Native Paper](https://callstack.github.io/react-native-paper/)
-- [GitHub de React Native Paper](https://github.com/callstack/react-native-paper)
-- [Ejemplos de React Native Paper](https://callstack.github.io/react-native-paper/docs/showcase)
-- [Comunidad de React Native](https://reactnative.dev/community/overview)
