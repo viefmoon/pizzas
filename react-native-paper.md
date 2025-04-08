@@ -1989,6 +1989,48 @@ const styles = StyleSheet.create({
 | flat     | theme.colors.elevation[elevation] |
 | elevated | theme.colors.elevation[elevation] |
 
+### Switch
+
+Switch es un interruptor visual entre dos estados mutuamente exclusivos: encendido y apagado.
+
+Disponible para:
+
+- Android (habilitado)
+- Android (deshabilitado)
+- iOS (habilitado)
+- iOS (deshabilitado)
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Switch } from "react-native-paper";
+
+const MyComponent = () => {
+  const [isSwitchOn, setIsSwitchOn] = React.useState(false);
+
+  const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
+
+  return <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />;
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **disabled**: boolean - Deshabilita la posibilidad de alternar el switch.
+
+- **value**: boolean - Valor del switch, true significa 'encendido', false significa 'apagado'.
+
+- **color**: string - Color personalizado para el switch.
+
+- **onValueChange**: Function - Callback que se llama con el nuevo valor cuando cambia.
+
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el switch.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
 ## Guía de Implementación
 
 ### Instalación
