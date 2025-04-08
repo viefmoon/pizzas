@@ -773,7 +773,7 @@ El componente AnimatedFAB es un botón de acción flotante animado que se extien
 
 #### Uso
 
-````jsx
+```jsx
 import React from "react";
 import {
   StyleProp,
@@ -843,6 +843,7 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
 });
+```
 
 #### Propiedades
 
@@ -870,13 +871,151 @@ const styles = StyleSheet.create({
 
 #### Colores del Tema (MD3)
 
-| modo      | backgroundColor                 | textColor/iconColor                |
-| --------- | ------------------------------- | ---------------------------------- |
-| disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled     |
-| primary   | theme.colors.primaryContainer   | theme.colors.onPrimaryContainer    |
-| secondary | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer  |
-| tertiary  | theme.colors.tertiaryContainer  | theme.colors.onTertiaryContainer   |
-| surface   | theme.colors.elevarion.level3   | theme.colors.primary               |
+| modo      | backgroundColor                 | textColor/iconColor               |
+| --------- | ------------------------------- | --------------------------------- |
+| disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled    |
+| primary   | theme.colors.primaryContainer   | theme.colors.onPrimaryContainer   |
+| secondary | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer |
+| tertiary  | theme.colors.tertiaryContainer  | theme.colors.onTertiaryContainer  |
+| surface   | theme.colors.elevarion.level3   | theme.colors.primary              |
+
+### HelperText
+
+El componente HelperText se utiliza junto con elementos de entrada para proporcionar sugerencias adicionales al usuario.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { View } from "react-native";
+import { HelperText, TextInput } from "react-native-paper";
+
+const MyComponent = () => {
+  const [text, setText] = React.useState("");
+
+  const onChangeText = (text) => setText(text);
+
+  const hasErrors = () => {
+    return !text.includes("@");
+  };
+
+  return (
+    <View>
+      <TextInput label="Email" value={text} onChangeText={onChangeText} />
+      <HelperText type="error" visible={hasErrors()}>
+        Email address is invalid!
+      </HelperText>
+    </View>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **type**: 'error' | 'info' - Tipo del texto de ayuda. Valor por defecto: 'info'.
+- **children**: React.ReactNode (requerido) - Contenido de texto del HelperText.
+- **visible**: boolean - Determina si se muestra el texto de ayuda. Valor por defecto: true.
+- **padding**: 'none' | 'normal' - Determina si se aplica relleno al texto de ayuda. Valor por defecto: 'normal'.
+- **disabled**: boolean - Determina si la entrada de texto vinculada con el texto de ayuda está deshabilitada.
+- **style**: StyleProp<TextStyle> - Estilo personalizado para el texto de ayuda.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **testID**: string - ID de prueba utilizado con fines de testing.
+
+#### Colores del Tema (MD3)
+
+| modo     | textColor                      |
+| -------- | ------------------------------ |
+| disabled | theme.colors.onSurfaceDisabled |
+| default  | theme.colors.onSurfaceVariant  |
+| error    | theme.colors.error             |
+
+### Icon
+
+Un componente de icono que renderiza iconos de bibliotecas vectoriales.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Icon, MD3Colors } from "react-native-paper";
+
+const MyComponent = () => (
+  <Icon source="camera" color={MD3Colors.error50} size={20} />
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **size**: number (requerido) - Tamaño del icono.
+- **allowFontScaling**: boolean - Permite el escalado de fuente.
+- **source**: any (requerido) - Icono a mostrar.
+- **color**: string - Color del icono.
+- **testID**: string - ID de prueba utilizado con fines de testing.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+### IconButton
+
+Un botón de icono es un botón que muestra solo un icono sin etiqueta.
+
+Estilos disponibles:
+
+- default
+- outlined
+- contained
+- contained-tonal
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { IconButton, MD3Colors } from "react-native-paper";
+
+const MyComponent = () => (
+  <IconButton
+    icon="camera"
+    iconColor={MD3Colors.error50}
+    size={20}
+    onPress={() => console.log("Pressed")}
+  />
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **TouchableRipple props** - Extiende las propiedades de TouchableRipple.
+- **icon**: IconSource (requerido) - Icono a mostrar.
+- **mode**: 'outlined' | 'contained' | 'contained-tonal' - Modo del botón de icono. Por defecto no hay un modo específico, solo se renderizará el icono presionable. Disponible en v5.x con la versión 3 del tema.
+- **iconColor**: string - Color del icono. Renombrado de 'color' a 'iconColor' en v5.x.
+- **containerColor**: string - Color de fondo del contenedor del icono.
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+- **selected**: boolean - Determina si el botón de icono está seleccionado. Un botón seleccionado recibe una combinación alternativa de colores de icono y contenedor. Disponible en v5.x con la versión 3 del tema. Valor por defecto: false.
+- **size**: number - Tamaño del icono. Valor por defecto: 24.
+- **disabled**: boolean - Determina si el botón está deshabilitado. Un botón deshabilitado aparece en gris y no se llama a onPress al tocarlo.
+- **animated**: boolean - Determina si el cambio de icono está animado. Valor por defecto: false.
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el botón. Esto es leído por el lector de pantalla cuando el usuario toca el botón.
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar.
+- **style**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo personalizado para el botón.
+- **ref**: React.RefObject<View> - Referencia para el componente.
+- **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'icon-button'.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **loading**: boolean - Determina si se muestra un indicador de carga. Valor por defecto: false.
+
+#### Colores del Tema (MD3)
+
+| selected        | mode            | iconColor                         | backgroundColor                 | borderColor |
+| --------------- | --------------- | --------------------------------- | ------------------------------- | ----------- |
+| no seleccionado | default         | theme.colors.primary              |                                 |             |
+| no seleccionado | outlined        | theme.colors.inverseOnSurface     | theme.colors.inverseSurface     |             |
+| no seleccionado | contained       | theme.colors.onPrimary            | theme.colors.primary            |             |
+| no seleccionado | contained-tonal | theme.colors.onSecondaryContainer | theme.colors.secondaryContainer |             |
+| seleccionado    |                 |                                   |                                 |             |
+| deshabilitado   |                 |                                   |                                 |             |
 
 ### FAB.Group
 
@@ -933,7 +1072,7 @@ const MyComponent = () => {
 };
 
 export default MyComponent;
-````
+```
 
 #### Propiedades
 
