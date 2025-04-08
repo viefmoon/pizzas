@@ -1,7 +1,4 @@
-import React from "react";
-import {
-  StyleSheet,
-  View,
+import React from "react"; 
   Image,
   KeyboardAvoidingView,
   Platform,

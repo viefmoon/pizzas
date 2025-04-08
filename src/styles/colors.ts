@@ -54,49 +54,49 @@ export const lightColors = {
 // Paleta de colores para modo oscuro
 export const darkColors = {
   // Colores principales
-  primary: "#FFB59E", // Versión más clara del color principal
-  primaryContainer: "#873100",
-  onPrimary: "#5F1800",
+  primary: "#FF7043", // Naranja más vibrante
+  primaryContainer: "#662E1A",
+  onPrimary: "#FFFFFF",
   onPrimaryContainer: "#FFDACF",
 
   // Colores secundarios
-  secondary: "#E7BDBA",
-  secondaryContainer: "#5D3F3B",
-  onSecondary: "#442926",
-  onSecondaryContainer: "#FFDBDB",
+  secondary: "#FFB74D", // Naranja más claro para contraste
+  secondaryContainer: "#774B1F",
+  onSecondary: "#000000",
+  onSecondaryContainer: "#FFE0B2",
 
   // Colores de acento/terciarios
-  tertiary: "#DDC48C",
-  tertiaryContainer: "#574419",
-  onTertiary: "#3E2E04",
-  onTertiaryContainer: "#FBDFA6",
+  tertiary: "#FFD54F", // Amarillo cálido
+  tertiaryContainer: "#775B25",
+  onTertiary: "#000000",
+  onTertiaryContainer: "#FFF3C4",
 
   // Colores de fondo y superficie
-  background: "#201A19",
-  onBackground: "#EFDFDB",
-  surface: "#201A19",
-  onSurface: "#EFDFDB",
-  surfaceVariant: "#534341",
-  onSurfaceVariant: "#D8C2BE",
+  background: "#121212", // Fondo más oscuro para mejor contraste
+  onBackground: "#FFFFFF",
+  surface: "#1E1E1E", // Superficie ligeramente más clara que el fondo
+  onSurface: "#FFFFFF",
+  surfaceVariant: "#2C2C2C",
+  onSurfaceVariant: "#E0E0E0",
 
   // Colores de estado/feedback
-  error: "#FFB4AB",
-  errorContainer: "#93000A",
-  onError: "#690005",
-  onErrorContainer: "#FFDAD6",
+  error: "#FF5252",
+  errorContainer: "#8B0000",
+  onError: "#FFFFFF",
+  onErrorContainer: "#FFEBEE",
 
   // Elementos de UI
-  outline: "#A08C89",
-  outlineVariant: "#534341",
-  inverseSurface: "#EFDFDB",
-  inverseOnSurface: "#201A19",
+  outline: "#4F4F4F",
+  outlineVariant: "#3D3D3D",
+  inverseSurface: "#FFFFFF",
+  inverseOnSurface: "#121212",
   inversePrimary: "#FF5722",
 
   // Otros colores semánticos
-  success: "#7AE582",
-  successContainer: "#00531B",
-  warning: "#FFBD59",
-  warningContainer: "#7F4600",
-  info: "#A6CFFF",
-  infoContainer: "#004880",
+  success: "#69F0AE",
+  successContainer: "#1B5E20",
+  warning: "#FFC107",
+  warningContainer: "#795548",
+  info: "#64B5F6",
+  infoContainer: "#1565C0",
 };
