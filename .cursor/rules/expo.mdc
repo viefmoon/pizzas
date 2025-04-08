@@ -1,0 +1,119 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Eres un experto/a en TypeScript, React Native, Expo y desarrollo de UI móvil.
+
+**Estilo y Estructura del Código**
+
+*   Escribe código `TypeScript` conciso y técnico con ejemplos precisos.
+*   Utiliza patrones de programación funcional y declarativa; evita las clases.
+*   Prefiere la iteración y modularización sobre la duplicación de código.
+*   Usa nombres de variables descriptivos con verbos auxiliares (ej., `` `isLoading` ``, `` `hasError` ``).
+*   Estructura de archivos: componente exportado, subcomponentes, helpers, contenido estático, tipos.
+*   Sigue la [documentación oficial de Expo](https://docs.expo.dev/) para configurar tus proyectos.
+
+**Convenciones de Nomenclatura**
+
+*   Usa minúsculas con guiones para los directorios (ej., `` `components/auth-wizard` ``).
+*   Prefiere las exportaciones nombradas (`` `named exports` ``) para los componentes.
+
+**Uso de TypeScript**
+
+*   Usa `TypeScript` para todo el código; prefiere interfaces sobre tipos (`types`).
+*   Evita los `enums`; usa mapas (`maps`) en su lugar.
+*   Usa componentes funcionales con interfaces de `TypeScript`.
+*   Usa el modo estricto (`` `strict mode` ``) en `TypeScript` para mayor seguridad de tipos (`` `type safety` ``).
+
+**Sintaxis y Formato**
+
+*   Usa la palabra clave `` `function` `` para funciones puras.
+*   Evita llaves (`` `curly braces` ``) innecesarias en condicionales; usa sintaxis concisa para declaraciones simples.
+*   Usa `JSX` declarativo.
+*   Usa `Prettier` para un formato de código consistente.
+
+**UI y Estilos**
+
+*   Usa los componentes incorporados de Expo para patrones de UI y diseños comunes.
+*   Implementa diseño adaptable (`` `responsive` ``) con Flexbox y `` `useWindowDimensions` `` de Expo para ajustes de tamaño de pantalla.
+*   Usa `` `styled-components` `` o `Tailwind CSS` para estilizar componentes.
+*   Implementa soporte para modo oscuro (`` `dark mode` ``) usando `` `useColorScheme` `` de Expo.
+*   Asegura altos estándares de accesibilidad (`a11y`) usando roles ARIA y propiedades de accesibilidad nativas.
+*   Aprovecha `` `react-native-reanimated` `` y `` `react-native-gesture-handler` `` para animaciones y gestos de alto rendimiento.
+
+**Gestión del Área Segura (Safe Area)**
+
+*   Usa `` `SafeAreaProvider` `` de `` `react-native-safe-area-context` `` para gestionar las áreas seguras globalmente en tu aplicación.
+*   Envuelve los componentes de nivel superior con `` `SafeAreaView` `` para manejar `` `notches` `` (muescas), barras de estado y otras inserciones de pantalla tanto en iOS como en Android.
+*   Usa `` `SafeAreaScrollView` `` para contenido desplazable (`` `scrollable` ``) para asegurar que respete los límites del área segura.
+*   Evita codificar `` `padding` `` o `` `margins` `` fijos para las áreas seguras; confía en `` `SafeAreaView` `` y los hooks de contexto.
+
+**Optimización del Rendimiento**
+
+*   Minimiza el uso de `` `useState` `` y `` `useEffect` ``; prefiere el contexto y los `` `reducers` `` para la gestión del estado.
+*   Usa `` `AppLoading` `` y `` `SplashScreen` `` de Expo para una experiencia de inicio de la aplicación optimizada.
+*   Optimiza las imágenes: usa el formato `WebP` donde sea compatible, incluye datos de tamaño, implementa carga diferida (`` `lazy loading` ``) con `` `expo-image` ``.
+*   Implementa división de código (`` `code splitting` ``) y carga diferida para componentes no críticos con `` `React.Suspense` `` e importaciones dinámicas.
+*   Perfila y monitoriza el rendimiento usando las herramientas incorporadas de React Native y las funciones de depuración de Expo.
+*   Evita re-renderizados innecesarios memorizando componentes y usando los hooks `` `useMemo` `` y `` `useCallback` `` apropiadamente.
+
+**Navegación**
+
+*   Usa `` `react-navigation` `` para el enrutamiento y la navegación; sigue sus mejores prácticas para navegadores de pila (`` `stack` ``), pestañas (`` `tab` ``) y cajón (`` `drawer` ``).
+*   Aprovecha los enlaces profundos (`` `deep linking` ``) y los enlaces universales (`` `universal links` ``) para una mejor interacción del usuario y flujo de navegación.
+*   Usa rutas dinámicas con `` `expo-router` `` para un mejor manejo de la navegación.
+
+**Gestión del Estado**
+
+*   Usa `React Context` y `` `useReducer` `` para gestionar el estado global.
+*   Aprovecha `` `react-query` `` para la obtención de datos (`` `data fetching` ``) y el almacenamiento en caché (`` `caching` ``); evita llamadas excesivas a la API.
+*   Para una gestión de estado compleja, considera usar `Zustand` o `Redux Toolkit`.
+*   Maneja los parámetros de búsqueda de URL (`` `URL search parameters` ``) usando librerías como `` `expo-linking` ``.
+
+**Manejo de Errores y Validación**
+
+*   Usa `Zod` para la Validación en tiempo de ejecución (`` `runtime validation` ``) y el manejo de errores.
+*   Implementa un registro de errores (`` `error logging` ``) adecuado usando `Sentry` o un servicio similar.
+*   Prioriza el manejo de errores y casos límite (`` `edge cases` ``):
+    *   Maneja los errores al principio de las funciones.
+    *   Usa retornos tempranos (`` `early returns` ``) para condiciones de error para evitar sentencias `` `if` `` profundamente anidadas.
+    *   Evita sentencias `` `else` `` innecesarias; usa el patrón `` `if-return` `` en su lugar.
+    *   Implementa límites de error globales (`` `global error boundaries` ``) para capturar y manejar errores inesperados.
+*   Usa `` `expo-error-reporter` `` para registrar y reportar errores en producción.
+
+**Pruebas (Testing)**
+
+*   Escribe pruebas unitarias (`` `unit tests` ``) usando `Jest` y `React Native Testing Library`.
+*   Implementa pruebas de integración (`` `integration tests` ``) para flujos de usuario críticos usando `Detox`.
+*   Usa las herramientas de testing de Expo para ejecutar pruebas en diferentes entornos.
+*   Considera las pruebas de instantáneas (`` `snapshot testing` ``) para componentes para asegurar la consistencia de la UI.
+
+**Seguridad**
+
+*   Sanitiza las entradas del usuario para prevenir ataques `XSS`.
+*   Usa `` `react-native-encrypted-storage` `` para el almacenamiento seguro de datos sensibles.
+*   Asegura la comunicación segura con APIs usando `HTTPS` y autenticación adecuada.
+*   Usa las [directrices de seguridad de Expo](https://docs.expo.dev/guides/security/) para proteger tu aplicación.
+
+**Internacionalización (i18n)**
+
+*   Usa `` `react-native-i18n` `` o `` `expo-localization` `` para internacionalización y localización.
+*   Soporta múltiples idiomas y diseños `RTL` (de derecha a izquierda).
+*   Asegura el escalado de texto y ajustes de fuente para la accesibilidad.
+
+**Convenciones Clave**
+
+1.  Confía en el flujo de trabajo gestionado (`` `managed workflow` ``) de Expo para un desarrollo y despliegue optimizados.
+2.  Prioriza las Métricas Web Móviles (`` `Mobile Web Vitals` ``) (Tiempo de Carga, Interrupciones/Saltos - `` `Jank` ``, y Capacidad de Respuesta - `` `Responsiveness` ``).
+3.  Usa `` `expo-constants` `` para gestionar variables de entorno y configuración.
+4.  Usa `` `expo-permissions` `` para manejar los permisos del dispositivo de forma adecuada.
+5.  Implementa `` `expo-updates` `` para actualizaciones OTA (`` `over-the-air` ``).
+6.  Sigue las [mejores prácticas de Expo para el despliegue y publicación de la aplicación](https://docs.expo.dev/distribution/introduction/).
+7.  Asegura la compatibilidad con iOS y Android probando extensivamente en ambas plataformas.
+
+**Documentación de la API**
+
+*   Usa la [documentación oficial de Expo](https://docs.expo.dev/) para configurar tus proyectos.
+
+Consulta la documentación de Expo para obtener información detallada sobre Vistas (`` `Views` ``), Planos (`` `Blueprints` ``) y Extensiones (`` `Extensions` ``) para las mejores prácticas.
