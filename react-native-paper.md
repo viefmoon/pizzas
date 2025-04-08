@@ -2270,6 +2270,141 @@ export default MyComponent;
 
 - **theme**: ThemeProp - Tema para aplicar al componente.
 
+### ToggleButton
+
+Los botones de alternancia (Toggle buttons) se pueden usar para agrupar opciones relacionadas. Para enfatizar grupos de botones de alternancia relacionados, un grupo debe compartir un contenedor común.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { ToggleButton } from "react-native-paper";
+
+const ToggleButtonExample = () => {
+  const [status, setStatus] = React.useState("checked");
+
+  const onButtonToggle = (value) => {
+    setStatus(status === "checked" ? "unchecked" : "checked");
+  };
+
+  return (
+    <ToggleButton
+      icon="bluetooth"
+      value="bluetooth"
+      status={status}
+      onPress={onButtonToggle}
+    />
+  );
+};
+
+export default ToggleButtonExample;
+```
+
+#### Propiedades
+
+- **icon** (requerido): IconSource - Icono a mostrar en el ToggleButton.
+
+- **size**: number - Tamaño del icono.
+
+- **iconColor**: string - Color de texto personalizado para el botón.
+
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+
+- **disabled**: boolean - Determina si el botón está deshabilitado.
+
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el ToggleButton. Esto es leído por el lector de pantalla cuando el usuario toca el botón.
+
+- **onPress**: (value?: GestureResponderEvent | string) => void - Función a ejecutar al presionar.
+
+- **value**: string - Valor del botón.
+
+- **status**: 'checked' | 'unchecked' - Estado del botón.
+
+- **style**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo personalizado para el botón.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+- **ref**: React.RefObject<View> - Referencia para el componente.
+
+- **testID**: string - ID de prueba utilizado con fines de testing.
+
+### ToggleButton.Group
+
+ToggleButton.Group permite controlar un grupo de botones de alternancia. No cambia la apariencia de los botones de alternancia. Si deseas agruparlos en una fila, consulta ToggleButton.Row.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { ToggleButton } from "react-native-paper";
+
+const MyComponent = () => {
+  const [value, setValue] = React.useState("left");
+
+  return (
+    <ToggleButton.Group
+      onValueChange={(value) => setValue(value)}
+      value={value}
+    >
+      <ToggleButton icon="format-align-left" value="left" />
+      <ToggleButton icon="format-align-right" value="right" />
+    </ToggleButton.Group>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **onValueChange** (requerido): (value: Value) => void - Función a ejecutar cuando cambia la selección.
+
+- **value** (requerido): Value | null - Valor del botón de alternancia actualmente seleccionado.
+
+- **children** (requerido): React.ReactNode - Elementos React que contienen botones de alternancia.
+
+### ToggleButton.Row
+
+ToggleButton.Row renderiza un grupo de botones de alternancia en una fila.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { ToggleButton } from "react-native-paper";
+
+const MyComponent = () => {
+  const [value, setValue] = React.useState("left");
+
+  return (
+    <ToggleButton.Row onValueChange={(value) => setValue(value)} value={value}>
+      <ToggleButton icon="format-align-left" value="left" />
+      <ToggleButton icon="format-align-right" value="right" />
+    </ToggleButton.Row>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **onValueChange** (requerido): (value: string) => void - Función a ejecutar cuando cambia la selección.
+
+- **value** (requerido): string - Valor del botón de alternancia actualmente seleccionado.
+
+- **children** (requerido): React.ReactNode - Elementos React que contienen botones de alternancia.
+
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para la fila.
+
+#### Colores del Tema (MD3)
+
+| modo      | backgroundColor                 | iconColor                         |
+| --------- | ------------------------------- | --------------------------------- |
+| checked   | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer |
+| unchecked | theme.colors.surface            | theme.colors.onSurface            |
+| disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled    |
+
 ## Guía de Implementación
 
 ### Instalación
