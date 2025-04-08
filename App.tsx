@@ -4,8 +4,6 @@ import { StyleSheet, Text, View } from "react-native";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// Importar componentes y stores
 import { useThemeStore, useSystemThemeDetector } from "./src/store/themeStore";
 import GlobalSnackbar from "./src/components/common/GlobalSnackbar";
 import LoginScreen from "./src/screens/auth/LoginScreen";

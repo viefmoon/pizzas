@@ -4,6 +4,20 @@ import type { MD3Typescale } from "react-native-paper/lib/typescript/types";
 import { lightColors, darkColors } from "./colors";
 import { typography } from "./typography";
 
+// Extender el tipo MD3Colors para incluir nuestros colores personalizados
+declare global {
+  namespace ReactNativePaper {
+    interface MD3Colors {
+      success: string;
+      successContainer: string;
+      warning: string;
+      warningContainer: string;
+      info: string;
+      infoContainer: string;
+    }
+  }
+}
+
 // Define el espacio entre elementos UI (basado en Material Design)
 const spacing = {
   xs: 4,
@@ -16,6 +30,7 @@ const spacing = {
 
 // Convertir nuestra tipografía a la estructura esperada por MD3Theme
 const typescale: MD3Typescale = {
+  default: typography.default,
   displayLarge: typography.displayLarge,
   displayMedium: typography.displayMedium,
   displaySmall: typography.displaySmall,

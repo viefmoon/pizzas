@@ -1,11 +1,11 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import { Snackbar, useTheme } from "react-native-paper";
-
+import { Snackbar } from "react-native-paper";
+import { useAppTheme } from "../../styles/theme";
 import { useSnackbarStore, SnackbarType } from "../../store/snackbarStore";
 
 const GlobalSnackbar = () => {
-  const theme = useTheme();
+  const theme = useAppTheme();
 
   // Obtener el estado del snackbar del store
   const { visible, message, type, duration, action, hideSnackbar } =
@@ -19,12 +19,12 @@ const GlobalSnackbar = () => {
     // De lo contrario, usa duraciones por defecto según el tipo
     switch (type) {
       case "error":
-        return 6000; // Errores visibles por más tiempo
+        return 4000; // Errores visibles por más tiempo
       case "success":
-        return 3000; // Éxitos por tiempo medio
+        return 2000; // Éxitos por tiempo medio
       case "info":
       case "warning":
-        return 4000; // Info y advertencias por tiempo medio-largo
+        return 3000; // Info y advertencias por tiempo medio-largo
       default:
         return 4000; // Por defecto
     }

@@ -1,9 +1,10 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme, Text } from "react-native-paper";
+import { Text } from "react-native-paper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native"; // Para navegar después del login
+import { useAppTheme } from "../../styles/theme"; // Importamos useAppTheme en lugar de useTheme
 
 import LoginForm from "../../components/auth/LoginForm";
 import apiClient from "../../services/apiClient"; // Cambiado a importación por defecto
@@ -15,7 +16,7 @@ import {
 import { useSnackbarStore } from "../../store/snackbarStore"; // Importamos el store del Snackbar global
 
 const LoginScreen = () => {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const queryClient = useQueryClient();
   const navigation = useNavigation(); // Hook de navegación
   const { showSnackbar } = useSnackbarStore(); // Usamos el Snackbar global

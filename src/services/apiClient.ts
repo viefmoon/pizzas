@@ -1,9 +1,10 @@
-import { create } from 'apisauce';
+import { create } from "apisauce";
+import { API_BASE_URL } from "@env";
 
 // Define la URL base de tu API
 const apiClient = create({
-  baseURL: 'http://localhost:3000/', // URL base proporcionada
-  headers: { 'Cache-Control': 'no-cache', 'Accept': 'application/json' },
+  baseURL: API_BASE_URL,
+  headers: { "Cache-Control": "no-cache", Accept: "application/json" },
   // Puedes añadir un timeout si lo necesitas, por ejemplo 10 segundos
   // timeout: 10000,
 });

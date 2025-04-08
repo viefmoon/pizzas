@@ -1,10 +1,15 @@
 // Define los estilos tipográficos según Material Design 3
 // Estos valores se pueden ajustar según las necesidades específicas del diseño
 
-import { MD3Type } from "react-native-paper/lib/typescript/types";
+import { MD3Type, MD3Typescale } from "react-native-paper/lib/typescript/types";
 
 // Configuración de la tipografía según Material Design 3
-export const typography: MD3Type = {
+export const typography: MD3Typescale = {
+  default: {
+    fontFamily: "sans-serif",
+    fontWeight: "400",
+    letterSpacing: 0,
+  },
   // Fuentes de display (títulos grandes)
   displayLarge: {
     fontFamily: "sans-serif",
