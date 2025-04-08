@@ -19,8 +19,6 @@ import { ActivityIndicator } from "react-native-paper";
 const MyComponent = () => (
   <ActivityIndicator animating={true} color="#00ff00" />
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -48,8 +46,6 @@ const MyComponent = () => (
     <Appbar.Action icon="dots-vertical" onPress={() => {}} />
   </Appbar.Header>
 );
-
-export default MyComponent;
 ```
 
 #### Subcomponentes
@@ -83,8 +79,6 @@ const MyComponent = () => (
     <Avatar.Text size={24} label="XD" />
   </>
 );
-
-export default MyComponent;
 ```
 
 #### Subcomponentes
@@ -112,8 +106,6 @@ import * as React from "react";
 import { Badge } from "react-native-paper";
 
 const MyComponent = () => <Badge>3</Badge>;
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -159,8 +151,6 @@ const MyComponent = () => {
     </Banner>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -206,8 +196,6 @@ const MyComponent = () => {
     />
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -249,8 +237,6 @@ const MyComponent = () => (
     </Button>
   </>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -294,8 +280,6 @@ const MyComponent = () => (
     </Card.Actions>
   </Card>
 );
-
-export default MyComponent;
 ```
 
 #### Subcomponentes
@@ -334,8 +318,6 @@ const MyComponent = () => {
     />
   );
 };
-
-export default MyComponent;
 ```
 
 #### Subcomponentes
@@ -367,8 +349,6 @@ const MyComponent = () => (
     Example Chip
   </Chip>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -457,8 +437,6 @@ const MyComponent = () => {
     </DataTable>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Subcomponentes
@@ -511,8 +489,6 @@ const MyComponent = () => {
     </PaperProvider>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Subcomponentes
@@ -547,8 +523,6 @@ const MyComponent = () => (
     <Divider />
   </View>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -558,12 +532,6 @@ export default MyComponent;
 - **bold**: boolean - (Disponible en v5.x con versión de tema 3, valor predeterminado: `false`) Determina si el divisor debe ser más grueso (negrita).
 - **style**: StyleProp<ViewStyle> - Estilo personalizado para el divisor.
 - **theme**: ThemeProp - Tema para aplicar al componente.
-
-#### Colores del Tema (MD3)
-
-- **dividerColor**: `theme.colors.outlineVariant`
-
-**Nota:** Puedes personalizar los colores utilizando la prop `theme`. Ejemplo: `<Divider theme={{ colors: { dividerColor: 'red' } }} />`
 
 ### Drawer.CollapsedItem
 
@@ -582,8 +550,6 @@ const MyComponent = () => (
     label="Inbox"
   />
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -599,13 +565,6 @@ export default MyComponent;
 - **accessibilityLabel**: string - Etiqueta de accesibilidad para el botón.
 - **style**: StyleProp<ViewStyle> - Estilo personalizado para el elemento.
 - **theme**: ThemeProp - Tema para aplicar al componente.
-
-#### Colores del Tema (MD3)
-
-| modo     | backgroundColor                 | textColor                     | iconColor                         |
-| -------- | ------------------------------- | ----------------------------- | --------------------------------- |
-| active   | theme.colors.secondaryContainer | theme.colors.onSurface        | theme.colors.onSecondaryContainer |
-| inactive |                                 | theme.colors.onSurfaceVariant | theme.colors.onSurfaceVariant     |
 
 ### Drawer.Item
 
@@ -624,8 +583,6 @@ const MyComponent = () => (
     label="First Item"
   />
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -642,13 +599,6 @@ export default MyComponent;
 - **rippleColor**: ColorValue - Color del efecto de ondulación.
 - **style**: StyleProp<ViewStyle> - Estilo personalizado para el elemento.
 - **theme**: ThemeProp - Tema para aplicar al componente.
-
-#### Colores del Tema (MD3)
-
-| modo     | backgroundColor                 | iconColor/textColor               |
-| -------- | ------------------------------- | --------------------------------- |
-| active   | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer |
-| inactive |                                 | theme.colors.onSurfaceVariant     |
 
 ### Drawer.Section
 
@@ -678,8 +628,6 @@ const MyComponent = () => {
     </Drawer.Section>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -690,12 +638,6 @@ export default MyComponent;
 - **titleMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente del título.
 - **style**: StyleProp<ViewStyle> - Estilo personalizado para la sección.
 - **theme**: ThemeProp - Tema para aplicar al componente.
-
-#### Colores del Tema (MD3)
-
-| modo | titleColor                    |
-| ---- | ----------------------------- |
-| -    | theme.colors.onSurfaceVariant |
 
 ### FAB (Floating Action Button)
 
@@ -720,8 +662,6 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
 });
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -756,16 +696,6 @@ export default MyComponent;
 - **theme**: ThemeProp - Tema para aplicar al componente.
 - **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'fab'.
 - **ref**: React.RefObject<View> - Referencia para el componente.
-
-#### Colores del Tema (MD3)
-
-| modo      | backgroundColor                 | textColor/iconColor               |
-| --------- | ------------------------------- | --------------------------------- |
-| disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled    |
-| primary   | theme.colors.primaryContainer   | theme.colors.onPrimaryContainer   |
-| secondary | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer |
-| tertiary  | theme.colors.tertiaryContainer  | theme.colors.onTertiaryContainer  |
-| surface   | theme.colors.elevarion.level3   | theme.colors.primary              |
 
 ### AnimatedFAB
 
@@ -831,8 +761,6 @@ const MyComponent = ({
   );
 };
 
-export default MyComponent;
-
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -869,16 +797,6 @@ const styles = StyleSheet.create({
 - **theme**: ThemeProp - Tema para aplicar al componente.
 - **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'animated-fab'.
 
-#### Colores del Tema (MD3)
-
-| modo      | backgroundColor                 | textColor/iconColor               |
-| --------- | ------------------------------- | --------------------------------- |
-| disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled    |
-| primary   | theme.colors.primaryContainer   | theme.colors.onPrimaryContainer   |
-| secondary | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer |
-| tertiary  | theme.colors.tertiaryContainer  | theme.colors.onTertiaryContainer  |
-| surface   | theme.colors.elevarion.level3   | theme.colors.primary              |
-
 ### HelperText
 
 El componente HelperText se utiliza junto con elementos de entrada para proporcionar sugerencias adicionales al usuario.
@@ -908,8 +826,6 @@ const MyComponent = () => {
     </View>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -922,14 +838,6 @@ export default MyComponent;
 - **style**: StyleProp<TextStyle> - Estilo personalizado para el texto de ayuda.
 - **theme**: ThemeProp - Tema para aplicar al componente.
 - **testID**: string - ID de prueba utilizado con fines de testing.
-
-#### Colores del Tema (MD3)
-
-| modo     | textColor                      |
-| -------- | ------------------------------ |
-| disabled | theme.colors.onSurfaceDisabled |
-| default  | theme.colors.onSurfaceVariant  |
-| error    | theme.colors.error             |
 
 ### Icon
 
@@ -944,8 +852,6 @@ import { Icon, MD3Colors } from "react-native-paper";
 const MyComponent = () => (
   <Icon source="camera" color={MD3Colors.error50} size={20} />
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -982,8 +888,6 @@ const MyComponent = () => (
     onPress={() => console.log("Pressed")}
   />
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1005,17 +909,6 @@ export default MyComponent;
 - **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'icon-button'.
 - **theme**: ThemeProp - Tema para aplicar al componente.
 - **loading**: boolean - Determina si se muestra un indicador de carga. Valor por defecto: false.
-
-#### Colores del Tema (MD3)
-
-| selected        | mode            | iconColor                         | backgroundColor                 | borderColor |
-| --------------- | --------------- | --------------------------------- | ------------------------------- | ----------- |
-| no seleccionado | default         | theme.colors.primary              |                                 |             |
-| no seleccionado | outlined        | theme.colors.inverseOnSurface     | theme.colors.inverseSurface     |             |
-| no seleccionado | contained       | theme.colors.onPrimary            | theme.colors.primary            |             |
-| no seleccionado | contained-tonal | theme.colors.onSecondaryContainer | theme.colors.secondaryContainer |             |
-| seleccionado    |                 |                                   |                                 |             |
-| deshabilitado   |                 |                                   |                                 |             |
 
 ### List.Accordion
 
@@ -1054,8 +947,6 @@ const MyComponent = () => {
     </List.Section>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1114,8 +1005,6 @@ const MyComponent = () => (
     <Menu.Item leadingIcon="content-paste" onPress={() => {}} title="Paste" />
   </View>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1136,13 +1025,6 @@ export default MyComponent;
 - **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'menu-item'.
 - **accessibilityLabel**: string - Etiqueta de accesibilidad para el Touchable. Esto es leído por el lector de pantalla cuando el usuario toca el componente.
 - **accessibilityState**: AccessibilityState - Estado de accesibilidad para el Touchable. Esto es leído por el lector de pantalla cuando el usuario toca el componente.
-
-#### Colores del Tema (MD3)
-
-| modo     | textColor                      | iconColor                      |
-| -------- | ------------------------------ | ------------------------------ |
-| default  | theme.colors.onSurface         | theme.colors.onSurfaceVariant  |
-| disabled | theme.colors.onSurfaceDisabled | theme.colors.onSurfaceDisabled |
 
 ### List.AccordionGroup
 
@@ -1174,8 +1056,6 @@ const MyComponent = () => (
     </View>
   </List.AccordionGroup>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1201,8 +1081,6 @@ const MyComponent = () => (
     <List.Icon color={MD3Colors.tertiary70} icon="calendar" />
   </>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1229,8 +1107,6 @@ const MyComponent = () => (
     left={(props) => <List.Icon {...props} icon="folder" />}
   />
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1274,8 +1150,6 @@ const MyComponent = () => (
     />
   </List.Section>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1297,8 +1171,6 @@ import * as React from "react";
 import { List } from "react-native-paper";
 
 const MyComponent = () => <List.Subheader>My List Title</List.Subheader>;
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1360,8 +1232,6 @@ const MyComponent = () => {
     </PaperProvider>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1437,8 +1307,6 @@ const MyComponent = () => {
     </PaperProvider>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1453,12 +1321,6 @@ export default MyComponent;
 - **style**: StyleProp<ViewStyle> - Estilo para el contenedor del modal. Usa esta prop para cambiar el estilo del contenedor predeterminado o para sobrescribir los márgenes de seguridad con marginTop y marginBottom.
 - **theme**: ThemeProp - Tema para aplicar al componente.
 - **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'modal'.
-
-#### Colores del Tema (MD3)
-
-| modo | backgroundColor       |
-| ---- | --------------------- |
-| -    | theme.colors.backdrop |
 
 ### Portal
 
@@ -1475,8 +1337,6 @@ const MyComponent = () => (
     <Text>Esto se renderiza en un lugar diferente</Text>
   </Portal>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1500,8 +1360,6 @@ const MyComponent = () => (
     <Text>Contenido de la aplicación</Text>
   </Portal.Host>
 );
-
-export default MyComponent;
 ```
 
 Aquí, cualquier elemento Portal bajo `<App />` se renderiza junto a `<App />` y aparecerá por encima de `<App />` como un Modal.
@@ -1509,43 +1367,6 @@ Aquí, cualquier elemento Portal bajo `<App />` se renderiza junto a `<App />` y
 #### Propiedades
 
 - **children**: React.ReactNode (requerido) - Contenido del Portal.Host.
-
-### Divider
-
-Un Divider es un separador delgado y ligero que agrupa contenido en listas y diseños de página.
-
-#### Uso
-
-```jsx
-import * as React from "react";
-import { View } from "react-native";
-import { Divider, Text } from "react-native-paper";
-
-const MyComponent = () => (
-  <View>
-    <Text>Lemon</Text>
-    <Divider />
-    <Text>Mango</Text>
-    <Divider />
-  </View>
-);
-
-export default MyComponent;
-```
-
-#### Propiedades
-
-- **leftInset**: boolean - (Renombrado de `inset` en v5.x) Determina si el divisor tiene un margen izquierdo.
-- **horizontalInset**: boolean - (Disponible en v5.x con versión de tema 3, valor predeterminado: `false`) Determina si el divisor tiene un margen horizontal en ambos lados.
-- **bold**: boolean - (Disponible en v5.x con versión de tema 3, valor predeterminado: `false`) Determina si el divisor debe ser más grueso (negrita).
-- **style**: StyleProp<ViewStyle> - Estilo personalizado para el divisor.
-- **theme**: ThemeProp - Tema para aplicar al componente.
-
-#### Colores del Tema (MD3)
-
-- **dividerColor**: `theme.colors.outlineVariant`
-
-**Nota:** Puedes personalizar los colores utilizando la prop `theme`. Ejemplo: `<Divider theme={{ colors: { dividerColor: 'red' } }} />`
 
 ### ProgressBar
 
@@ -1560,8 +1381,6 @@ import { ProgressBar, MD3Colors } from "react-native-paper";
 const MyComponent = () => (
   <ProgressBar progress={0.5} color={MD3Colors.error50} />
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1575,12 +1394,6 @@ export default MyComponent;
 - **style**: StyleProp<ViewStyle> - Estilo personalizado para la barra de progreso.
 - **theme**: ThemeProp - Tema para aplicar al componente.
 - **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'progress-bar'.
-
-#### Colores del Tema (MD3)
-
-| modo | tintColor            | trackTintColor              |
-| ---- | -------------------- | --------------------------- |
-| -    | theme.colors.primary | theme.colors.surfaceVariant |
 
 ### RadioButton
 
@@ -1631,8 +1444,6 @@ const MyComponent = () => {
     </RadioButton.Group>
   );
 };
-
-export default MyComponent;
 ```
 
 ##### Propiedades
@@ -1673,8 +1484,6 @@ const MyComponent = () => {
     </RadioButton.Group>
   );
 };
-
-export default MyComponent;
 ```
 
 ##### Propiedades
@@ -1720,8 +1529,6 @@ const MyComponent = () => {
     />
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1751,12 +1558,6 @@ export default MyComponent;
 - **loading**: boolean - Bandera personalizada para reemplazar el botón de limpiar con un indicador de actividad. Valor por defecto: false.
 - **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'search-bar'.
 - **theme**: ThemeProp - Tema para aplicar al componente.
-
-#### Colores del Tema (MD3)
-
-| modo | backgroundColor               | placeholderTextColor   | textColor                     | selectionColor       | iconColor                     | trailingIconColor             | dividerColor         |
-| ---- | ----------------------------- | ---------------------- | ----------------------------- | -------------------- | ----------------------------- | ----------------------------- | -------------------- |
-| -    | theme.colors.elevation.level3 | theme.colors.onSurface | theme.colors.onSurfaceVariant | theme.colors.primary | theme.colors.onSurfaceVariant | theme.colors.onSurfaceVariant | theme.colors.outline |
 
 ### SegmentedButtons
 
@@ -1799,8 +1600,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1823,14 +1622,6 @@ export default MyComponent;
 - **density**: 'regular' | 'small' | 'medium' | 'high' - La densidad se aplica a la altura, para permitir su uso en interfaces más densas
 - **style**: StyleProp<ViewStyle> - Estilo personalizado para el componente
 - **theme**: ThemeProp - Tema para aplicar al componente
-
-#### Colores del Tema (MD3)
-
-| modo      | backgroundColor                 | textColor                         | borderColor          |
-| --------- | ------------------------------- | --------------------------------- | -------------------- |
-| checked   | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer | theme.colors.primary |
-| unchecked |                                 |                                   |                      |
-| disabled  |                                 |                                   |                      |
 
 ### Snackbar
 
@@ -1877,8 +1668,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 });
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -1918,12 +1707,6 @@ export default MyComponent;
 
 - **testID**: string - ID de prueba utilizado con fines de testing.
 
-#### Colores del Tema (MD3)
-
-| modo | iconColor                     |
-| ---- | ----------------------------- |
-| -    | theme.colors.inverseOnSurface |
-
 ### Surface
 
 Surface es un contenedor básico que puede dar profundidad a un elemento con sombra de elevación. En el tema oscuro con modo adaptativo, la superficie se construye también colocando una superposición blanca semitransparente sobre la superficie del componente. Consulta el tema oscuro para obtener más información. La superposición y la sombra se pueden aplicar especificando la propiedad de elevación tanto en Android como en iOS.
@@ -1945,8 +1728,6 @@ const MyComponent = () => (
     <Text>Surface</Text>
   </Surface>
 );
-
-export default MyComponent;
 
 const styles = StyleSheet.create({
   surface: {
@@ -1982,13 +1763,6 @@ const styles = StyleSheet.create({
 
 - **ref**: React.RefObject<View> - Referencia para el componente.
 
-#### Colores del Tema (MD3)
-
-| modo     | backgroundColor                   |
-| -------- | --------------------------------- |
-| flat     | theme.colors.elevation[elevation] |
-| elevated | theme.colors.elevation[elevation] |
-
 ### Switch
 
 Switch es un interruptor visual entre dos estados mutuamente exclusivos: encendido y apagado.
@@ -2013,8 +1787,6 @@ const MyComponent = () => {
 
   return <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />;
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2064,8 +1836,6 @@ const MyComponent = () => (
     <Text variant="labelSmall">Label Small</Text>
   </>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2085,12 +1855,6 @@ export default MyComponent;
 - **theme**: ThemeProp - Tema para aplicar al componente.
 
 - **style**: StyleProp<TextStyle> - Estilo personalizado para el texto.
-
-#### Colores del Tema (MD3)
-
-| modo | textColor              |
-| ---- | ---------------------- |
-| -    | theme.colors.onSurface |
 
 ### TextInput
 
@@ -2120,8 +1884,6 @@ const MyComponent = () => {
     />
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2211,8 +1973,6 @@ const MyComponent = () => {
     />
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2250,8 +2010,6 @@ const MyComponent = () => {
     />
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2296,8 +2054,6 @@ const ToggleButtonExample = () => {
     />
   );
 };
-
-export default ToggleButtonExample;
 ```
 
 #### Propiedades
@@ -2351,8 +2107,6 @@ const MyComponent = () => {
     </ToggleButton.Group>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2383,8 +2137,6 @@ const MyComponent = () => {
     </ToggleButton.Row>
   );
 };
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2396,14 +2148,6 @@ export default MyComponent;
 - **children** (requerido): React.ReactNode - Elementos React que contienen botones de alternancia.
 
 - **style**: StyleProp<ViewStyle> - Estilo personalizado para la fila.
-
-#### Colores del Tema (MD3)
-
-| modo      | backgroundColor                 | iconColor                         |
-| --------- | ------------------------------- | --------------------------------- |
-| checked   | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer |
-| unchecked | theme.colors.surface            | theme.colors.onSurface            |
-| disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled    |
 
 ### Tooltip
 
@@ -2422,8 +2166,6 @@ const MyComponent = () => (
     <IconButton icon="camera" selected size={24} onPress={() => {}} />
   </Tooltip>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2439,12 +2181,6 @@ export default MyComponent;
 - **titleMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente del título.
 
 - **theme**: ThemeProp - Tema para aplicar al componente.
-
-#### Colores del Tema (MD3)
-
-| modo | backgroundColor        | textColor            |
-| ---- | ---------------------- | -------------------- |
-| -    | theme.colors.onSurface | theme.colors.surface |
 
 ### TouchableRipple
 
@@ -2465,8 +2201,6 @@ const MyComponent = () => (
     <Text>Press anywhere</Text>
   </TouchableRipple>
 );
-
-export default MyComponent;
 ```
 
 #### Propiedades
@@ -2633,26 +2367,6 @@ export default function Main() {
 }
 ```
 
-### Mejores Prácticas
-
-#### Organización del código
-
-1. **Estructura de componentes**: Organiza tus componentes en carpetas lógicas.
-2. **Reutilización**: Crea componentes reutilizables basados en React Native Paper.
-3. **Temas**: Define un tema consistente para toda tu aplicación.
-
-#### Rendimiento
-
-1. **Memoización**: Utiliza React.memo para componentes que no cambian frecuentemente.
-2. **Lazy loading**: Carga componentes solo cuando sean necesarios.
-3. **Optimización de listas**: Utiliza FlatList o SectionList con renderización optimizada.
-
-#### Accesibilidad
-
-1. **Etiquetas de accesibilidad**: Proporciona etiquetas de accesibilidad para todos los elementos interactivos.
-2. **Contraste**: Asegúrate de que el contraste de color sea suficiente.
-3. **Tamaño de toque**: Haz que los elementos táctiles sean lo suficientemente grandes.
-
 ### Ejemplos de Uso Común
 
 #### Formulario de inicio de sesión
@@ -2721,8 +2435,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 });
-
-export default LoginForm;
 ```
 
 #### Lista de elementos con acciones
@@ -2777,34 +2489,4 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
 });
-
-export default ItemList;
 ```
-
-### Solución de Problemas
-
-#### Problemas comunes y soluciones
-
-1. **Los iconos no se muestran**
-
-   - Asegúrate de haber configurado correctamente react-native-vector-icons.
-   - Verifica que estás utilizando los nombres de iconos correctos.
-
-2. **Problemas de rendimiento**
-
-   - Utiliza componentes puros (React.memo) para evitar renderizaciones innecesarias.
-   - Optimiza las listas con FlatList y sus propiedades de rendimiento.
-
-3. **Problemas de estilo**
-
-   - Utiliza el sistema de temas de React Native Paper en lugar de estilos inline.
-   - Asegúrate de que tus estilos personalizados no entren en conflicto con los estilos de los componentes.
-
-4. **Problemas con el Portal**
-
-   - Asegúrate de que el componente Portal esté dentro de un PaperProvider.
-   - Verifica que no haya múltiples instancias de PaperProvider.
-
-5. **Problemas con la navegación**
-   - Si utilizas react-navigation, asegúrate de integrar correctamente los temas.
-   - Utiliza los componentes de navegación de React Native Paper (Appbar, BottomNavigation) de manera consistente.
