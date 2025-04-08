@@ -1758,6 +1758,80 @@ export default MyComponent;
 | ---- | ----------------------------- | ---------------------- | ----------------------------- | -------------------- | ----------------------------- | ----------------------------- | -------------------- |
 | -    | theme.colors.elevation.level3 | theme.colors.onSurface | theme.colors.onSurfaceVariant | theme.colors.primary | theme.colors.onSurfaceVariant | theme.colors.onSurfaceVariant | theme.colors.outline |
 
+### SegmentedButtons
+
+Los botones segmentados se pueden usar para seleccionar opciones, cambiar vistas o ordenar elementos. Soportan selección única y selección múltiple.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { SafeAreaView, StyleSheet } from "react-native";
+import { SegmentedButtons } from "react-native-paper";
+
+const MyComponent = () => {
+  const [value, setValue] = React.useState("");
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <SegmentedButtons
+        value={value}
+        onValueChange={setValue}
+        buttons={[
+          {
+            value: "walk",
+            label: "Walking",
+          },
+          {
+            value: "train",
+            label: "Transit",
+          },
+          { value: "drive", label: "Driving" },
+        ]}
+      />
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+  },
+});
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **buttons** (requerido): Array - Botones a mostrar como opciones. Cada botón debe contener las siguientes propiedades:
+
+  - **value**: string (requerido) - Valor del botón
+  - **icon**: IconSource - Icono a mostrar para el elemento
+  - **disabled**: boolean - Si el botón está deshabilitado
+  - **accessibilityLabel**: string - Etiqueta de accesibilidad para el botón
+  - **checkedColor**: string - Color personalizado para el texto e icono cuando está seleccionado
+  - **uncheckedColor**: string - Color personalizado para el texto e icono cuando no está seleccionado
+  - **onPress**: (event: GestureResponderEvent) => void - Función a ejecutar al presionar
+  - **label**: string - Texto de la etiqueta del botón
+  - **showSelectedCheck**: boolean - Mostrar icono opcional de verificación para indicar estado seleccionado
+  - **style**: StyleProp<ViewStyle> - Estilos adicionales para el botón
+  - **labelStyle**: StyleProp<TextStyle> - Estilos adicionales para la etiqueta
+  - **testID**: string - ID para pruebas
+
+- **density**: 'regular' | 'small' | 'medium' | 'high' - La densidad se aplica a la altura, para permitir su uso en interfaces más densas
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el componente
+- **theme**: ThemeProp - Tema para aplicar al componente
+
+#### Colores del Tema (MD3)
+
+| modo      | backgroundColor                 | textColor                         | borderColor          |
+| --------- | ------------------------------- | --------------------------------- | -------------------- |
+| checked   | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer | theme.colors.primary |
+| unchecked |                                 |                                   |                      |
+| disabled  |                                 |                                   |                      |
+
 ## Guía de Implementación
 
 ### Instalación
