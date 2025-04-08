@@ -767,6 +767,213 @@ export default MyComponent;
 | tertiary  | theme.colors.tertiaryContainer  | theme.colors.onTertiaryContainer  |
 | surface   | theme.colors.elevarion.level3   | theme.colors.primary              |
 
+### AnimatedFAB
+
+El componente AnimatedFAB es un botón de acción flotante animado que se extiende horizontalmente y representa la acción principal en una aplicación.
+
+#### Uso
+
+````jsx
+import React from "react";
+import {
+  StyleProp,
+  ViewStyle,
+  Animated,
+  StyleSheet,
+  Platform,
+  ScrollView,
+  Text,
+  SafeAreaView,
+  I18nManager,
+} from "react-native";
+import { AnimatedFAB } from "react-native-paper";
+
+const MyComponent = ({
+  animatedValue,
+  visible,
+  extended,
+  label,
+  animateFrom,
+  style,
+  iconMode,
+}) => {
+  const [isExtended, setIsExtended] = React.useState(true);
+
+  const isIOS = Platform.OS === "ios";
+
+  const onScroll = ({ nativeEvent }) => {
+    const currentScrollPosition =
+      Math.floor(nativeEvent?.contentOffset?.y) ?? 0;
+
+    setIsExtended(currentScrollPosition <= 0);
+  };
+
+  const fabStyle = { [animateFrom]: 16 };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView onScroll={onScroll}>
+        {[...new Array(100).keys()].map((_, i) => (
+          <Text>{i}</Text>
+        ))}
+      </ScrollView>
+      <AnimatedFAB
+        icon={"plus"}
+        label={"Label"}
+        extended={isExtended}
+        onPress={() => console.log("Pressed")}
+        visible={visible}
+        animateFrom={"right"}
+        iconMode={"static"}
+        style={[styles.fabStyle, style, fabStyle]}
+      />
+    </SafeAreaView>
+  );
+};
+
+export default MyComponent;
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+  },
+  fabStyle: {
+    bottom: 16,
+    right: 16,
+    position: "absolute",
+  },
+});
+
+#### Propiedades
+
+- **icon**: IconSource (requerido) - Icono a mostrar en el FAB.
+- **label**: string (requerido) - Etiqueta para el FAB extendido.
+- **uppercase**: boolean - Hace que el texto de la etiqueta esté en mayúsculas.
+- **background**: PressableAndroidRippleConfig - Tipo de fondo para mostrar el feedback (Android).
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el FAB. Usa label por defecto si está especificado.
+- **accessibilityState**: AccessibilityState - Estado de accesibilidad para el FAB.
+- **color**: string - Color personalizado para el icono y la etiqueta del FAB.
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+- **disabled**: boolean - Determina si el FAB está deshabilitado.
+- **visible**: boolean - Determina si el FAB está actualmente visible. Valor por defecto: true.
+- **onPress**: function - Función a ejecutar al presionar.
+- **onLongPress**: function - Función a ejecutar al mantener presionado.
+- **delayLongPress**: number - Número de milisegundos que un usuario debe tocar el elemento antes de ejecutar onLongPress.
+- **iconMode**: 'static' | 'dynamic' - Indica si el icono debe traducirse al final del FAB extendido o permanecer estático en el mismo lugar. Valor por defecto: 'dynamic'.
+- **animateFrom**: 'left' | 'right' - Indica desde qué dirección se debe realizar la animación. Valor por defecto: 'right'.
+- **extended**: boolean - Determina si el FAB debe iniciar la animación para extenderse. Valor por defecto: false.
+- **labelMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente de la etiqueta.
+- **variant**: 'primary' | 'secondary' | 'tertiary' | 'surface' - Variante de mapeo de colores para combinaciones de colores de contenedor e icono. Valor por defecto: 'primary'.
+- **style**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo personalizado para el FAB.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'animated-fab'.
+
+#### Colores del Tema (MD3)
+
+| modo      | backgroundColor                 | textColor/iconColor                |
+| --------- | ------------------------------- | ---------------------------------- |
+| disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled     |
+| primary   | theme.colors.primaryContainer   | theme.colors.onPrimaryContainer    |
+| secondary | theme.colors.secondaryContainer | theme.colors.onSecondaryContainer  |
+| tertiary  | theme.colors.tertiaryContainer  | theme.colors.onTertiaryContainer   |
+| surface   | theme.colors.elevarion.level3   | theme.colors.primary               |
+
+### FAB.Group
+
+Un componente para mostrar un grupo de FABs con acciones relacionadas en un marcado de velocidad. Para renderizar el grupo por encima de otros componentes, necesitarás envolverlo con el componente Portal.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { FAB, Portal, PaperProvider } from "react-native-paper";
+
+const MyComponent = () => {
+  const [state, setState] = React.useState({ open: false });
+
+  const onStateChange = ({ open }) => setState({ open });
+
+  const { open } = state;
+
+  return (
+    <PaperProvider>
+      <Portal>
+        <FAB.Group
+          open={open}
+          visible
+          icon={open ? "calendar-today" : "plus"}
+          actions={[
+            { icon: "plus", onPress: () => console.log("Pressed add") },
+            {
+              icon: "star",
+              label: "Star",
+              onPress: () => console.log("Pressed star"),
+            },
+            {
+              icon: "email",
+              label: "Email",
+              onPress: () => console.log("Pressed email"),
+            },
+            {
+              icon: "bell",
+              label: "Remind",
+              onPress: () => console.log("Pressed notifications"),
+            },
+          ]}
+          onStateChange={onStateChange}
+          onPress={() => {
+            if (open) {
+              // do something if the speed dial is open
+            }
+          }}
+        />
+      </Portal>
+    </PaperProvider>
+  );
+};
+
+export default MyComponent;
+````
+
+#### Propiedades
+
+- **actions**: Array (requerido) - Elementos de acción para mostrar en forma de marcado de velocidad. Un elemento de acción debe contener las siguientes propiedades:
+  - icon: icono a mostrar (requerido)
+  - label: texto de etiqueta opcional
+  - color: color de icono personalizado del elemento de acción
+  - labelTextColor: color de texto de etiqueta personalizado del elemento de acción
+  - accessibilityLabel: etiqueta de accesibilidad para la acción, usa label por defecto si está especificado
+  - accessibilityHint: sugerencia de accesibilidad para la acción
+  - style: estilos adicionales para el elemento fab
+  - containerStyle: estilos adicionales para el contenedor de etiqueta del elemento fab
+  - labelStyle: estilos adicionales para la etiqueta del elemento fab
+  - labelMaxFontSizeMultiplier: especifica la escala más grande posible que puede alcanzar la fuente de un título
+  - onPress: callback que se llama cuando se presiona el FAB (requerido)
+  - onLongPress: callback que se llama cuando se mantiene presionado el FAB
+  - toggleStackOnLongPress: callback que se llama cuando se mantiene presionado el FAB
+  - size: tamaño del elemento de acción. Por defecto es small
+  - testID: testID para usar en pruebas
+  - rippleColor: color del efecto de ondulación
+- **icon**: IconSource (requerido) - Icono a mostrar para el FAB. Puedes alternarlo según si el marcado de velocidad está abierto para mostrar un icono diferente.
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el FAB.
+- **color**: string - Color personalizado para el FAB.
+- **backdropColor**: string - Color de fondo personalizado para el fondo del marcado de velocidad abierto.
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+- **onPress**: function - Función a ejecutar al presionar el FAB.
+- **onLongPress**: function - Función a ejecutar al mantener presionado el FAB.
+- **toggleStackOnLongPress**: boolean - Hace que las acciones aparezcan al mantener presionado en lugar de al presionar.
+- **delayLongPress**: number - Cambia el retraso para la reacción de presión larga. Valor por defecto: 200.
+- **enableLongPressWhenStackOpened**: boolean - Permite onLongPress cuando la pila está abierta. Valor por defecto: false.
+- **open**: boolean (requerido) - Determina si el marcado de velocidad está abierto.
+- **onStateChange**: function (requerido) - Callback que se llama al abrir y cerrar el marcado de velocidad.
+- **visible**: boolean (requerido) - Determina si FAB está actualmente visible.
+- **style**: StyleProp<ViewStyle> - Estilo para el grupo.
+- **fabStyle**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo para el FAB.
+- **variant**: 'primary' | 'secondary' | 'tertiary' | 'surface' - Variante de mapeo de colores para combinaciones de colores de contenedor e icono. Valor por defecto: 'primary'.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **label**: string - Etiqueta opcional para FAB.
+- **testID**: string - ID de prueba para pasar desde las props del Grupo al FAB.
+
 ## Guía de Implementación
 
 ### Instalación
