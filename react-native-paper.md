@@ -1699,6 +1699,65 @@ export default MyComponent;
 - **mode**: 'android' | 'ios' - Si se debe usar <RadioButton.Android /> o <RadioButton.IOS />
 - **position**: 'leading' | 'trailing' - Posición del control del radio button
 
+### Searchbar
+
+El componente Searchbar es una caja de entrada simple donde los usuarios pueden escribir consultas de búsqueda.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Searchbar } from "react-native-paper";
+
+const MyComponent = () => {
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  return (
+    <Searchbar
+      placeholder="Search"
+      onChangeText={setSearchQuery}
+      value={searchQuery}
+    />
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **placeholder**: string - Texto de sugerencia que se muestra cuando la entrada está vacía.
+- **value** (requerido): string - El valor del campo de texto.
+- **onChangeText**: (query: string) => void - Función que se llama cuando cambia el texto.
+- **mode**: 'bar' | 'view' - (Disponible en v5.x con theme version 3) Modo de diseño de búsqueda. Valor por defecto: 'bar'.
+- **icon**: IconSource - Nombre del icono para el botón de icono izquierdo.
+- **iconColor**: string - Color personalizado para el icono.
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+- **onIconPress**: (e: GestureResponderEvent) => void - Función a ejecutar si queremos que el icono izquierdo actúe como botón.
+- **onClearIconPress**: (e: GestureResponderEvent) => void - Función a ejecutar si queremos añadir comportamiento personalizado al botón de icono de cierre.
+- **searchAccessibilityLabel**: string - Etiqueta de accesibilidad para el botón. Valor por defecto: 'search'.
+- **clearIcon**: IconSource - Icono personalizado para el botón de limpiar.
+- **clearAccessibilityLabel**: string - Etiqueta de accesibilidad para el botón de limpiar. Valor por defecto: 'clear'.
+- **traileringIcon**: IconSource - (Disponible en v5.x con theme version 3) Icono para el botón de icono derecho.
+- **traileringIconColor**: string - Color personalizado para el icono derecho.
+- **traileringRippleColor**: ColorValue - Color del efecto de ondulación del icono derecho.
+- **onTraileringIconPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar el icono derecho.
+- **traileringIconAccessibilityLabel**: string - Etiqueta de accesibilidad para el botón de icono derecho.
+- **right**: (props: { color: string; style: Style; testID: string; }) => React.ReactNode - Callback que devuelve un elemento React para mostrar en el lado derecho.
+- **showDivider**: boolean - (Disponible en v5.x con theme version 3) Si se debe mostrar el Divider en la parte inferior. Valor por defecto: true.
+- **elevation**: 0 | 1 | 2 | 3 | 4 | 5 | Animated.Value - Cambia la sombra y el fondo en iOS y Android. Valor por defecto: 0.
+- **inputStyle**: StyleProp<TextStyle> - Estilo del componente TextInput dentro del searchbar.
+- **style**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo personalizado para el componente.
+- **loading**: boolean - Bandera personalizada para reemplazar el botón de limpiar con un indicador de actividad. Valor por defecto: false.
+- **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'search-bar'.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+#### Colores del Tema (MD3)
+
+| modo | backgroundColor               | placeholderTextColor   | textColor                     | selectionColor       | iconColor                     | trailingIconColor             | dividerColor         |
+| ---- | ----------------------------- | ---------------------- | ----------------------------- | -------------------- | ----------------------------- | ----------------------------- | -------------------- |
+| -    | theme.colors.elevation.level3 | theme.colors.onSurface | theme.colors.onSurfaceVariant | theme.colors.primary | theme.colors.onSurfaceVariant | theme.colors.onSurfaceVariant | theme.colors.outline |
+
 ## Guía de Implementación
 
 ### Instalación
