@@ -1547,6 +1547,41 @@ export default MyComponent;
 
 **Nota:** Puedes personalizar los colores utilizando la prop `theme`. Ejemplo: `<Divider theme={{ colors: { dividerColor: 'red' } }} />`
 
+### ProgressBar
+
+El componente ProgressBar es un indicador utilizado para mostrar el progreso de alguna actividad en la aplicación.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { ProgressBar, MD3Colors } from "react-native-paper";
+
+const MyComponent = () => (
+  <ProgressBar progress={0.5} color={MD3Colors.error50} />
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **animatedValue**: number - Valor animado (entre 0 y 1). Esto indica a la barra de progreso que debe basarse en este valor para animarse. Nota: No debe usarse en paralelo con la prop progress.
+- **progress**: number - Valor de progreso (entre 0 y 1). Valor por defecto: 0. Nota: No debe usarse en paralelo con la prop animatedValue.
+- **color**: string - Color de la barra de progreso. El color de fondo se calculará en base a este, pero puedes cambiarlo pasando backgroundColor a la prop style.
+- **indeterminate**: boolean - Si la barra de progreso mostrará un progreso indeterminado.
+- **visible**: boolean - Determina si se muestra la barra de progreso (true, por defecto) o se oculta (false). Valor por defecto: true.
+- **fillStyle**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo de la parte llena de la barra de progreso.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para la barra de progreso.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'progress-bar'.
+
+#### Colores del Tema (MD3)
+
+| modo | tintColor            | trackTintColor              |
+| ---- | -------------------- | --------------------------- |
+| -    | theme.colors.primary | theme.colors.surfaceVariant |
+
 ## Guía de Implementación
 
 ### Instalación
