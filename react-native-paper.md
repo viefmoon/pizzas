@@ -1582,6 +1582,123 @@ export default MyComponent;
 | ---- | -------------------- | --------------------------- |
 | -    | theme.colors.primary | theme.colors.surfaceVariant |
 
+### RadioButton
+
+El componente RadioButton permite la selección de una única opción de un conjunto. Este componente sigue las pautas de la plataforma para Android e iOS, pero puede usarse en cualquier plataforma.
+
+#### RadioButton.Android
+
+Los radio buttons permiten la selección de una única opción de un conjunto. Este componente sigue las pautas de la plataforma para Android, pero puede usarse en cualquier plataforma.
+
+##### Propiedades
+
+- **value** (requerido): string - Valor del radio button
+- **status**: 'checked' | 'unchecked' - Estado del radio button
+- **disabled**: boolean - Si el radio button está deshabilitado
+- **onPress**: (param?: any) => void - Función a ejecutar al presionar
+- **uncheckedColor**: string - Color personalizado para el estado sin marcar
+- **color**: string - Color personalizado para el radio button
+- **theme**: ThemeProp - Tema del componente
+- **testID**: string - ID para pruebas
+
+#### RadioButton.Group
+
+El grupo de radio buttons permite controlar un conjunto de radio buttons.
+
+##### Uso
+
+```jsx
+import * as React from "react";
+import { View } from "react-native";
+import { RadioButton, Text } from "react-native-paper";
+
+const MyComponent = () => {
+  const [value, setValue] = React.useState("first");
+
+  return (
+    <RadioButton.Group
+      onValueChange={(newValue) => setValue(newValue)}
+      value={value}
+    >
+      <View>
+        <Text>First</Text>
+        <RadioButton value="first" />
+      </View>
+      <View>
+        <Text>Second</Text>
+        <RadioButton value="second" />
+      </View>
+    </RadioButton.Group>
+  );
+};
+
+export default MyComponent;
+```
+
+##### Propiedades
+
+- **onValueChange** (requerido): (value: string) => void - Función a ejecutar al cambiar la selección
+- **value** (requerido): string - Valor del radio button actualmente seleccionado
+- **children** (requerido): React.ReactNode - Elementos React que contienen radio buttons
+
+#### RadioButton.IOS
+
+##### Propiedades
+
+- **value** (requerido): string - Valor del radio button
+- **status**: 'checked' | 'unchecked' - Estado del radio button
+- **disabled**: boolean - Si el radio button está deshabilitado
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar
+- **color**: string - Color personalizado para el radio button
+- **theme**: ThemeProp - Tema del componente
+- **testID**: string - ID para pruebas
+
+#### RadioButton.Item
+
+RadioButton.Item permite presionar toda la fila (item) en lugar de solo el RadioButton.
+
+##### Uso
+
+```jsx
+import * as React from "react";
+import { RadioButton } from "react-native-paper";
+
+const MyComponent = () => {
+  const [value, setValue] = React.useState("first");
+
+  return (
+    <RadioButton.Group onValueChange={(value) => setValue(value)} value={value}>
+      <RadioButton.Item label="First item" value="first" />
+      <RadioButton.Item label="Second item" value="second" />
+    </RadioButton.Group>
+  );
+};
+
+export default MyComponent;
+```
+
+##### Propiedades
+
+- **value** (requerido): string - Valor del radio button
+- **label** (requerido): string - Etiqueta a mostrar en el item
+- **disabled**: boolean - Si el radio button está deshabilitado
+- **background**: PressableAndroidRippleConfig - Tipo de fondo para mostrar el feedback (Android)
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar
+- **onLongPress**: (e: GestureResponderEvent) => void - Función a ejecutar al mantener presionado
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el touchable
+- **uncheckedColor**: string - Color personalizado para el estado sin marcar
+- **color**: string - Color personalizado para el radio button
+- **rippleColor**: ColorValue - Color del efecto ripple
+- **status**: 'checked' | 'unchecked' - Estado del radio button
+- **style**: StyleProp<ViewStyle> - Estilos adicionales para el contenedor View
+- **labelStyle**: StyleProp<TextStyle> - Estilo para el elemento Label
+- **labelVariant**: string - Variante del texto de la etiqueta (disponible en v5.x con theme version 3)
+- **labelMaxFontSizeMultiplier**: number - Especifica la escala máxima que puede alcanzar la fuente de la etiqueta
+- **theme**: ThemeProp - Tema del componente
+- **testID**: string - ID para pruebas
+- **mode**: 'android' | 'ios' - Si se debe usar <RadioButton.Android /> o <RadioButton.IOS />
+- **position**: 'leading' | 'trailing' - Posición del control del radio button
+
 ## Guía de Implementación
 
 ### Instalación
