@@ -2092,6 +2092,184 @@ export default MyComponent;
 | ---- | ---------------------- |
 | -    | theme.colors.onSurface |
 
+### TextInput
+
+Un componente que permite a los usuarios ingresar texto.
+
+Modos disponibles:
+
+- flat (enfocado)
+- flat (deshabilitado)
+- outlined (enfocado)
+- outlined (deshabilitado)
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { TextInput } from "react-native-paper";
+
+const MyComponent = () => {
+  const [text, setText] = React.useState("");
+
+  return (
+    <TextInput
+      label="Email"
+      value={text}
+      onChangeText={(text) => setText(text)}
+    />
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **...TextInput props** - Extiende todas las propiedades del componente TextInput de React Native.
+
+- **mode**: 'flat' | 'outlined' - Modo del TextInput. Valor por defecto: 'flat'.
+
+  - **flat** - entrada plana con un subrayado.
+  - **outlined** - entrada con un contorno.
+
+- **left**: React.ReactNode - Elemento React para mostrar en el lado izquierdo.
+
+- **right**: React.ReactNode - Elemento React para mostrar en el lado derecho.
+
+- **disabled**: boolean - Si es true, el usuario no podrá interactuar con el componente. Valor por defecto: false.
+
+- **label**: TextInputLabelProp - El texto o componente a usar para la etiqueta flotante.
+
+- **placeholder**: string - Texto de marcador de posición para la entrada.
+
+- **error**: boolean - Si se debe aplicar el estilo de error al TextInput. Valor por defecto: false.
+
+- **onChangeText**: Function - Callback que se llama cuando cambia el texto de la entrada.
+
+- **selectionColor**: string - Color de selección de la entrada. En iOS, establece tanto el color de selección como el color del cursor. En Android, solo establece el color de selección.
+
+- **cursorColor**: string - (Solo Android) Color del cursor de la entrada.
+
+- **underlineColor**: string - Color del subrayado inactivo de la entrada.
+
+- **activeUnderlineColor**: string - Color del subrayado activo de la entrada.
+
+- **outlineColor**: string - Color del contorno inactivo de la entrada.
+
+- **activeOutlineColor**: string - Color del contorno activo de la entrada.
+
+- **textColor**: string - Color del texto en la entrada.
+
+- **dense**: boolean - Establece la altura mínima con diseño denso. Valor por defecto: false.
+
+- **multiline**: boolean - Si la entrada puede tener múltiples líneas. Valor por defecto: false.
+
+- **numberOfLines**: number - (Solo Android) Número de líneas a mostrar en la entrada.
+
+- **onFocus**: (args: any) => void - Callback que se llama cuando la entrada de texto recibe el foco.
+
+- **onBlur**: (args: any) => void - Callback que se llama cuando la entrada de texto pierde el foco.
+
+- **render**: (props: RenderProps) => React.ReactNode - Callback para renderizar un componente de entrada personalizado.
+
+- **value**: string - Valor de la entrada de texto.
+
+- **style**: StyleProp<TextStyle> - Estilo personalizado para el TextInput.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+- **testID**: string - ID de prueba utilizado con fines de testing.
+
+- **contentStyle**: StyleProp<TextStyle> - Estilo personalizado para el contenido de la entrada.
+
+- **outlineStyle**: StyleProp<ViewStyle> - Estilo personalizado para el contorno.
+
+- **underlineStyle**: StyleProp<ViewStyle> - Estilo personalizado para el subrayado.
+
+- **editable**: boolean - Si la entrada es editable. Valor por defecto: true.
+
+### TextInput.Affix
+
+Un componente para renderizar texto inicial/final en el TextInput.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { TextInput } from "react-native-paper";
+
+const MyComponent = () => {
+  const [text, setText] = React.useState("");
+
+  return (
+    <TextInput
+      mode="outlined"
+      label="Outlined input"
+      placeholder="Type something"
+      right={<TextInput.Affix text="/100" />}
+    />
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **text** (requerido): string - Texto a mostrar.
+
+- **onLayout**: (event: LayoutChangeEvent) => void - Función que se ejecuta al cambiar el layout.
+
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar.
+
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el afijo. Valor por defecto: text.
+
+- **textStyle**: StyleProp<TextStyle> - Estilo personalizado para el elemento Text.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+### TextInput.Icon
+
+Un componente para renderizar un icono inicial/final en el TextInput.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { TextInput } from "react-native-paper";
+
+const MyComponent = () => {
+  const [text, setText] = React.useState("");
+
+  return (
+    <TextInput
+      label="Password"
+      secureTextEntry
+      right={<TextInput.Icon icon="eye" />}
+    />
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **icon** (requerido): IconSource - Icono a mostrar. Renombrado de 'name' a 'icon' en v5.x.
+
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar.
+
+- **forceTextInputFocus**: boolean - Si el TextInput recibirá el foco después de onPress. Valor por defecto: true.
+
+- **color**: ((isTextInputFocused: boolean) => string | undefined) | string - Color del icono o función que recibe un booleano indicando si el TextInput está enfocado y devuelve el color.
+
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el icono.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
 ## Guía de Implementación
 
 ### Instalación
