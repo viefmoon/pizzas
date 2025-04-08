@@ -1084,6 +1084,66 @@ export default MyComponent;
 - **accessibilityLabel**: string - Etiqueta de accesibilidad para el TouchableRipple. Esto es leído por el lector de pantalla cuando el usuario toca el elemento.
 - **pointerEvents**: ViewProps['pointerEvents'] - Eventos de puntero pasados a la vista del contenedor. Valor por defecto: 'none'.
 
+### Menu.Item
+
+Un componente para mostrar un único elemento de lista dentro de un Menú.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { View } from "react-native";
+import { Menu } from "react-native-paper";
+
+const MyComponent = () => (
+  <View style={{ flex: 1 }}>
+    <Menu.Item leadingIcon="redo" onPress={() => {}} title="Redo" />
+    <Menu.Item leadingIcon="undo" onPress={() => {}} title="Undo" />
+    <Menu.Item
+      leadingIcon="content-cut"
+      onPress={() => {}}
+      title="Cut"
+      disabled
+    />
+    <Menu.Item
+      leadingIcon="content-copy"
+      onPress={() => {}}
+      title="Copy"
+      disabled
+    />
+    <Menu.Item leadingIcon="content-paste" onPress={() => {}} title="Paste" />
+  </View>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **title**: React.ReactNode (requerido) - Texto del título para el elemento del menú.
+- **leadingIcon**: IconSource - Icono principal a mostrar para el elemento del menú. Renombrado de 'icon' a 'leadingIcon' en v5.x.
+- **trailingIcon**: IconSource - Icono secundario a mostrar para el elemento del menú. Disponible en v5.x con versión de tema 3.
+- **disabled**: boolean - Determina si el elemento está deshabilitado. Un elemento deshabilitado aparece en gris y no se llama a onPress al tocarlo.
+- **dense**: boolean - Establece la altura mínima con diseño compacto. Disponible en v5.x con versión de tema 3.
+- **background**: PressableAndroidRippleConfig - Tipo de fondo drawable para mostrar el feedback (Android). https://reactnative.dev/docs/pressable#rippleconfig
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar.
+- **titleMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente del título. Valor por defecto: 1.5.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el elemento.
+- **contentStyle**: StyleProp<ViewStyle> - Estilo personalizado para el contenido.
+- **titleStyle**: StyleProp<TextStyle> - Estilo personalizado para el título.
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'menu-item'.
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el Touchable. Esto es leído por el lector de pantalla cuando el usuario toca el componente.
+- **accessibilityState**: AccessibilityState - Estado de accesibilidad para el Touchable. Esto es leído por el lector de pantalla cuando el usuario toca el componente.
+
+#### Colores del Tema (MD3)
+
+| modo     | textColor                      | iconColor                      |
+| -------- | ------------------------------ | ------------------------------ |
+| default  | theme.colors.onSurface         | theme.colors.onSurfaceVariant  |
+| disabled | theme.colors.onSurfaceDisabled | theme.colors.onSurfaceDisabled |
+
 ### List.AccordionGroup
 
 El componente List.AccordionGroup permite controlar un grupo de List.Accordion. La prop id para List.Accordion es necesaria para que el grupo funcione. List.AccordionGroup puede ser un componente controlado o no controlado. El ejemplo muestra la versión no controlada. Solamente un Accordion puede estar expandido en un momento dado.
@@ -1342,6 +1402,63 @@ export default MyComponent;
 - **theme**: ThemeProp - Tema para aplicar al componente.
 - **label**: string - Etiqueta opcional para FAB.
 - **testID**: string - ID de prueba para pasar desde las props del Grupo al FAB.
+
+### Modal
+
+El componente Modal es una forma simple de presentar contenido por encima de una vista envolvente. Para renderizar el Modal por encima de otros componentes, necesitarás envolverlo con el componente Portal.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Modal, Portal, Text, Button, PaperProvider } from "react-native-paper";
+
+const MyComponent = () => {
+  const [visible, setVisible] = React.useState(false);
+
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
+  const containerStyle = { backgroundColor: "white", padding: 20 };
+
+  return (
+    <PaperProvider>
+      <Portal>
+        <Modal
+          visible={visible}
+          onDismiss={hideModal}
+          contentContainerStyle={containerStyle}
+        >
+          <Text>Example Modal. Click outside this area to dismiss.</Text>
+        </Modal>
+      </Portal>
+      <Button style={{ marginTop: 30 }} onPress={showModal}>
+        Show
+      </Button>
+    </PaperProvider>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **dismissable**: boolean - Determina si hacer clic fuera del modal lo cierra. Valor por defecto: true.
+- **dismissableBackButton**: boolean - Determina si al presionar el botón de hardware Atrás de Android se cierra el diálogo. Valor por defecto: valor de dismissable.
+- **onDismiss**: () => void - Función que se llama cuando el usuario cierra el modal. Valor por defecto: () => {}.
+- **overlayAccessibilityLabel**: string - Etiqueta de accesibilidad para la superposición. Esto es leído por el lector de pantalla cuando el usuario toca fuera del modal. Valor por defecto: 'Close modal'.
+- **visible**: boolean - Determina si el modal es visible. Valor por defecto: false.
+- **children**: React.ReactNode (requerido) - Contenido del Modal.
+- **contentContainerStyle**: Animated.WithAnimatedValue<StyleProp<ViewStyle>> - Estilo para el contenido del modal.
+- **style**: StyleProp<ViewStyle> - Estilo para el contenedor del modal. Usa esta prop para cambiar el estilo del contenedor predeterminado o para sobrescribir los márgenes de seguridad con marginTop y marginBottom.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **testID**: string - ID de prueba utilizado con fines de testing. Valor por defecto: 'modal'.
+
+#### Colores del Tema (MD3)
+
+| modo | backgroundColor       |
+| ---- | --------------------- |
+| -    | theme.colors.backdrop |
 
 ## Guía de Implementación
 
