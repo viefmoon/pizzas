@@ -2405,6 +2405,47 @@ export default MyComponent;
 | unchecked | theme.colors.surface            | theme.colors.onSurface            |
 | disabled  | theme.colors.surfaceDisabled    | theme.colors.onSurfaceDisabled    |
 
+### Tooltip
+
+Los Tooltips muestran texto informativo cuando los usuarios pasan el cursor por encima, se enfocan o tocan un elemento.
+
+Los tooltips simples, cuando se activan, muestran una etiqueta de texto que identifica un elemento, como una descripción de su función. Los tooltips deben incluir solo texto descriptivo corto y evitar repetir el texto visible de la UI.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { IconButton, Tooltip } from "react-native-paper";
+
+const MyComponent = () => (
+  <Tooltip title="Selected Camera">
+    <IconButton icon="camera" selected size={24} onPress={() => {}} />
+  </Tooltip>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **children** (requerido): React.ReactElement - Elemento de referencia del Tooltip. Necesita poder mantener una referencia.
+
+- **enterTouchDelay**: number - El número de milisegundos que un usuario debe tocar el elemento antes de mostrar el tooltip. Valor por defecto: 500.
+
+- **leaveTouchDelay**: number - El número de milisegundos después de que el usuario deja de tocar un elemento antes de ocultar el tooltip. Valor por defecto: 1500.
+
+- **title** (requerido): string - Título del tooltip.
+
+- **titleMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente del título.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+#### Colores del Tema (MD3)
+
+| modo | backgroundColor        | textColor            |
+| ---- | ---------------------- | -------------------- |
+| -    | theme.colors.onSurface | theme.colors.surface |
+
 ## Guía de Implementación
 
 ### Instalación
