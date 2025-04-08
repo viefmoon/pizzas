@@ -1017,6 +1017,236 @@ export default MyComponent;
 | seleccionado    |                 |                                   |                                 |             |
 | deshabilitado   |                 |                                   |                                 |             |
 
+### List.Accordion
+
+El componente List.Accordion se utiliza para mostrar un elemento de lista expandible.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { List } from "react-native-paper";
+
+const MyComponent = () => {
+  const [expanded, setExpanded] = React.useState(true);
+
+  const handlePress = () => setExpanded(!expanded);
+
+  return (
+    <List.Section title="Accordions">
+      <List.Accordion
+        title="Uncontrolled Accordion"
+        left={(props) => <List.Icon {...props} icon="folder" />}
+      >
+        <List.Item title="First item" />
+        <List.Item title="Second item" />
+      </List.Accordion>
+
+      <List.Accordion
+        title="Controlled Accordion"
+        left={(props) => <List.Icon {...props} icon="folder" />}
+        expanded={expanded}
+        onPress={handlePress}
+      >
+        <List.Item title="First item" />
+        <List.Item title="Second item" />
+      </List.Accordion>
+    </List.Section>
+  );
+};
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **title**: React.ReactNode (requerido) - Texto del título para el acordeón.
+- **description**: React.ReactNode - Texto de descripción para el acordeón.
+- **left**: (props: { color: string; style: Style }) => React.ReactNode - Callback que devuelve un elemento React para mostrar en el lado izquierdo.
+- **right**: (props: { isExpanded: boolean }) => React.ReactNode - Callback que devuelve un elemento React para mostrar en el lado derecho.
+- **expanded**: boolean - Determina si el acordeón está expandido. Si se proporciona, el acordeón se comportará como un "componente controlado". Necesitarás actualizar esta prop cuando desees alternar el componente o en onPress.
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar.
+- **onLongPress**: (e: GestureResponderEvent) => void - Función a ejecutar al mantener presionado.
+- **delayLongPress**: number - Número de milisegundos que un usuario debe tocar el elemento antes de ejecutar onLongPress.
+- **children**: React.ReactNode (requerido) - Contenido de la sección.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **background**: PressableAndroidRippleConfig - Tipo de fondo a mostrar para el feedback (Android).
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el elemento TouchableRipple.
+- **titleStyle**: StyleProp<TextStyle> - Estilo personalizado para el elemento Title.
+- **descriptionStyle**: StyleProp<TextStyle> - Estilo personalizado para el elemento Description.
+- **rippleColor**: ColorValue - Color del efecto de ondulación.
+- **titleNumberOfLines**: number - Trunca el texto del título para que no exceda este número de líneas. Valor por defecto: 1.
+- **descriptionNumberOfLines**: number - Trunca el texto de la descripción para que no exceda este número de líneas. Valor por defecto: 2.
+- **titleMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente del título.
+- **descriptionMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente de la descripción.
+- **id**: string | number - ID utilizado para distinguir un acordeón específico cuando se utiliza List.AccordionGroup. Esta propiedad es requerida cuando se utiliza List.AccordionGroup y no tiene impacto en el comportamiento cuando se utiliza List.Accordion de forma independiente.
+- **testID**: string - ID de prueba utilizado con fines de testing.
+- **accessibilityLabel**: string - Etiqueta de accesibilidad para el TouchableRipple. Esto es leído por el lector de pantalla cuando el usuario toca el elemento.
+- **pointerEvents**: ViewProps['pointerEvents'] - Eventos de puntero pasados a la vista del contenedor. Valor por defecto: 'none'.
+
+### List.AccordionGroup
+
+El componente List.AccordionGroup permite controlar un grupo de List.Accordion. La prop id para List.Accordion es necesaria para que el grupo funcione. List.AccordionGroup puede ser un componente controlado o no controlado. El ejemplo muestra la versión no controlada. Solamente un Accordion puede estar expandido en un momento dado.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { View, Text } from "react-native";
+import { List } from "react-native-paper";
+
+const MyComponent = () => (
+  <List.AccordionGroup>
+    <List.Accordion title="Accordion 1" id="1">
+      <List.Item title="Item 1" />
+    </List.Accordion>
+    <List.Accordion title="Accordion 2" id="2">
+      <List.Item title="Item 2" />
+    </List.Accordion>
+    <View>
+      <Text>
+        List.Accordion puede ser envuelto porque la implementación utiliza
+        React.Context.
+      </Text>
+      <List.Accordion title="Accordion 3" id="3">
+        <List.Item title="Item 3" />
+      </List.Accordion>
+    </View>
+  </List.AccordionGroup>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **onAccordionPress**: (expandedId: string | number) => void - Función a ejecutar al cambiar la selección.
+- **expandedId**: string | number - ID del acordeón actualmente expandido.
+- **children**: React.ReactNode (requerido) - Elementos React que contienen acordeones de lista.
+
+### List.Icon
+
+Un componente para mostrar un icono en un elemento de lista.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { List, MD3Colors } from "react-native-paper";
+
+const MyComponent = () => (
+  <>
+    <List.Icon color={MD3Colors.tertiary70} icon="folder" />
+    <List.Icon color={MD3Colors.tertiary70} icon="equal" />
+    <List.Icon color={MD3Colors.tertiary70} icon="calendar" />
+  </>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **icon**: IconSource (requerido) - Icono a mostrar.
+- **color**: string - Color para el icono.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el icono.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+### List.Item
+
+Un componente para mostrar elementos dentro de una Lista.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { List } from "react-native-paper";
+
+const MyComponent = () => (
+  <List.Item
+    title="First Item"
+    description="Item description"
+    left={(props) => <List.Icon {...props} icon="folder" />}
+  />
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **TouchableRipple props** - Extiende las propiedades de TouchableRipple.
+- **title**: React.ReactNode | ((props: { selectable: boolean; ellipsizeMode: EllipsizeProp | undefined; color: string; fontSize: number; }) => React.ReactNode) (requerido) - Texto del título para el elemento de lista.
+- **description**: React.ReactNode | ((props: { selectable: boolean; ellipsizeMode: EllipsizeProp | undefined; color: string; fontSize: number; }) => React.ReactNode) - Texto de descripción para el elemento de lista o callback que devuelve un elemento React para mostrar la descripción.
+- **left**: (props: { color: string; style: Style }) => React.ReactNode - Callback que devuelve un elemento React para mostrar en el lado izquierdo.
+- **right**: (props: { color: string; style?: Style }) => React.ReactNode - Callback que devuelve un elemento React para mostrar en el lado derecho.
+- **onPress**: (e: GestureResponderEvent) => void - Función a ejecutar al presionar.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para el elemento TouchableRipple.
+- **contentStyle**: StyleProp<ViewStyle> - Estilo personalizado para el contenedor que envuelve el título y la descripción.
+- **titleStyle**: StyleProp<TextStyle> - Estilo personalizado para el elemento Title.
+- **descriptionStyle**: StyleProp<TextStyle> - Estilo personalizado para el elemento Description.
+- **titleNumberOfLines**: number - Trunca el texto del título para que no exceda este número de líneas. Valor por defecto: 1.
+- **descriptionNumberOfLines**: number - Trunca el texto de la descripción para que no exceda este número de líneas. Valor por defecto: 2.
+- **titleEllipsizeMode**: EllipsizeProp - Modo de elipsis para el título. Uno de 'head', 'middle', 'tail', 'clip'.
+- **descriptionEllipsizeMode**: EllipsizeProp - Modo de elipsis para la descripción. Uno de 'head', 'middle', 'tail', 'clip'.
+- **titleMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente del título.
+- **descriptionMaxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente de la descripción.
+- **testID**: string - ID de prueba utilizado con fines de testing.
+
+### List.Section
+
+Un componente utilizado para agrupar elementos de lista.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { List, MD3Colors } from "react-native-paper";
+
+const MyComponent = () => (
+  <List.Section>
+    <List.Subheader>Some title</List.Subheader>
+    <List.Item title="First Item" left={() => <List.Icon icon="folder" />} />
+    <List.Item
+      title="Second Item"
+      left={() => <List.Icon color={MD3Colors.tertiary70} icon="folder" />}
+    />
+  </List.Section>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **title**: string - Texto del título para la sección.
+- **children**: React.ReactNode (requerido) - Contenido de la sección.
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **titleStyle**: StyleProp<TextStyle> - Estilo personalizado para el elemento Title.
+- **style**: StyleProp<ViewStyle> - Estilo personalizado para la sección.
+
+### List.Subheader
+
+Un componente utilizado para mostrar un encabezado en listas.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { List } from "react-native-paper";
+
+const MyComponent = () => <List.Subheader>My List Title</List.Subheader>;
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+- **style**: StyleProp<TextStyle> - Estilo personalizado para el elemento Text.
+- **maxFontSizeMultiplier**: number - Especifica la escala más grande posible que puede alcanzar la fuente de texto.
+
 ### FAB.Group
 
 Un componente para mostrar un grupo de FABs con acciones relacionadas en un marcado de velocidad. Para renderizar el grupo por encima de otros componentes, necesitarás envolverlo con el componente Portal.
