@@ -2031,6 +2031,67 @@ export default MyComponent;
 
 - **theme**: ThemeProp - Tema para aplicar al componente.
 
+### Text
+
+Componente de tipografía que muestra estilos que cumplen con la prop variant proporcionada y son compatibles con el sistema de tipos.
+
+#### Uso
+
+```jsx
+import * as React from "react";
+import { Text } from "react-native-paper";
+
+const MyComponent = () => (
+  <>
+    <Text variant="displayLarge">Display Large</Text>
+    <Text variant="displayMedium">Display Medium</Text>
+    <Text variant="displaySmall">Display small</Text>
+
+    <Text variant="headlineLarge">Headline Large</Text>
+    <Text variant="headlineMedium">Headline Medium</Text>
+    <Text variant="headlineSmall">Headline Small</Text>
+
+    <Text variant="titleLarge">Title Large</Text>
+    <Text variant="titleMedium">Title Medium</Text>
+    <Text variant="titleSmall">Title Small</Text>
+
+    <Text variant="bodyLarge">Body Large</Text>
+    <Text variant="bodyMedium">Body Medium</Text>
+    <Text variant="bodySmall">Body Small</Text>
+
+    <Text variant="labelLarge">Label Large</Text>
+    <Text variant="labelMedium">Label Medium</Text>
+    <Text variant="labelSmall">Label Small</Text>
+  </>
+);
+
+export default MyComponent;
+```
+
+#### Propiedades
+
+- **...Text props** - Extiende todas las propiedades del componente Text de React Native.
+
+- **variant**: VariantProp<T> - (Disponible en v5.x con theme version 3) Define los estilos de texto apropiados para el rol de tipo y su tamaño. Variantes disponibles:
+
+  - **Display**: displayLarge, displayMedium, displaySmall
+  - **Headline**: headlineLarge, headlineMedium, headlineSmall
+  - **Title**: titleLarge, titleMedium, titleSmall
+  - **Label**: labelLarge, labelMedium, labelSmall
+  - **Body**: bodyLarge, bodyMedium, bodySmall
+
+- **children** (requerido): React.ReactNode - Contenido del texto.
+
+- **theme**: ThemeProp - Tema para aplicar al componente.
+
+- **style**: StyleProp<TextStyle> - Estilo personalizado para el texto.
+
+#### Colores del Tema (MD3)
+
+| modo | textColor              |
+| ---- | ---------------------- |
+| -    | theme.colors.onSurface |
+
 ## Guía de Implementación
 
 ### Instalación
