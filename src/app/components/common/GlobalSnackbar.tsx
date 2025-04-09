@@ -37,20 +37,40 @@ const GlobalSnackbar: React.FC = () => {
     // Si no los tienes, puedes usar un color por defecto o calcular uno.
     const defaultTextColor = theme.dark
       ? theme.colors.surface
-      : theme.colors.onSurface; // O theme.colors.inverseOnSurface como usa Paper por defecto
+      : theme.colors.onSurface;
+
+    const baseStyle = {
+      fontSize: 16, // Tamaño de fuente más grande
+      fontWeight: "500" as const, // Peso de fuente medio
+      lineHeight: 24, // Altura de línea aumentada para mejor legibilidad
+    };
 
     switch (snackbarType) {
       case "success":
-        // Deberías tener un color 'onSuccessContainer' en tu tema
-        return { color: theme.colors.onSuccessContainer || defaultTextColor };
+        return {
+          ...baseStyle,
+          color: theme.colors.onSuccessContainer || defaultTextColor,
+        };
       case "error":
-        return { color: theme.colors.onErrorContainer }; // Paper ya define onErrorContainer;
+        return {
+          ...baseStyle,
+          color: theme.colors.onErrorContainer,
+        };
       case "warning":
-        return { color: theme.colors.onWarningContainer || defaultTextColor };
+        return {
+          ...baseStyle,
+          color: theme.colors.onWarningContainer || defaultTextColor,
+        };
       case "info":
-        return { color: theme.colors.onInfoContainer || defaultTextColor };
+        return {
+          ...baseStyle,
+          color: theme.colors.onInfoContainer || defaultTextColor,
+        };
       default:
-        return { color: theme.colors.inverseOnSurface };
+        return {
+          ...baseStyle,
+          color: theme.colors.inverseOnSurface,
+        };
     }
   };
 
@@ -62,20 +82,25 @@ const GlobalSnackbar: React.FC = () => {
       style={[styles.snackbarBase, getSnackbarStyle(type)]}
       theme={{ roundness: theme.roundness }}
     >
-      <Text style={getSnackbarTextStyle(type)}>{message}</Text>
+      <Text style={[styles.messageText, getSnackbarTextStyle(type)]}>
+        {message}
+      </Text>
     </Snackbar>
   );
 };
 
 const styles = StyleSheet.create({
   snackbarBase: {
-    // Puedes añadir estilos base aquí si necesitas, ej: ajustar márgenes
-    // position: 'absolute', // Asegúrate de que esté posicionado correctamente si es necesario
-    // bottom: 0, // O donde quieras que aparezca
-    // left: 0,
-    // right: 0,
+    marginBottom: 16, // Margen inferior para separarlo del borde de la pantalla
+    marginHorizontal: 16, // Márgenes horizontales
+    minHeight: 56, // Altura mínima aumentada
+    paddingVertical: 12, // Padding vertical aumentado
+    paddingHorizontal: 16, // Padding horizontal aumentado
   },
-  // No necesitas estilos de texto aquí si los aplicas dinámicamente
+  messageText: {
+    flex: 1, // Permite que el texto ocupe todo el espacio disponible
+    textAlign: "center", // Centra el texto
+  },
 });
 
 export default GlobalSnackbar;

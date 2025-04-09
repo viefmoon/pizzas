@@ -3,6 +3,7 @@ import {
   AuthEmailLoginDto,
   LoginResponseDto,
   LoginFormInputs,
+  RegisterFormInputs,
 } from "../types/auth.types";
 
 class AuthService {
@@ -37,6 +38,17 @@ class AuthService {
       throw new Error(errorMessages[apiError] || "Error al iniciar sesión.");
     }
     return response.data;
+  }
+
+  async register(data: RegisterFormInputs): Promise<void> {
+    const response = await apiClient.post<{ message?: string }>(
+      "/api/v1/auth/email/register",
+      data
+    );
+
+    if (!response.ok) {
+      throw new Error(response.data?.message || "Error al registrar usuario");
+    }
   }
 
   // Aquí podrían ir otros métodos relacionados con la autenticación

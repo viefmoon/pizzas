@@ -70,4 +70,25 @@ export const loginResponseDtoSchema = z.object({
 });
 export type LoginResponseDto = z.infer<typeof loginResponseDtoSchema>;
 
+// Esquema de validación para el formulario de registro
+export const registerSchema = z.object({
+  email: z.string().email("Correo electrónico inválido"),
+  username: z
+    .string()
+    .min(3, "El nombre de usuario debe tener al menos 3 caracteres")
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Solo se permiten letras, números y guiones bajos"
+    ),
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+  firstName: z.string().min(1, "El nombre es requerido"),
+  lastName: z.string().min(1, "El apellido es requerido"),
+});
+
+export type RegisterFormInputs = z.infer<typeof registerSchema>;
+
+export interface RegisterResponseDto {
+  message: string;
+}
+
 // Podrías añadir aquí otros DTOs y tipos relacionados con auth (register, forgot password, etc.)

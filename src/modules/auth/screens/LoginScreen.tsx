@@ -8,7 +8,13 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Text, IconButton, Surface, TouchableRipple } from "react-native-paper";
+import {
+  Text,
+  IconButton,
+  Surface,
+  TouchableRipple,
+  Button,
+} from "react-native-paper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 import { useAppTheme } from "../../../app/styles/theme";
@@ -189,7 +195,7 @@ const LoginScreen = () => {
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>¿No tienes una cuenta?</Text>
                 <TouchableRipple
-                  onPress={() => console.log("Navegar a registro")}
+                  onPress={() => navigation.navigate("Register")}
                 >
                   <Text style={styles.registerLink}>Regístrate</Text>
                 </TouchableRipple>
