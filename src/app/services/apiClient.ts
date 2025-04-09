@@ -6,9 +6,12 @@ import { useAuthStore } from "../store/authStore";
 // Define la URL base de tu API
 const apiClient = create({
   baseURL: API_URL,
-  headers: { "Cache-Control": "no-cache", Accept: "application/json" },
-  // Puedes añadir un timeout si lo necesitas, por ejemplo 10 segundos
-  // timeout: 10000,
+  headers: {
+    "Cache-Control": "no-cache",
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  },
+  timeout: 15000, // 15 segundos de timeout
 });
 
 // Interceptor para añadir el token de autenticación
