@@ -1,7 +1,8 @@
 // src/app/navigation/types.ts
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { DrawerScreenProps as NavigationDrawerScreenProps } from '@react-navigation/drawer'; // Renombrar para evitar colisión
-
+import type { NavigatorScreenParams } from '@react-navigation/native'; // Importar para stacks anidados
+import type { MenuStackParamList } from '../../modules/menu/navigation/types'; // Importar tipos del stack de menú
 // Tipos para el Stack de Autenticación (anterior RootStack)
 export type AuthStackParamList = {
   Login: undefined;
@@ -17,7 +18,8 @@ export type AppDrawerParamList = {
   // Aquí añadirás más pantallas del drawer en el futuro, ej:
   // Profile: { userId: string };
   // Settings: undefined;
-};
+   Menu: NavigatorScreenParams<MenuStackParamList>; // Añadir el stack de Menú
+ };
 
 // Tipo genérico para las pantallas del Drawer
 export type DrawerScreenProps<T extends keyof AppDrawerParamList> =

@@ -119,6 +119,22 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               }
               theme={theme} // Pasa el tema para que use los colores y fuentes correctos
             />
+            {/* Ítem de Menú (Categorías) */}
+            <PaperDrawer.Item
+              label="Menú"
+              icon="menu" // O 'food-fork-drink'
+              active={props.state.routes[props.state.index]?.name === "Menu"}
+              onPress={() => {
+                // Navegar al Stack 'Menu', pantalla inicial 'CategoriesScreen'
+                props.navigation.navigate('Menu', { screen: 'CategoriesScreen' });
+              }}
+              style={
+                props.state.routes[props.state.index]?.name === "Menu"
+                  ? { backgroundColor: "transparent" }
+                  : {}
+              }
+              theme={theme}
+            />
             {/* Puedes añadir más items aquí si es necesario */}
           </PaperDrawer.Section>
 

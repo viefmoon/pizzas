@@ -2,6 +2,7 @@
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import WelcomeScreen from '../../modules/home/screens/WelcomeScreen';
+import { MenuStack } from '../../modules/menu/navigation/MenuStack'; // Importar el nuevo Stack
 import { CustomDrawerContent } from './components/CustomDrawerContent';
 import { useAppTheme } from '../styles/theme';
 import type { AppDrawerParamList } from './types';
@@ -47,6 +48,17 @@ export function AppDrawerNavigator() {
           title: 'Bienvenida', // Título que podría aparecer en el header si se muestra
           // drawerIcon: ({ color, size }) => ( // Icono para el drawer item (manejado en CustomDrawerContent)
           //   <MaterialCommunityIcons name="home-outline" color={color} size={size} />
+          // ),
+        }}
+      />
+      {/* Pantalla para el Módulo de Menú (Categorías, etc.) */}
+      <Drawer.Screen
+        name="Menu"
+        component={MenuStack}
+        options={{
+          title: 'Menú', // Título para el Drawer Item (usado en CustomDrawerContent)
+          // drawerIcon: ({ color, size }) => ( // Icono (manejado en CustomDrawerContent)
+          //   <MaterialCommunityIcons name="food-fork-drink" color={color} size={size} />
           // ),
         }}
       />
