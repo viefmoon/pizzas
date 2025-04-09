@@ -1,0 +1,1606 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: .cursor, src
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+
+Additional Info:
+----------------
+
+================================================================
+Directory Structure
+================================================================
+.cursor/rules/expo.mdc
+src/app/components/common/GlobalSnackbar.tsx
+src/app/services/apiClient.ts
+src/app/store/authStore.ts
+src/app/store/snackbarStore.ts
+src/app/store/themeStore.ts
+src/app/styles/colors.ts
+src/app/styles/theme.ts
+src/app/styles/typography.ts
+src/app/types/env.d.ts
+src/app/types/theme.types.ts
+src/modules/auth/components/LoginForm.tsx
+src/modules/auth/screens/LoginScreen.tsx
+src/modules/auth/services/authService.ts
+src/modules/auth/types/auth.types.ts
+
+================================================================
+Files
+================================================================
+
+================
+File: src/app/components/common/GlobalSnackbar.tsx
+================
+import React from "react";
+import { StyleSheet } from "react-native";
+import { Snackbar, Text } from "react-native-paper";
+import {
+  useSnackbarStore,
+  SnackbarType,
+} from "../../../app/store/snackbarStore";
+import { useAppTheme } from "../../../app/styles/theme";
+
+const GlobalSnackbar: React.FC = () => {
+  const { visible, message, type, duration, hideSnackbar } = useSnackbarStore();
+  const theme = useAppTheme(); // Obtiene el tema activo (light/dark)
+
+  // Función para determinar el estilo basado en el tipo de snackbar
+  const getSnackbarStyle = (snackbarType: SnackbarType) => {
+    switch (snackbarType) {
+      case "success":
+        // Usa colores definidos en tu tema para éxito
+        return { backgroundColor: theme.colors.successContainer };
+      case "error":
+        // Usa colores definidos en tu tema para error
+        return { backgroundColor: theme.colors.errorContainer };
+      case "warning":
+        // Usa colores definidos en tu tema para advertencia
+        return { backgroundColor: theme.colors.warningContainer };
+      case "info":
+        // Usa colores definidos en tu tema para información
+        return { backgroundColor: theme.colors.infoContainer };
+      default:
+        return {};
+    }
+  };
+
+  // Función para determinar el color del texto basado en el fondo para asegurar contraste
+  const getSnackbarTextStyle = (snackbarType: SnackbarType) => {
+    // Asegúrate de tener estos colores definidos en colors.ts y extendidos en theme.ts
+    // Si no los tienes, puedes usar un color por defecto o calcular uno.
+    const defaultTextColor = theme.dark
+      ? theme.colors.surface
+      : theme.colors.onSurface; // O theme.colors.inverseOnSurface como usa Paper por defecto
+
+    switch (snackbarType) {
+      case "success":
+        // Deberías tener un color 'onSuccessContainer' en tu tema
+        return { color: theme.colors.onSuccessContainer || defaultTextColor };
+      case "error":
+        return { color: theme.colors.onErrorContainer }; // Paper ya define onErrorContainer;
+      case "warning":
+        return { color: theme.colors.onWarningContainer || defaultTextColor };
+      case "info":
+        return { color: theme.colors.onInfoContainer || defaultTextColor };
+      default:
+        return { color: theme.colors.inverseOnSurface };
+    }
+  };
+
+  return (
+    <Snackbar
+      visible={visible}
+      onDismiss={hideSnackbar}
+      duration={duration}
+      style={[styles.snackbarBase, getSnackbarStyle(type)]}
+      theme={{ roundness: theme.roundness }}
+    >
+      <Text style={getSnackbarTextStyle(type)}>{message}</Text>
+    </Snackbar>
+  );
+};
+
+const styles = StyleSheet.create({
+  snackbarBase: {
+    // Puedes añadir estilos base aquí si necesitas, ej: ajustar márgenes
+    // position: 'absolute', // Asegúrate de que esté posicionado correctamente si es necesario
+    // bottom: 0, // O donde quieras que aparezca
+    // left: 0,
+    // right: 0,
+  },
+  // No necesitas estilos de texto aquí si los aplicas dinámicamente
+});
+
+export default GlobalSnackbar;
+
+================
+File: src/app/services/apiClient.ts
+================
+import { create } from "apisauce";
+import { API_URL } from "@env";
+import EncryptedStorage from "react-native-encrypted-storage";
+import { useAuthStore } from "../store/authStore";
+
+// Define la URL base de tu API
+const apiClient = create({
+  baseURL: API_URL,
+  headers: { "Cache-Control": "no-cache", Accept: "application/json" },
+  // Puedes añadir un timeout si lo necesitas, por ejemplo 10 segundos
+  // timeout: 10000,
+});
+
+// Interceptor para añadir el token de autenticación
+apiClient.addAsyncRequestTransform((request) => async () => {
+  try {
+    const token = await EncryptedStorage.getItem("auth_token");
+    if (token) {
+      if (!request.headers) request.headers = {};
+      request.headers["Authorization"] = `Bearer ${token}`;
+    }
+  } catch (error) {
+    console.error("Error al recuperar el token de autenticación:", error);
+  }
+});
+
+// Monitor para manejar errores de autenticación (401)
+apiClient.addMonitor((response) => {
+  if (response.status === 401 && !response.config?.url?.includes("/auth")) {
+    console.warn("Acceso no autorizado detectado (401). Cerrando sesión...");
+    // Obtener la función de logout del store y ejecutarla
+    const logout = useAuthStore.getState().logout;
+    if (logout) {
+      logout();
+    }
+  }
+
+  // Log de errores generales
+  if (!response.ok) {
+    console.error("Problema en la petición API:", {
+      problema: response.problem,
+      url: response.config?.url,
+      método: response.config?.method,
+      estado: response.status,
+    });
+  }
+});
+
+// --- Interceptores (Ejemplos Opcionales) ---
+
+// Ejemplo: Monitor para manejar errores comunes como 401 Unauthorized
+// import { tuAuthStore } from '../store/authStore'; // Asumiendo un store Zustand para auth
+// apiClient.addMonitor(response => {
+//   if (response.status === 401 && !response.config?.url?.includes('/login')) { // Evita bucles en login
+//     console.warn('Unauthorized access detected (401). Logging out.');
+//     // Llama a tu función de logout global
+//     // tuAuthStore.getState().logout();
+//   }
+//   // Puedes añadir más monitores para otros códigos de estado o problemas
+//   if (!response.ok) {
+//     console.error('API Request Problem:', response.problem, response);
+//   }
+// });
+
+// --- Fin Interceptores ---
+
+export default apiClient;
+
+================
+File: src/app/store/authStore.ts
+================
+import { create } from "zustand";
+import EncryptedStorage from "react-native-encrypted-storage";
+
+interface AuthState {
+  isAuthenticated: boolean;
+  token: string | null;
+  setToken: (token: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  isAuthenticated: false,
+  token: null,
+  setToken: async (token: string) => {
+    try {
+      await EncryptedStorage.setItem("auth_token", token);
+      set({ token, isAuthenticated: true });
+    } catch (error) {
+      console.error("Error al guardar el token:", error);
+    }
+  },
+  logout: async () => {
+    try {
+      await EncryptedStorage.removeItem("auth_token");
+      set({ token: null, isAuthenticated: false });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  },
+}));
+
+================
+File: src/app/store/snackbarStore.ts
+================
+// Store para manejar el estado del Snackbar global
+import { create } from "zustand";
+
+export type SnackbarType = "info" | "success" | "error" | "warning";
+
+interface SnackbarState {
+  visible: boolean;
+  message: string;
+  type: SnackbarType;
+  duration?: number;
+  showSnackbar: (params: {
+    message: string;
+    type?: SnackbarType;
+    duration?: number;
+  }) => void;
+  hideSnackbar: () => void;
+}
+
+export const useSnackbarStore = create<SnackbarState>((set) => ({
+  visible: false,
+  message: "",
+  type: "info",
+  duration: 3000,
+  showSnackbar: ({ message, type = "info", duration = 3000 }) =>
+    set({ visible: true, message, type, duration }),
+  hideSnackbar: () => set({ visible: false }),
+}));
+
+================
+File: src/app/store/themeStore.ts
+================
+// Store para manejar el estado del tema de la aplicación
+import React from "react";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useColorScheme } from "react-native";
+
+import {
+  ThemePreference,
+  THEME_PREFERENCE_STORAGE_KEY,
+  THEME_MODE,
+} from "../types/theme.types";
+import { lightTheme, darkTheme } from "../styles/theme";
+
+interface ThemeState {
+  themePreference: ThemePreference;
+  activeTheme: typeof lightTheme | typeof darkTheme;
+  isSystemDarkMode: boolean | null;
+  setThemePreference: (preference: ThemePreference) => void;
+  setSystemDarkMode: (isDark: boolean | null) => void;
+}
+
+export const useThemeStore = create<ThemeState>()(
+  persist(
+    (set, get) => ({
+      // Valor por defecto: usar el tema del sistema
+      themePreference: THEME_MODE.SYSTEM,
+      // Por defecto comenzamos con el tema claro hasta que detectemos la preferencia del sistema
+      activeTheme: lightTheme,
+      // Estado que guarda la preferencia del sistema
+      isSystemDarkMode: null,
+
+      setThemePreference: (preference: ThemePreference) => {
+        const { isSystemDarkMode } = get();
+
+        // Actualiza la preferencia del usuario
+        set({ themePreference: preference });
+
+        // Determina el tema activo basado en la nueva preferencia
+        if (preference === THEME_MODE.SYSTEM) {
+          // Si es 'system', usa lo que indique el sistema
+          set({ activeTheme: isSystemDarkMode ? darkTheme : lightTheme });
+        } else {
+          // Si es 'light' o 'dark', usa el tema correspondiente
+          set({
+            activeTheme:
+              preference === THEME_MODE.DARK ? darkTheme : lightTheme,
+          });
+        }
+      },
+
+      setSystemDarkMode: (isDark: boolean | null) => {
+        const { themePreference } = get();
+
+        // Actualiza el estado de la preferencia del sistema
+        set({ isSystemDarkMode: isDark });
+
+        // Si la preferencia actual es 'system', actualiza el tema activo
+        if (themePreference === THEME_MODE.SYSTEM && isDark !== null) {
+          set({ activeTheme: isDark ? darkTheme : lightTheme });
+        }
+      },
+    }),
+    {
+      name: THEME_PREFERENCE_STORAGE_KEY,
+      storage: createJSONStorage(() => AsyncStorage),
+      // Solo persistimos la preferencia del usuario, no el tema activo
+      partialize: (state) => ({ themePreference: state.themePreference }),
+    }
+  )
+);
+
+// Hook personalizado para detectar cambios en el tema del sistema y actualizarlo en el store
+export function useSystemThemeDetector() {
+  const systemColorScheme = useColorScheme();
+  const setSystemDarkMode = useThemeStore((state) => state.setSystemDarkMode);
+
+  React.useEffect(() => {
+    // Actualiza el estado con el tema detectado del sistema (null si no se puede detectar)
+    const isDarkMode = systemColorScheme === "dark";
+    setSystemDarkMode(isDarkMode);
+  }, [systemColorScheme, setSystemDarkMode]);
+}
+
+================
+File: src/app/styles/colors.ts
+================
+// Define las paletas de colores para temas claro y oscuro
+// Estos colores son referenciales, deben ajustarse según la identidad de marca específica
+
+// Paleta de colores para modo claro
+export const lightColors = {
+  // Colores principales
+  primary: "#FF5722", // Rojo-naranja, color principal para la app de pizza
+  primaryContainer: "#FFDACF",
+  onPrimary: "#FFFFFF",
+  onPrimaryContainer: "#401400",
+
+  // Colores secundarios
+  secondary: "#775652",
+  secondaryContainer: "#FFDBDB",
+  onSecondary: "#FFFFFF",
+  onSecondaryContainer: "#2C1512",
+
+  // Colores de acento/terciarios
+  tertiary: "#705C2E",
+  tertiaryContainer: "#FBDFA6",
+  onTertiary: "#FFFFFF",
+  onTertiaryContainer: "#261A00",
+
+  // Colores de fondo y superficie
+  background: "#FFFBFF",
+  onBackground: "#201A19",
+  surface: "#FFFBFF",
+  onSurface: "#201A19",
+  surfaceVariant: "#F5DDD8",
+  onSurfaceVariant: "#534341",
+
+  // Colores de estado/feedback
+  error: "#BA1A1A",
+  errorContainer: "#FFDAD6",
+  onError: "#FFFFFF",
+  onErrorContainer: "#410002",
+
+  // Elementos de UI
+  outline: "#857371",
+  outlineVariant: "#D8C2BE",
+  inverseSurface: "#362F2E",
+  inverseOnSurface: "#FBEEE9",
+  inversePrimary: "#FFB59E",
+
+  // Otros colores semánticos
+  success: "#4CAF50",
+  successContainer: "#CCFFE3",
+  onSuccessContainer: "#00381A", // Verde oscuro para contraste en claro
+  warning: "#FB8C00",
+  warningContainer: "#FFEACF",
+  onWarningContainer: "#3D2100", // Naranja oscuro para contraste en claro
+  info: "#2196F3",
+  infoContainer: "#D4E8FF",
+  onInfoContainer: "#002E60", // Azul oscuro para contraste en claro
+};
+
+// Paleta de colores para modo oscuro
+export const darkColors = {
+  // Colores principales
+  primary: "#FF7043", // Naranja más vibrante
+  primaryContainer: "#662E1A",
+  onPrimary: "#FFFFFF",
+  onPrimaryContainer: "#FFDACF",
+
+  // Colores secundarios
+  secondary: "#FFB74D", // Naranja más claro para contraste
+  secondaryContainer: "#774B1F",
+  onSecondary: "#000000",
+  onSecondaryContainer: "#FFE0B2",
+
+  // Colores de acento/terciarios
+  tertiary: "#FFD54F", // Amarillo cálido
+  tertiaryContainer: "#775B25",
+  onTertiary: "#000000",
+  onTertiaryContainer: "#FFF3C4",
+
+  // Colores de fondo y superficie
+  background: "#121212", // Fondo más oscuro para mejor contraste
+  onBackground: "#FFFFFF",
+  surface: "#1E1E1E", // Superficie ligeramente más clara que el fondo
+  onSurface: "#FFFFFF",
+  surfaceVariant: "#2C2C2C",
+  onSurfaceVariant: "#E0E0E0",
+
+  // Colores de estado/feedback
+  error: "#FF5252",
+  errorContainer: "#8B0000",
+  onError: "#FFFFFF",
+  onErrorContainer: "#FFEBEE",
+
+  // Elementos de UI
+  outline: "#4F4F4F",
+  outlineVariant: "#3D3D3D",
+  inverseSurface: "#FFFFFF",
+  inverseOnSurface: "#121212",
+  inversePrimary: "#FF5722",
+
+  // Otros colores semánticos
+  success: "#69F0AE",
+  successContainer: "#1B5E20",
+  onSuccessContainer: "#B3FFD1", // Verde claro para contraste en oscuro
+  warning: "#FFC107",
+  warningContainer: "#795548",
+  onWarningContainer: "#FFE0B2", // Naranja claro para contraste en oscuro
+  info: "#64B5F6",
+  infoContainer: "#1565C0",
+  onInfoContainer: "#B3E5FC", // Azul claro para contraste en oscuro
+};
+
+================
+File: src/app/styles/theme.ts
+================
+// Configuración y exportación de temas para react-native-paper
+import { MD3LightTheme, MD3DarkTheme, useTheme } from "react-native-paper";
+import type { MD3Typescale } from "react-native-paper/lib/typescript/types";
+import { lightColors, darkColors } from "./colors";
+import { typography } from "./typography";
+
+// Extender el tipo MD3Colors para incluir nuestros colores personalizados
+declare global {
+  namespace ReactNativePaper {
+    interface MD3Colors {
+      success: string;
+      successContainer: string;
+      onSuccessContainer: string;
+      warning: string;
+      warningContainer: string;
+      onWarningContainer: string;
+      info: string;
+      infoContainer: string;
+      onInfoContainer: string;
+    }
+  }
+}
+
+// Define el espacio entre elementos UI (basado en Material Design)
+const spacing = {
+  xs: 4,
+  s: 8,
+  m: 16,
+  l: 24,
+  xl: 32,
+  xxl: 40,
+};
+
+// Convertir nuestra tipografía a la estructura esperada por MD3Theme
+const typescale: MD3Typescale = {
+  default: {
+    fontFamily: typography.bodyMedium.fontFamily,
+    fontWeight: "normal",
+    letterSpacing: typography.bodyMedium.letterSpacing,
+  },
+  displayLarge: { ...typography.displayLarge, fontWeight: "normal" },
+  displayMedium: { ...typography.displayMedium, fontWeight: "normal" },
+  displaySmall: { ...typography.displaySmall, fontWeight: "normal" },
+  headlineLarge: { ...typography.headlineLarge, fontWeight: "normal" },
+  headlineMedium: { ...typography.headlineMedium, fontWeight: "normal" },
+  headlineSmall: { ...typography.headlineSmall, fontWeight: "normal" },
+  titleLarge: { ...typography.titleLarge, fontWeight: "normal" },
+  titleMedium: { ...typography.titleMedium, fontWeight: "500" },
+  titleSmall: { ...typography.titleSmall, fontWeight: "500" },
+  bodyLarge: { ...typography.bodyLarge, fontWeight: "normal" },
+  bodyMedium: { ...typography.bodyMedium, fontWeight: "normal" },
+  bodySmall: { ...typography.bodySmall, fontWeight: "normal" },
+  labelLarge: { ...typography.labelLarge, fontWeight: "500" },
+  labelMedium: { ...typography.labelMedium, fontWeight: "500" },
+  labelSmall: { ...typography.labelSmall, fontWeight: "500" },
+};
+
+// Crea y extiende el tema claro de Paper con nuestras personalizaciones
+export const lightTheme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    ...lightColors,
+  },
+  fonts: typescale,
+  spacing,
+  // Puedes añadir más propiedades personalizadas aquí
+  roundness: 8, // Radio de borde para componentes
+};
+
+// Crea y extiende el tema oscuro de Paper con nuestras personalizaciones
+export const darkTheme = {
+  ...MD3DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    ...darkColors,
+  },
+  fonts: typescale,
+  spacing,
+  // Puedes añadir más propiedades personalizadas aquí
+  roundness: 8, // Radio de borde para componentes
+};
+
+// Tipo para los temas personalizados
+export type AppTheme = typeof lightTheme;
+
+// Helper para usar el tema en componentes (para tener autocompletado)
+export const useAppTheme = () => useTheme() as AppTheme;
+
+================
+File: src/app/styles/typography.ts
+================
+// Define los estilos tipográficos según Material Design 3
+// Estos valores se pueden ajustar según las necesidades específicas del diseño
+
+import { Platform } from "react-native";
+
+// Configuración de tipografía siguiendo Material Design 3
+export const typography = {
+  // Fuentes base para Android e iOS
+  fonts: {
+    regular: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto",
+      default: "System",
+    }),
+    medium: Platform.select({
+      ios: "SF Pro Text-Medium",
+      android: "Roboto-Medium",
+      default: "System-Medium",
+    }),
+    light: Platform.select({
+      ios: "SF Pro Text-Light",
+      android: "Roboto-Light",
+      default: "System-Light",
+    }),
+    thin: Platform.select({
+      ios: "SF Pro Text-Thin",
+      android: "Roboto-Thin",
+      default: "System-Thin",
+    }),
+  },
+
+  // Estilos de texto según MD3
+  displayLarge: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Display",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 57,
+    lineHeight: 64,
+    letterSpacing: -0.25,
+  },
+  displayMedium: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Display",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 45,
+    lineHeight: 52,
+    letterSpacing: 0,
+  },
+  displaySmall: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Display",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 36,
+    lineHeight: 44,
+    letterSpacing: 0,
+  },
+  headlineLarge: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Display",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 32,
+    lineHeight: 40,
+    letterSpacing: 0,
+  },
+  headlineMedium: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Display",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 28,
+    lineHeight: 36,
+    letterSpacing: 0,
+  },
+  headlineSmall: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Display",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 24,
+    lineHeight: 32,
+    letterSpacing: 0,
+  },
+  titleLarge: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 22,
+    lineHeight: 28,
+    letterSpacing: 0,
+  },
+  titleMedium: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto-Medium",
+      default: "System-Medium",
+    }),
+    fontSize: 16,
+    lineHeight: 24,
+    letterSpacing: 0.15,
+  },
+  titleSmall: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto-Medium",
+      default: "System-Medium",
+    }),
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.1,
+  },
+  labelLarge: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto-Medium",
+      default: "System-Medium",
+    }),
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.1,
+  },
+  labelMedium: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto-Medium",
+      default: "System-Medium",
+    }),
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.5,
+  },
+  labelSmall: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto-Medium",
+      default: "System-Medium",
+    }),
+    fontSize: 11,
+    lineHeight: 16,
+    letterSpacing: 0.5,
+  },
+  bodyLarge: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 16,
+    lineHeight: 24,
+    letterSpacing: 0.5,
+  },
+  bodyMedium: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.25,
+  },
+  bodySmall: {
+    fontFamily: Platform.select({
+      ios: "SF Pro Text",
+      android: "Roboto",
+      default: "System",
+    }),
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.4,
+  },
+};
+
+// Si necesitas adaptar para Android vs iOS, puedes exportar variantes específicas:
+export const iosFontFamily = {
+  regular: "System",
+  medium: "System",
+  light: "System",
+  thin: "System",
+};
+
+export const androidFontFamily = {
+  regular: "sans-serif",
+  medium: "sans-serif-medium",
+  light: "sans-serif-light",
+  thin: "sans-serif-thin",
+};
+
+================
+File: src/app/types/env.d.ts
+================
+declare module "@env" {
+  export const API_URL: string;
+  export const API_KEY: string;
+  export const ENVIRONMENT: "development" | "staging" | "production";
+  export const VERSION: string;
+  export const BUILD_NUMBER: string;
+}
+
+================
+File: src/app/types/theme.types.ts
+================
+// Define los tipos para el sistema de temas de la aplicación
+import { z } from "zod";
+import { MD3Theme } from "react-native-paper";
+
+// Definición de las posibles preferencias de tema
+export const themePreferenceSchema = z.enum(["light", "dark", "system"]);
+export type ThemePreference = z.infer<typeof themePreferenceSchema>;
+
+// Clave para almacenar la preferencia de tema en AsyncStorage
+export const THEME_PREFERENCE_STORAGE_KEY = "app:theme_preference";
+
+// Valores constantes para facilitar el uso en el código
+export const THEME_MODE = {
+  LIGHT: "light",
+  DARK: "dark",
+  SYSTEM: "system",
+} as const;
+
+// Extender el tema de Paper si es necesario
+export interface AppTheme extends MD3Theme {
+  // Aquí puedes agregar propiedades adicionales al tema si es necesario
+}
+
+// Tipo para el estado del tema en el store
+export interface ThemeState {
+  preference: ThemePreference;
+  setPreference: (preference: ThemePreference) => void;
+}
+
+================
+File: src/modules/auth/components/LoginForm.tsx
+================
+import React, { useState } from "react";
+import { View, StyleSheet } from "react-native";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { TextInput, Button, HelperText } from "react-native-paper";
+import { useAppTheme } from "../../../app/styles/theme";
+
+// Esquema de validación con Zod
+const loginSchema = z.object({
+  // Permitir email o username, refinar luego si es necesario validar formato específico
+  emailOrUsername: z
+    .string()
+    .min(1, "El correo o nombre de usuario es requerido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
+
+// Inferir el tipo de los inputs desde el esquema Zod
+type LoginFormInputs = z.infer<typeof loginSchema>;
+
+interface LoginFormProps {
+  onSubmit: (data: LoginFormInputs) => void;
+  isLoading: boolean;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
+  const theme = useAppTheme();
+  const [secureTextEntry, setSecureTextEntry] = useState(true);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      emailOrUsername: "",
+      password: "",
+    },
+  });
+
+  const toggleSecureEntry = () => {
+    setSecureTextEntry(!secureTextEntry);
+  };
+
+  // Estilos que dependen del tema
+  const styles = StyleSheet.create({
+    container: {
+      width: "100%",
+    },
+    input: {
+      marginBottom: 8,
+      // backgroundColor: theme.colors.surface, // TextInput de Paper maneja su fondo basado en el modo y tema
+    },
+    button: {
+      marginTop: 16,
+    },
+    helperText: {
+      // El color del HelperText tipo 'error' se maneja por el tema
+      marginBottom: 8,
+    },
+  });
+
+  return (
+    <View style={styles.container}>
+      <Controller
+        control={control}
+        name="emailOrUsername"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <View>
+            <TextInput
+              label="Correo o Usuario"
+              mode="outlined" // O 'flat' según preferencia de diseño
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              error={!!errors.emailOrUsername}
+              style={styles.input}
+              autoCapitalize="none"
+              keyboardType="email-address" // Asume email como más común, pero permite username
+              disabled={isLoading}
+            />
+            {/* Corrección: Usar && para renderizado condicional */}
+            {errors.emailOrUsername && (
+              <HelperText
+                type="error"
+                visible={!!errors.emailOrUsername}
+                style={styles.helperText}
+              >
+                {errors.emailOrUsername?.message}
+              </HelperText>
+            )}
+          </View>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="password"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <View>
+            <TextInput
+              label="Contraseña"
+              mode="outlined"
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              secureTextEntry={secureTextEntry}
+              error={!!errors.password}
+              style={styles.input}
+              right={
+                <TextInput.Icon
+                  icon={secureTextEntry ? "eye" : "eye-off"}
+                  onPress={toggleSecureEntry}
+                  forceTextInputFocus={false} // Evita que el input gane foco al tocar el icono
+                  color={errors.password ? theme.colors.error : undefined} // Cambia color del icono si hay error
+                />
+              }
+              disabled={isLoading}
+            />
+            {/* Corrección: Usar && para renderizado condicional */}
+            {errors.password && (
+              <HelperText
+                type="error"
+                visible={!!errors.password}
+                style={styles.helperText}
+              >
+                {errors.password?.message}
+              </HelperText>
+            )}
+          </View>
+        )}
+      />
+
+      <Button
+        mode="contained"
+        onPress={handleSubmit(onSubmit)}
+        loading={isLoading}
+        disabled={isLoading}
+        style={styles.button}
+      >
+        {isLoading ? "Ingresando..." : "Ingresar"}
+      </Button>
+    </View>
+  );
+};
+
+export default LoginForm;
+
+================
+File: src/modules/auth/screens/LoginScreen.tsx
+================
+import React from "react";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, IconButton, Surface, TouchableRipple } from "react-native-paper";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigation } from "@react-navigation/native";
+import { useAppTheme } from "../../../app/styles/theme";
+import { useSnackbarStore } from "../../../app/store/snackbarStore";
+import { useThemeStore } from "../../../app/store/themeStore";
+import { useAuthStore } from "../../../app/store/authStore";
+import { LoginFormInputs, LoginResponseDto } from "../types/auth.types";
+import { authService } from "../services/authService";
+import LoginForm from "../components/LoginForm";
+
+const LoginScreen = () => {
+  const theme = useAppTheme();
+  const queryClient = useQueryClient();
+  const navigation = useNavigation();
+  const { showSnackbar } = useSnackbarStore();
+  const { themePreference, setThemePreference } = useThemeStore();
+  const setToken = useAuthStore((state) => state.setToken);
+
+  // Mutación de login
+  const loginMutation = useMutation<LoginResponseDto, Error, LoginFormInputs>({
+    mutationFn: (loginData) => authService.login(loginData),
+    onSuccess: async (data) => {
+      try {
+        await setToken(data.token);
+        showSnackbar({
+          message: `¡Bienvenido!`,
+          type: "success",
+        });
+        queryClient.invalidateQueries({ queryKey: ["user", "me"] });
+        // TODO: Implementar navegación a la pantalla principal
+        console.log("Navegación pendiente a la pantalla principal");
+      } catch (error) {
+        console.error("Error al guardar token:", error);
+        showSnackbar({
+          message: "Error procesando el inicio de sesión.",
+          type: "error",
+        });
+      }
+    },
+    onError: (error) => {
+      showSnackbar({
+        message:
+          error.message ||
+          "Error al iniciar sesión. Por favor, intenta de nuevo.",
+        type: "error",
+        duration: 5000,
+      });
+    },
+  });
+
+  const handleLoginSubmit = (data: LoginFormInputs) => {
+    loginMutation.mutate(data);
+  };
+
+  const toggleTheme = () => {
+    setThemePreference(theme.dark ? "light" : "dark");
+  };
+
+  // Estilos memoizados que dependen del tema
+  const styles = React.useMemo(
+    () =>
+      StyleSheet.create({
+        safeArea: {
+          flex: 1,
+          backgroundColor: theme.colors.background,
+        },
+        scrollView: {
+          flexGrow: 1,
+        },
+        container: {
+          flex: 1,
+          padding: 24,
+          justifyContent: "space-between",
+        },
+        logoContainer: {
+          alignItems: "center",
+          marginTop: 30,
+          marginBottom: 5,
+        },
+        logo: {
+          width: 120,
+          height: 120,
+          marginBottom: 16,
+        },
+        title: {
+          fontSize: 32,
+          fontWeight: "bold",
+          color: theme.colors.primary,
+          marginBottom: 8,
+          textAlign: "center",
+        },
+        subtitle: {
+          fontSize: 16,
+          color: theme.colors.onSurfaceVariant,
+          marginBottom: 20,
+          textAlign: "center",
+          paddingHorizontal: 20,
+        },
+        formContainer: {
+          backgroundColor: theme.colors.surface,
+          borderRadius: 16,
+          padding: 24,
+          elevation: 2,
+          marginBottom: 16,
+        },
+        forgotPassword: {
+          color: theme.colors.primary,
+          textAlign: "right",
+          marginTop: 8,
+          marginBottom: 16,
+        },
+        registerContainer: {
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: 20,
+        },
+        registerText: {
+          color: theme.colors.onSurfaceVariant,
+          marginRight: 8,
+        },
+        registerLink: {
+          color: theme.colors.primary,
+          fontWeight: "bold",
+        },
+        bottomThemeToggleContainer: {
+          alignItems: "center",
+          marginTop: 20,
+          marginBottom: 16,
+        },
+      }),
+    [theme]
+  );
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            {/* Sección Superior (Logo, Títulos) */}
+            <View>
+              <View style={styles.logoContainer}>
+                <Image
+                  source={require("../../../assets/logo.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+                <Text style={styles.title}>¡Bienvenido!</Text>
+                <Text style={styles.subtitle}>
+                  Inicia sesión para gestionar tus pedidos
+                </Text>
+              </View>
+
+              <Surface style={styles.formContainer}>
+                <LoginForm
+                  onSubmit={handleLoginSubmit}
+                  isLoading={loginMutation.isPending}
+                />
+              </Surface>
+
+              <TouchableRipple
+                onPress={() => console.log("Olvidé mi contraseña")}
+              >
+                <Text style={styles.forgotPassword}>
+                  ¿Olvidaste tu contraseña?
+                </Text>
+              </TouchableRipple>
+            </View>
+
+            {/* Sección Inferior (Registro, Cambio de Tema) */}
+            <View>
+              <View style={styles.registerContainer}>
+                <Text style={styles.registerText}>¿No tienes una cuenta?</Text>
+                <TouchableRipple
+                  onPress={() => console.log("Navegar a registro")}
+                >
+                  <Text style={styles.registerLink}>Regístrate</Text>
+                </TouchableRipple>
+              </View>
+              <View style={styles.bottomThemeToggleContainer}>
+                <IconButton
+                  icon={theme.dark ? "weather-night" : "weather-sunny"}
+                  size={28}
+                  onPress={toggleTheme}
+                  iconColor={theme.colors.onSurfaceVariant}
+                />
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+};
+
+export default LoginScreen;
+
+================
+File: src/modules/auth/services/authService.ts
+================
+import apiClient from "../../../app/services/apiClient";
+import {
+  AuthEmailLoginDto,
+  LoginResponseDto,
+  LoginFormInputs,
+} from "../types/auth.types";
+
+class AuthService {
+  async login(loginData: LoginFormInputs): Promise<LoginResponseDto> {
+    // Determinar si es email o username
+    const isEmail = loginData.emailOrUsername.includes("@");
+    const payload: AuthEmailLoginDto = {
+      password: loginData.password,
+      ...(isEmail
+        ? { email: loginData.emailOrUsername }
+        : { username: loginData.emailOrUsername }),
+    };
+
+    // Realizar la petición POST al endpoint de login
+    const response = await apiClient.post<LoginResponseDto>(
+      "/api/v1/auth/email/login",
+      payload
+    );
+
+    // Apisauce envuelve la respuesta. Verificamos si fue exitosa.
+    if (!response.ok || !response.data) {
+      // Intentar obtener un mensaje de error más específico si está disponible
+      const apiError =
+        (response.data as any)?.errors?.auth ||
+        (response.data as any)?.errors?.password ||
+        "credentialsIncorrect";
+      // Mapear errores del backend a mensajes amigables
+      const errorMessages: { [key: string]: string } = {
+        credentialsIncorrect: "Usuario o contraseña incorrectos.",
+        incorrectPassword: "La contraseña es incorrecta.",
+      };
+      throw new Error(errorMessages[apiError] || "Error al iniciar sesión.");
+    }
+    return response.data;
+  }
+
+  // Aquí podrían ir otros métodos relacionados con la autenticación
+  // como logout, refreshToken, resetPassword, etc.
+}
+
+export const authService = new AuthService();
+
+================
+File: src/modules/auth/types/auth.types.ts
+================
+import { z } from "zod";
+
+// Esquema de validación para el formulario de login
+export const loginSchema = z.object({
+  emailOrUsername: z
+    .string()
+    .min(1, "El correo o nombre de usuario es requerido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
+
+// Tipo inferido del esquema de login
+export type LoginFormInputs = z.infer<typeof loginSchema>;
+
+// Esquema para la respuesta de autenticación
+export const authResponseSchema = z.object({
+  token: z.string(),
+  user: z.object({
+    id: z.string(),
+    email: z.string().email(),
+    username: z.string(),
+    role: z.enum(["admin", "staff"]),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    avatar: z.string().url().optional(),
+  }),
+});
+
+// Tipo inferido del esquema de respuesta de autenticación
+export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+// Tipo para el estado de autenticación en el store
+export interface AuthState {
+  token: string | null;
+  user: AuthResponse["user"] | null;
+  isLoading: boolean;
+  error: string | null;
+  login: (credentials: LoginFormInputs) => Promise<void>;
+  logout: () => void;
+  clearError: () => void;
+}
+
+// DTO para la petición de login al backend
+// Basado en AuthEmailLoginDto del backend, permitiendo email o username
+export const authEmailLoginDtoSchema = z.object({
+  email: z.string().email().optional(),
+  username: z.string().optional(),
+  password: z.string(),
+});
+export type AuthEmailLoginDto = z.infer<typeof authEmailLoginDtoSchema>;
+
+// Simplificación del tipo User basado en el backend para la respuesta
+// Ajustar según los campos realmente necesarios en el frontend
+const userSchema = z.object({
+  id: z.string().uuid(), // Asumiendo UUID como string
+  email: z.string().email().nullable(),
+  username: z.string().nullable(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
+  // Añadir otros campos relevantes si son necesarios (role, status, etc.)
+  role: z.object({ id: z.number() }).optional(), // Asumiendo ID numérico para rol
+});
+export type User = z.infer<typeof userSchema>;
+
+// DTO para la respuesta del login del backend
+export const loginResponseDtoSchema = z.object({
+  token: z.string(),
+  refreshToken: z.string(),
+  tokenExpires: z.number(), // O z.string() si la API devuelve una fecha/string
+  user: userSchema,
+});
+export type LoginResponseDto = z.infer<typeof loginResponseDtoSchema>;
+
+// Podrías añadir aquí otros DTOs y tipos relacionados con auth (register, forgot password, etc.)
+
+================
+File: .cursor/rules/expo.mdc
+================
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Guía de Estilo, Arquitectura y Convenciones del Proyecto (ClearByte) (ANDROID)
+
+Este documento describe las convenciones de codificación, arquitectura y uso de librerías para el desarrollo de la aplicación móvil ClearByte, utilizando Expo, React Native y TypeScript. **La aplicación soporta temas claro y oscuro**, adaptándose a las preferencias del sistema y permitiendo la selección manual por parte del usuario. La estructura del proyecto se basa en una separación entre código central/compartido (`src/app`) y módulos de funcionalidades específicas (`src/modules`).
+
+## Filosofía General
+
+Eres un experto/a en TypeScript, React Native, Expo y desarrollo de UI móvil. Priorizamos código limpio, mantenible, performante y una excelente experiencia de usuario, aprovechando las herramientas seleccionadas y ofreciendo una interfaz adaptable a temas claro y oscuro.
+
+---
+
+## 1. Estilo y Estructura del Código
+
+*   **Concisión y Claridad:** Escribe código `TypeScript` técnico, conciso y bien documentado donde sea necesario. Usa ejemplos precisos si creas utilidades reutilizables.
+*   **Programación Funcional:** Utiliza patrones de programación funcional y declarativa. **Evita las clases** de JavaScript/TypeScript en favor de funciones y hooks.
+*   **Modularidad (DRY):** Prefiere la iteración y la modularización sobre la duplicación de código. Crea componentes y hooks reutilizables (colocándolos en `app/` si son globales, o dentro del módulo correspondiente si son específicos).
+*   **Nombres Descriptivos:** Usa nombres de variables descriptivos (ej., `isLoadingOrders`, `hasPrinterConnectionError`, `isMenuModalVisible`, `loginMutation`).
+*   **Estructura de Archivos (Organización por Módulos):**
+    *   `src/`
+        *   `app/`: Código central, compartido y transversal a toda la aplicación.
+            *   `components/`: Componentes UI verdaderamente globales y reutilizables en múltiples módulos (ej., `Button`, `CardShell`, `common/GlobalSnackbar.tsx`).
+            *   `constants/`: Valores fijos globales (a crear si es necesario).
+            *   `hooks/`: Hooks personalizados globales (ej., `useAppTheme` (exportado desde `styles/theme.ts`), `useNetworkStatus`).
+            *   `lib/`: Utilidades generales globales (ej., helpers de fechas con `date-fns`).
+            *   `navigation/`: Configuración principal de navegación (Navigator raíz, Drawer, Tab principal, tipos de navegación globales).
+            *   `services/`: Configuración del cliente API (`apiClient.ts`) y quizás servicios muy genéricos.
+            *   `store/`: Stores globales de Zustand (`authStore.ts`, `themeStore.ts`, `snackbarStore.ts`).
+            *   `styles/`: **TODA** la configuración de temas y estilos base (`colors.ts`, `typography.ts`, `theme.ts`).
+            *   `types/`: Definiciones globales de TypeScript (ej., `env.d.ts`, `theme.types.ts`).
+        *   `modules/`: Contiene las diferentes funcionalidades o dominios principales de la aplicación. Cada módulo es relativamente autocontenido.
+            *   `auth/`: Módulo de Autenticación.
+                *   `components/`: Componentes UI específicos de auth (`LoginForm.tsx`).
+                *   `screens/`: Pantallas de auth (`LoginScreen.tsx`).
+                *   `services/`: Lógica API específica de auth (`authService.ts`, que usa `app/services/apiClient.ts`).
+                *   `types/`: Tipos y DTOs específicos de auth (`auth.types.ts`).
+            *   `orders/`: (Ejemplo futuro) Módulo de Pedidos.
+                *   `components/`: `OrderCard.tsx`, `OrderDetailView.tsx`.
+                *   `screens/`: `OrderListScreen.tsx`, `OrderDetailScreen.tsx`.
+                *   `services/`: `orderService.ts`.
+                *   `store/`: (Opcional) `orderFiltersStore.ts` si el estado es complejo y específico del módulo.
+                *   `types/`: `order.types.ts`.
+            *   `menu/`: (Ejemplo futuro) Módulo de Gestión de Menú.
+                *   *(estructura similar)*
+            *   `settings/`: (Ejemplo futuro) Módulo de Configuración.
+                *   *(estructura similar)*
+        *   `assets/`: Recursos estáticos globales (fuentes, imágenes, Lottie JSON).
+
+---
+
+## 2. Convenciones de Nomenclatura
+
+*   **Directorios:** Minúsculas con guiones (kebab-case) (ej., `app/components/common`, `modules/order-details`).
+*   **Archivos (Componentes):** Mayúsculas CamelCase (PascalCase) (ej., `OrderCard.tsx`, `LoginForm.tsx`, `GlobalSnackbar.tsx`).
+*   **Archivos (Otros):** Minúsculas camelCase (ej., `apiClient.ts`, `authStore.ts`, `theme.ts`, `auth.types.ts`). Se sugiere usar `*.types.ts` para archivos de tipos dentro de los módulos.
+*   **Exportaciones:** Prefiere exportaciones nombradas (`named exports`). Se puede usar `export default` para componentes de pantalla (`screens`).
+
+---
+
+## 3. Uso de TypeScript
+
+*   **Obligatorio:** Usa `TypeScript` (`strict: true`).
+*   **Interfaces vs Tipos:** `interface` para formas de objetos/props; `type` para uniones, intersecciones, alias.
+    ```typescript
+    // src/app/types/theme.types.ts
+    export type ThemePreference = 'light' | 'dark' | 'system';
+
+    // src/app/components/Button.tsx (Ejemplo componente global)
+    interface ButtonProps { /* ... */ }
+    ```
+*   **Evitar Enums:** Usa `as const` o `type` unions.
+*   **Componentes Funcionales:** Tipar props con `interface`. Retorno `JSX.Element` o `React.ReactNode`.
+*   **Validación con `zod`:**
+    *   **Uso:** Estándar para validación (formularios, opcionalmente API DTOs).
+    *   **Definición:** Esquemas en `src/modules/feature/types/feature.types.ts` para tipos específicos de feature, o en `src/app/types/` si son muy globales.
+    *   **Validación:** Integrar con `react-hook-form` usando `@hookform/resolvers/zod`.
+    *   **Inferencia:** **SIEMPRE** usa `z.infer<typeof schema>` para tipos TS.
+    ```typescript
+    // src/modules/auth/types/auth.types.ts
+    import { z } from 'zod';
+    export const loginSchema = z.object({ /* ... */ });
+    export type LoginFormInputs = z.infer<typeof loginSchema>;
+    export const loginResponseDtoSchema = z.object({ /* ... */ });
+    export type LoginResponseDto = z.infer<typeof loginResponseDtoSchema>;
+    ```
+
+---
+
+## 4. Sintaxis y Formato
+
+*   **`function` vs Arrow:** `function` para componentes/utilidades puras; `=>` para callbacks, funciones internas dependientes de contexto.
+*   **Concisión:** Evitar `{}` innecesarios. Renderizado condicional `&&`.
+*   **JSX Declarativo:** Lógica fuera del JSX.
+*   **Prettier:** Usar configuración del proyecto.
+
+---
+
+## 5. UI y Estilos
+
+*   **Librería UI: `react-native-paper` (v5 - MD3)**
+    *   Uso principal para componentes UI.
+    *   **Theming:** Configuración centralizada en `src/app/styles/`.
+        *   `colors.ts`: Paletas `lightColors`, `darkColors`.
+        *   `typography.ts`: Escala tipográfica `typography`.
+        *   `theme.ts`: Crea `lightTheme`, `darkTheme` extendiendo los de Paper. Exporta `useAppTheme`.
+*   **Iconos: `@expo/vector-icons`**
+    *   Iconos integrados con Paper. Asegurar visibilidad en ambos temas.
+*   **Layout:** `Flexbox` (StyleSheet).
+*   **Diseño Adaptable:** `useWindowDimensions` si es estrictamente necesario.
+*   **Modo Claro/Oscuro:**
+    *   **Gestión:** `src/app/store/themeStore.ts` (Zustand) gestiona `themePreference`, `activeTheme`, `isSystemDarkMode`. Usa `persist` con `AsyncStorage`.
+    *   **Detección:** Hook `useSystemThemeDetector` (definido en `themeStore.ts` o `app/hooks/`) usa `useColorScheme`.
+    *   **Aplicación:**
+        *   Obtener tema con `const theme = useAppTheme();` (importado desde `src/app/styles/theme`).
+        *   Usar `theme.colors.*`, `theme.fonts.*`, `theme.spacing.*`, `theme.roundness` en `StyleSheet.create` (preferiblemente con `useMemo` si está dentro del componente).
+        *   **NUNCA hardcodear colores.**
+    *   **Proveedor:** `PaperProvider` en la raíz (`App.tsx`) recibe `activeTheme` de `useThemeStore`.
+*   **Accesibilidad (a11y):** Usar props `accessibility*`. Asegurar contraste en `app/styles/colors.ts`. Testear.
+*   **Animaciones:** `react-native-reanimated`, `react-native-gesture-handler`, `lottie-react-native`.
+
+---
+
+## 6. Gestión del Área Segura (Safe Area)
+
+*   **Proveedor:** `SafeAreaProvider` en la raíz (dentro de `PaperProvider`).
+*   **Uso:** `SafeAreaView` como contenedor principal en *cada pantalla* (`src/modules/*/screens/*`).
+
+---
+
+## 7. Optimización del Rendimiento
+
+*   **Estado Servidor: `@tanstack/react-query`**
+    *   **Obligatorio:** Para toda interacción API.
+    *   **Uso:** `useQuery`, `useMutation`. `queryKey` descriptivos. Invalidar/actualizar caché en `onSuccess`. Configurar `QueryClientProvider` en raíz.
+*   **Estado Global Cliente: `zustand`**
+    *   **Uso:** Para estado global no de servidor.
+    *   **Stores:** Definidos en `src/app/store/` (ej., `authStore`, `themeStore`, `snackbarStore`). Stores muy específicos de un módulo *podrían* ir en `src/modules/feature/store/` pero evaluar si es realmente necesario.
+    *   **Acceso/Actualización:** Usar hooks/selectores del store y sus acciones.
+    *   **Persistencia:** Middleware `persist` con `AsyncStorage` (para `themeStore`) o `EncryptedStorage`.
+*   **Minimizar `useState`/`useEffect`:** Derivar estado. Usar RQ/Zustand.
+*   **Imágenes: `expo-image`** (Preferido sobre `react-native`). Proporcionar `width`/`height`.
+*   **Renderizados:** `React.memo`, `useMemo` (para estilos dependientes de tema), `useCallback` con moderación.
+*   **Listas:** `FlatList`, `SectionList`. Pasar `extraData={theme}` si los items dependen del tema.
+*   **Inicio App:** `expo-splash-screen`.
+
+---
+
+## 8. Navegación
+
+*   **Librería: `react-navigation` (v6)**
+    *   **Configuración Principal:** En `src/app/navigation/`. Define el Stack/Drawer/Tab raíz.
+    *   **Navegadores Anidados:** Los flujos internos de un módulo (ej., Lista -> Detalle dentro de Orders) pueden definirse también dentro de `src/modules/feature/navigation/` si el módulo es complejo, o directamente en `app/navigation`.
+    *   **Theming:** Configurar `screenOptions` usando `useAppTheme` de `src/app/styles/theme`.
+*   **Dependencias:** `react-native-screens`, `react-native-gesture-handler`, `react-native-safe-area-context`.
+*   **Tipado Rutas:** Tipos globales en `src/app/navigation/types.ts`, tipos específicos de módulo en `src/modules/feature/navigation/types.ts` o similar.
+*   **Deep Linking:** `expo-linking`.
+
+---
+
+## 9. Comunicación con API
+
+*   **Cliente HTTP: `apisauce`**
+    *   **Configuración Central:** Instancia única en `src/app/services/apiClient.ts`. Configura `baseURL` (@env), headers, interceptor de token (leyendo de `EncryptedStorage` via `authStore`), monitor 401 (llamando a `authStore.logout`).
+    *   **Funciones de Servicio:**
+        *   Servicios específicos de feature en `src/modules/feature/services/featureService.ts`.
+        *   Importan y usan la instancia de `apiClient` desde `src/app/services/apiClient.ts`.
+        *   Manejan la respuesta (`response.ok`, `response.data`) y lanzan errores para React Query.
+    *   **Integración:** Funciones de servicio usadas como `queryFn`/`mutationFn` en React Query.
+        ```typescript
+        // src/modules/auth/services/authService.ts
+        import apiClient from '../../../app/services/apiClient'; // Importa el cliente central
+        // ...
+        class AuthService {
+          async login(...) {
+            const response = await apiClient.post(...);
+            // ... manejo respuesta ...
+          }
+        }
+        ```
+
+---
+
+## 10. Manejo de Formularios
+
+*   **Librería: `react-hook-form`**
+    *   **Uso:** Para todos los formularios dentro de los módulos (`src/modules/*/components` o `screens`).
+    *   **Integración:** `Controller` para inputs de Paper. `HelperText` para errores (`formState.errors`).
+*   **Validación:** `zod` + `@hookform/resolvers/zod`. Esquemas definidos en `src/modules/feature/types/feature.types.ts`.
+
+---
+
+## 11. Manejo de Errores
+
+*   **Validación:** `zod` en formularios.
+*   **Errores API:** Capturados por React Query (`onError`). Lanzar errores desde servicios. Mostrar feedback con `GlobalSnackbar` (desde `src/app/components/common`) vía `useSnackbarStore` (desde `src/app/store`). Monitor 401 en `apiClient`.
+*   **Errores Runtime:** `ErrorBoundary` global.
+*   **Conectividad:** `@react-native-community/netinfo`. Hook/store en `src/app/`. Mostrar `Banner` (componente global).
+*   **Logging:** Sentry (`@sentry/react-native`).
+*   **Código:** Guard clauses, early returns.
+
+---
+
+## 12. Funcionalidades Nativas y Hardware
+
+*   **Ubicación:** La lógica de interacción directa (hooks, servicios específicos) puede ir en:
+    *   `src/app/hooks` o `src/app/services` si es una capacidad transversal (ej., `useBluetoothManager`).
+    *   `src/modules/feature/hooks` o `services` si es muy específica de un módulo (ej., `useOrderPrinter` dentro de `modules/orders`).
+*   **Almacenamiento:**
+    *   `@react-native-async-storage/async-storage`: Usado por `zustand/persist` para `themeStore` (en `src/app/store`).
+    *   `react-native-encrypted-storage`: Usado por `authStore` (en `src/app/store`) para tokens.
+*   **Librerías:** `expo-notifications`, `expo-av`, `@react-native-community/datetimepicker`, `expo-image-picker`, `expo-file-system`, `expo-print`, etc. Gestionar permisos. **Nota:** Librerías con nativo requieren `expo-dev-client`.
+
+---
+
+## 13. Build y Desarrollo
+
+*   **Development Builds:** `expo-dev-client` es necesario. Workflow: `eas build -p development` o `npx expo run:*`, luego `npx expo start --dev-client`.
+*   **EAS Build:** Para `development`, `preview`, `production`. Configurar `eas.json`. Usar **EAS Secrets**.
+*   **Expo Updates:** OTA updates con `expo-updates`.
+
+---
+
+## 14. Utilidades Adicionales
+
+*   **Fechas/Horas: `date-fns`**
+    *   Uso estándar. Helpers pueden ir en `src/app/lib/dateUtils.ts`.
+
+---
+
+## 15. Seguridad
+
+*   **HTTPS:** Asegurado en `apiClient`.
+*   **Tokens:** Almacenados de forma segura (`EncryptedStorage` via `authStore`). Transmitidos vía header (`apiClient`).
+*   **Validación Entradas:** `zod`.
+*   **Permisos Nativos:** Solicitar just-in-time.
+*   **Secretos:** **NUNCA** en código. Usar **EAS Secrets** y `@env`.
+*   **Dependencias:** Actualizar y auditar.
+
+---
+
+## 16. Estructura para Nuevos Features/Módulos
+
+Al añadir una nueva funcionalidad principal (ej., "Settings"):
+
+1.  **Crear Directorio del Módulo:** Crea una nueva carpeta bajo `src/modules/`, por ejemplo, `src/modules/settings/`.
+2.  **Añadir Subdirectorios Necesarios:** Dentro de `src/modules/settings/`, crea las carpetas que necesites para esa feature:
+    *   `components/` (Para `SettingToggle.tsx`, `ProfileForm.tsx`, etc.)
+    *   `screens/` (Para `SettingsScreen.tsx`, `EditProfileScreen.tsx`, etc.)
+    *   `services/` (Si hay endpoints API específicos, ej., `settingsService.ts`)
+    *   `hooks/` (Si hay lógica compleja reutilizable, ej., `useProfileUpdate.ts`)
+    *   `types/` (Para `settings.types.ts`, `ProfileDto.ts`, etc.)
+    *   `store/` (Solo si necesita un store Zustand complejo y *específico* para settings)
+3.  **Integrar:**
+    *   Añade las nuevas pantallas al navegador principal (en `src/app/navigation/`).
+    *   Usa servicios/hooks/componentes globales desde `src/app/` cuando sea necesario.
+    *   Importa y usa componentes/servicios/tipos definidos dentro del propio módulo.
+
+---
+
+## 17. Testing (Estrategia Propuesta)
+
+*   **Unit Testing (Jest):**
+    *   Lógica pura en `src/app/lib/`, `src/modules/*/services/` (con mocks), lógica de stores `src/app/store/`.
+    *   Archivos `*.test.ts` junto al código fuente.
+*   **Integration Testing (React Native Testing Library):**
+    *   Componentes en `src/app/components/`, `src/modules/*/components/`.
+    *   Archivos `*.test.tsx` junto a los componentes. Mockear dependencias externas (API, stores, navegación).
+*   **End-to-End (E2E) Testing (Detox/Maestro):**
+    *   Flujos completos de usuario. Carpeta `e2e/`.
+
+---
+Dependencias [package.json](mdc:package.json)
+
+
+
+================================================================
+End of Codebase
+================================================================

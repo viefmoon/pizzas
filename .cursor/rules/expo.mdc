@@ -1,344 +1,226 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-# Guía de Estilo y Convenciones del Proyecto (ClearByte) (ANDROID)
 
-Este documento describe las convenciones de codificación, arquitectura y uso de librerías para el desarrollo de la aplicación móvil ClearByte para restaurantes, utilizando Expo, React Native y TypeScript. **La aplicación soportará tanto un tema claro como uno oscuro**, adaptándose a las preferencias del sistema y permitiendo la selección manual por parte del usuario. Se han integrado descripciones detalladas de las dependencias clave para clarificar su propósito y uso específico en el proyecto.
+# Guía de Estilo, Arquitectura y Convenciones del Proyecto (ClearByte) (ANDROID)
 
-## Filosofía General
+Este documento es la **fuente de verdad** para las convenciones de codificación, arquitectura y uso de librerías en ClearByte. Utiliza Expo (SDK 52), React Native (0.76), TypeScript, y un stack moderno incluyendo React Native Paper (v5), Zustand (v5), React Query (v5), y Apisauce (v3). **La aplicación soporta temas claro y oscuro**. La estructura del proyecto se basa en una separación clara entre código central/compartido (`src/app`) y módulos de funcionalidades específicas (`src/modules`).
 
-Eres un experto/a en TypeScript, React Native, Expo y desarrollo de UI móvil. Priorizamos código limpio, mantenible, performante y una excelente experiencia de usuario, aprovechando las herramientas seleccionadas y ofreciendo una interfaz adaptable a temas claro y oscuro.
+**Objetivo:** Código limpio, mantenible, performante, y una excelente UX adaptable.
 
 ---
 
 ## 1. Estilo y Estructura del Código
 
-*   **Concisión y Claridad:** Escribe código `TypeScript` técnico, conciso y bien documentado donde sea necesario. Usa ejemplos precisos si creas utilidades reutilizables.
-*   **Programación Funcional:** Utiliza patrones de programación funcional y declarativa. **Evita las clases** de JavaScript/TypeScript en favor de funciones y hooks.
-*   **Modularidad (DRY):** Prefiere la iteración y la modularización sobre la duplicación de código. Crea componentes y hooks reutilizables.
-*   **Nombres Descriptivos:** Usa nombres de variables descriptivos, a menudo con verbos auxiliares (ej., `isLoadingOrders`, `hasPrinterConnectionError`, `isMenuModalVisible`, `isDarkModeEnabled`).
-*   **Estructura de Archivos:** Organiza los archivos lógicamente:
+*   **Concisión y Claridad:** Código `TypeScript` técnico y bien documentado donde sea necesario (JSDoc para funciones complejas o utilidades).
+*   **Programación Funcional:** Funciones y hooks sobre clases. Patrones declarativos.
+*   **Modularidad (DRY):** Crear componentes y hooks reutilizables. Colocar en `app/` si son globales, o dentro del módulo si son específicos.
+*   **Nombres Descriptivos:** Variables y funciones con nombres claros (ej., `isLoading`, `isError`, `data`, `loginMutation`, `toggleTheme`, `handleLoginSubmit`).
+*   **Estructura de Archivos (Organización por Módulos - Actual):**
     *   `src/`
-        *   `components/`: Componentes UI reutilizables (ej., `styled-button`, `order-card`).
-        *   `constants/`: Valores fijos y reutilizables (ej., claves de AsyncStorage, nombres de eventos, roles fijos, URLs).
-        *   `screens/`: Componentes que representan pantallas completas (ej., `OrderListScreen`, `MenuManagementScreen`).
-        *   `navigation/`: Configuración de `react-navigation` (Stacks, Drawer, tipos).
-        *   `hooks/`: Hooks personalizados (ej., `usePrinter`, `useAuth`, `useAppTheme`).
-        *   `services/`: Lógica de comunicación API (`apisauce` setup, funciones de servicio específicas por recurso).
-        *   `store/`: Configuración y slices de `zustand` (ej., `authStore`, `printerStore`, **`themeStore`**).
-        *   `lib/`: Utilidades generales (ej., configuración de `date-fns`, helpers).
-        *   `styles/`: **Configuración de temas (claro/oscuro), definición de paletas de colores (`colors.ts`), tipografía (`typography.ts`) y configuración/exportación de temas de Paper (`theme.ts`).**
-        *   `types/`: Definiciones globales de TypeScript, interfaces y tipos generados por `zod` (incluyendo `ThemePreference`).
-        *   `assets/`: Fuentes, imágenes estáticas, archivos Lottie JSON.
+        *   `app/`: Código central, compartido y transversal.
+            *   `components/`: Componentes UI globales reutilizables.
+                *   `common/`: Componentes muy genéricos (`GlobalSnackbar.tsx`).
+                *   *(otros...)*: (ej., `StyledButton.tsx` si se crea)
+            *   `constants/`: (A crear) Valores fijos globales (claves Storage, URLs base si no van en env).
+            *   `hooks/`: (A crear) Hooks personalizados globales (ej., `useNetworkStatus`).
+            *   `lib/`: (A crear) Utilidades generales globales (ej., helpers `date-fns`).
+            *   `navigation/`: (A crear) Configuración de `react-navigation` raíz (Drawer, Stacks principales), tipos globales de navegación.
+            *   `services/`: Configuración centralizada (`apiClient.ts`).
+            *   `store/`: Stores globales de Zustand (`authStore.ts`, `themeStore.ts`, `snackbarStore.ts`).
+            *   `styles/`: **TODA** la configuración de tema (`colors.ts`, `typography.ts`, `theme.ts` que exporta `useAppTheme`).
+            *   `types/`: Definiciones TS globales (`env.d.ts`, `theme.types.ts`).
+        *   `modules/`: Funcionalidades/dominios principales.
+            *   `auth/`: Módulo de Autenticación (Existente).
+                *   `components/`: `LoginForm.tsx`.
+                *   `screens/`: `LoginScreen.tsx`.
+                *   `services/`: `authService.ts` (usa `app/services/apiClient`).
+                *   `types/`: `auth.types.ts` (contiene DTOs, Zod schemas, tipos de formulario/estado específicos de auth).
+            *   *(otros módulos...)*: (ej., `orders/`, `menu/`, `settings/` a crear siguiendo la misma estructura interna según necesidad).
+        *   `assets/`: (A crear) Recursos estáticos (fuentes `.ttf`/`.otf`, imágenes `.png`/`.jpg`, Lottie `.json`). **Nota:** El logo actualmente se importa con `require('../../../assets/logo.png')` en `LoginScreen`, asegúrate de que la carpeta `assets` esté en la raíz de `src/` o ajusta la ruta.
 
 ---
 
 ## 2. Convenciones de Nomenclatura
 
-*   **Directorios:** Minúsculas con guiones (kebab-case) (ej., `components/order-details`, `screens/auth-wizard`).
-*   **Archivos (Componentes):** Mayúsculas CamelCase (PascalCase) (ej., `OrderCard.tsx`, `PrimaryButton.tsx`).
-*   **Archivos (Otros):** Minúsculas camelCase (ej., `apiClient.ts`, `useAuth.ts`, `printerStore.ts`, **`themeStore.ts`**, **`appTheme.ts`**).
-*   **Exportaciones:** Prefiere exportaciones nombradas (`named exports`) para componentes y utilidades.
+*   **Directorios:** `kebab-case` (ej., `app/components/common`, `modules/auth`).
+*   **Archivos (Componentes):** `PascalCase` (ej., `LoginForm.tsx`, `GlobalSnackbar.tsx`).
+*   **Archivos (Otros):** `camelCase` (ej., `apiClient.ts`, `authStore.ts`, `theme.ts`). **Convención:** Usar `*.types.ts` para archivos de tipos dentro de los módulos (ej., `auth.types.ts`).
+*   **Exportaciones:** Preferir `named exports`. Usar `export default` para componentes de pantalla (`screens`).
 
 ---
 
 ## 3. Uso de TypeScript
 
-*   **Obligatorio:** Usa `TypeScript` para *todo* el código.
-*   **Interfaces sobre Tipos:** Prefiere `interface` para definir la forma de objetos y props; usa `type` para uniones, intersecciones, tipos de preferencia (como el tema) o tipos más complejos.
+*   **Obligatorio:** `strict: true` en `tsconfig.json`.
+*   **Interfaces vs Tipos:** `interface` para formas de objetos/props; `type` para uniones (`|`), intersecciones (`&`), alias, funciones.
+*   **Evitar Enums:** Usar `as const` o `type` unions.
+*   **Componentes Funcionales:** Tipar props (`interface Props`), retorno `JSX.Element` o `React.FC<Props>`.
+*   **Validación con `zod` (v3):**
+    *   **Uso:** Estándar para validar datos (formularios, DTOs API).
+    *   **Definición:** Esquemas (`z.object`, `z.string`, etc.) en `*.types.ts` dentro del módulo correspondiente (ej., `modules/auth/types/auth.types.ts`).
+    *   **Validación Formularios:** Usar con `react-hook-form` (v7) vía `@hookform/resolvers` (v5): `resolver: zodResolver(mySchema)`.
+    *   **Inferencia:** **SIEMPRE** usar `z.infer<typeof mySchema>` para derivar tipos TS.
     ```typescript
-    // En src/types/theme.ts o similar
-    export type ThemePreference = 'light' | 'dark' | 'system';
-    ```
-*   **Evitar Enums:** No uses `enum` de TypeScript. Usa objetos `as const` o mapas simples en su lugar para mejor legibilidad y tree-shaking.
-    ```typescript
-    // Preferido
-    export const OrderStatus = {
-      PENDING: 'pending',
-      CONFIRMED: 'confirmed',
-      READY: 'ready',
-    } as const;
-    export type OrderStatusValue = typeof OrderStatus[keyof typeof OrderStatus];
-    ```
-*   **Componentes Funcionales:** Usa componentes funcionales con props tipadas mediante interfaces.
-    ```typescript
-    interface OrderCardProps {
-      orderId: string;
-      // ... otras props
-    }
-    export function OrderCard({ orderId }: OrderCardProps): JSX.Element {
-      // ...
-    }
-    ```
-*   **Modo Estricto:** Habilita `strict: true` en `tsconfig.json` para máxima seguridad de tipos.
-*   **Validación con `zod`:**
-    *   **Uso Principal:** `zod` es nuestra librería estándar para declarar esquemas y validar datos. Fundamental para la robustez de la aplicación.
-    *   **Definición:** Define esquemas `zod` para todas las estructuras de datos clave (modelos de API, formularios, etc.). Colócalos en `src/types` o cerca de su uso.
-    *   **Validación:** Utilízalo para validar datos de formularios (integrado con `react-hook-form` vía `@hookform/resolvers`) y, opcionalmente, para validar respuestas de API y asegurar que cumplen el contrato.
-    *   **Inferencia de Tipos:** Infiere tipos de TypeScript a partir de esquemas `zod` (`z.infer<typeof schema>`) para mantener la coherencia y evitar duplicación.
-    ```typescript
+    // src/modules/auth/types/auth.types.ts
     import { z } from 'zod';
-
-    // Define la "forma" esperada de un item de menú
-    export const menuItemSchema = z.object({
-      id: z.string().uuid(),
-      name: z.string().min(1, "El nombre es obligatorio"),
-      price: z.number().positive("El precio debe ser positivo"),
-      description: z.string().optional(),
-      imageUrl: z.string().url().optional(),
-    });
-
-    // Infiere el tipo TypeScript desde el esquema Zod
-    export type MenuItem = z.infer<typeof menuItemSchema>;
+    // Esquema para el form
+    export const loginSchema = z.object({ emailOrUsername: z.string().min(1), /*...*/ });
+    export type LoginFormInputs = z.infer<typeof loginSchema>;
+    // Esquema para la respuesta API (DTO)
+    export const loginResponseDtoSchema = z.object({ token: z.string(), /*...*/ });
+    export type LoginResponseDto = z.infer<typeof loginResponseDtoSchema>;
     ```
 
 ---
 
 ## 4. Sintaxis y Formato
 
-*   **Palabra Clave `function`:** Usa la palabra clave `` `function` `` para funciones puras y componentes React para una mejor identificación y hoisting. Usa funciones flecha para callbacks y funciones que dependen del contexto léxico.
-*   **Concisión:** Evita llaves (`{}`) innecesarias en condicionales/JSX para declaraciones simples.
-*   **JSX Declarativo:** Escribe JSX de forma clara y declarativa. Evita lógica compleja directamente en el JSX; extráela a variables o funciones helper.
-*   **Prettier:** Usa `Prettier` con una configuración estándar definida en el proyecto para formateo automático y consistente. Asegúrate de que esté integrado en tu editor y en hooks de pre-commit.
+*   **`function` vs Arrow:** `function` para componentes/utilidades puras; `=>` para callbacks (`onPress`, `useEffect`), funciones internas.
+*   **Concisión:** `&&` para renderizado condicional; evitar `{}` innecesarios.
+*   **JSX Declarativo:** Extraer lógica compleja.
+*   **ESLint + Prettier:** Configurados (`.eslintrc.js`, `.prettierrc.js`). Asegurar integración con editor y pre-commit hooks. Sigue las reglas definidas.
 
 ---
 
 ## 5. UI y Estilos
 
-*   **Librería de Componentes: `react-native-paper`**
-    *   **Uso Principal:** Es la base de nuestra UI. Utiliza sus componentes (`Button`, `Card`, `TextInput`, `DataTable`, `Modal`, `Appbar`, etc.) para construir interfaces de forma rápida y consistente, siguiendo las directrices de Material Design 3 (MD3).
-    *   **Theming:** **Fundamental para el soporte de temas claro/oscuro.**
-        *   Define paletas de colores específicas para los temas claro y oscuro en `src/styles/colors.ts`.
-        *   Configura y extiende los temas base de Paper (`MD3LightTheme`, `MD3DarkTheme`) en `src/styles/theme.ts`, aplicando tus paletas de colores y definiendo tipografía personalizada si es necesario.
-        *   Envuelve la aplicación raíz con `PaperProvider` y proporciónale el tema *activo* (determinado por la preferencia del sistema/usuario, gestionado por `zustand`).
-*   **Iconos: `@expo/vector-icons`**
-    *   **Uso Principal:** Proporciona un amplio catálogo de iconos vectoriales (`MaterialIcons`, `FontAwesome`, `Ionicons`, etc.) integrados fácilmente con `react-native-paper` (ej., `Button icon="add"`).
-    *   **Aplicación Específica:** Indispensables para botones, navegación, indicadores visuales (estado de pedidos), iconos junto a elementos de menú, etc. **Asegúrate de que los iconos elegidos y sus colores (a menudo heredados del texto/botón) funcionen bien visualmente en ambos temas (claro y oscuro).**
-*   **Layout:** Usa `Flexbox` para el posicionamiento y diseño. `react-native-paper` ya lo utiliza internamente.
-*   **Diseño Adaptable:** Usa `useWindowDimensions` de React Native si necesitas ajustes específicos basados en el tamaño de la pantalla (poco común en apps de POS, pero posible para tablas densas).
+*   **Librería UI: `react-native-paper` (v5 - MD3)**
+    *   Componentes base (`Button`, `TextInput`, `Surface`, `Text`, `IconButton`, etc.).
+    *   **Theming:** Configuración centralizada en `src/app/styles/`.
+        *   `colors.ts`: Paletas `lightColors`, `darkColors` (incluye `success`, `warning`, `info` y sus `Container`/`onContainer`).
+        *   `typography.ts`: Define `typography` (usando `Platform.select` para fuentes base).
+        *   `theme.ts`: Crea `lightTheme`, `darkTheme`. Extiende `MD3LightTheme`/`MD3DarkTheme` con colores y fuentes personalizadas. Define `spacing`, `roundness`. **Exporta `useAppTheme = () => useTheme<AppTheme>()` para acceso tipado.**
+*   **Iconos: `@expo/vector-icons` (v14)**
+    *   Usar nombres de icono directamente en props de Paper (ej., `icon="eye"`).
+*   **Layout:** `Flexbox` vía `StyleSheet` de React Native.
 *   **Modo Claro/Oscuro:**
-    *   **Detección del Sistema:** Usa el hook `useColorScheme` de `react-native` para detectar la preferencia del sistema operativo ('light', 'dark', o `null`/`undefined`).
-    *   **Preferencia de Usuario:** Implementa una opción en la configuración de la app para que el usuario elija explícitamente entre 'Claro', 'Oscuro' o 'Automático/Sistema' (`ThemePreference`).
-    *   **Persistencia:** Guarda la preferencia del usuario (`ThemePreference`) en `@react-native-async-storage/async-storage`.
-    *   **Estado Global:** Gestiona la preferencia seleccionada y el tema *activo* resultante (el objeto de tema de Paper completo) en un store de `zustand` (`themeStore`). Un hook `useAppTheme` puede exponer el tema activo y la función para cambiar la preferencia.
-    *   **Aplicación de Estilos:**
-        *   **Obtener el Tema:** Dentro de los componentes funcionales, obtén el objeto de tema actual con el hook `useTheme` de `react-native-paper`.
-        *   **Referenciar Colores y Estilos del Tema:** Al definir estilos (preferiblemente usando `StyleSheet.create` fuera del render o memoizado), **SIEMPRE** referencia los valores del objeto `theme` obtenido (ej., `color: theme.colors.primary`, `backgroundColor: theme.colors.background`, `fontSize: theme.fonts.bodyLarge.fontSize`, `margin: theme.spacing?.m` si defines espaciado).
-        *   **EVITAR COLORES HARDCODEADOS:** **Nunca uses valores de color literales como `'#FFFFFF'`, `'#000000'`, `'black'`, `'white'` directamente en los estilos de los componentes.** Utiliza siempre las referencias del tema (`theme.colors.*`).
-        *   **Estilos Condicionales Mínimos:** Si excepcionalmente necesitas estilos muy específicos que no se cubren solo con los colores/fuentes del tema, puedes verificar `theme.dark` (booleano) dentro de tu lógica de estilos, pero intenta minimizar esto prefiriendo definir colores semánticos adecuados en el tema.
-    ```typescript
-    // Ejemplo en un componente (MyComponent.tsx)
-    import React from 'react';
-    import { View, StyleSheet } from 'react-native';
-    import { useTheme, Text, Surface } from 'react-native-paper';
-
-    export function MyComponent(): JSX.Element {
-      const theme = useTheme(); // Obtiene el tema activo (claro u oscuro) de PaperProvider
-
-      // Los estilos se definen usando el tema. Se puede memoizar si es necesario.
-      // Es común definir esta función fuera del componente o usar useMemo si el tema cambia raramente.
-      const styles = React.useMemo(() => StyleSheet.create({
-        container: {
-          backgroundColor: theme.colors.surface, // Color de fondo adaptable
-          padding: 16, // O usa theme.spacing.m si lo defines
-          borderRadius: theme.roundness * 2, // Usa valores del tema
-        },
-        title: {
-          color: theme.colors.primary, // Color primario adaptable
-          // Usa tipos de fuente definidos en el tema si los configuras
-          ...theme.fonts?.titleLarge, // Ejemplo si usas fuentes de Paper
-          marginBottom: 8,
-        },
-        text: {
-          color: theme.colors.onSurface, // Color de texto sobre superficie adaptable
-          ...theme.fonts?.bodyMedium,
-        }
-      }), [theme]); // Se recalcula solo si el objeto 'theme' cambia
-
-      return (
-        // Surface ya aplica colores de superficie y elevación del tema
-        <Surface style={styles.container} elevation={1}>
-          <Text style={styles.title}>Título Adaptable al Tema</Text>
-          <Text style={styles.text}>
-            Este texto y el fondo cambian de color automáticamente
-            cuando el usuario cambia el tema claro/oscuro.
-          </Text>
-        </Surface>
-      );
-    }
-    ```
-*   **Accesibilidad (a11y):** Asegura la accesibilidad:
-    *   Usa props como `accessibilityLabel`, `accessibilityHint`, `accessibilityRole`. `react-native-paper` ya proporciona buenos defaults.
-    *   **Considera el Contraste:** Al definir los temas claro/oscuro, asegúrate de que los ratios de contraste entre texto y fondo cumplan las directrices de accesibilidad (WCAG AA).
-    *   Testea con lectores de pantalla (VoiceOver, TalkBack) en ambos modos.
+    *   **Gestión:** `src/app/store/themeStore.ts` (Zustand). Guarda `themePreference` en `AsyncStorage`. Determina `activeTheme`.
+    *   **Detección Sistema:** `useSystemThemeDetector` (en `themeStore.ts`) usa `useColorScheme`. Llamar una vez en `App.tsx`.
+    *   **Aplicación en Componentes:**
+        *   Obtener tema: `const theme = useAppTheme();` (importado de `src/app/styles/theme`).
+        *   Estilos: **SIEMPRE** usar `theme.colors.*`, `theme.fonts.*`, `theme.spacing.*`, `theme.roundness` en `StyleSheet.create`.
+        *   Memoización: Si los estilos dependen del tema dentro de un componente, usar `React.useMemo`: `const styles = React.useMemo(() => StyleSheet.create({...}), [theme]);`.
+        *   **PROHIBIDO Hardcodear Colores:** No usar `'#FFF'`, `'black'`, etc.
+    *   **Proveedor Raíz:** `PaperProvider` en `App.tsx` con `theme={activeTheme}`.
+*   **Accesibilidad (a11y):** Props `accessibility*`. Buen contraste en `colors.ts`. Testear.
 *   **Animaciones:**
-    *   **Navegación/Gestos:** `react-native-reanimated` y `react-native-gesture-handler` son dependencias clave, requeridas por `react-navigation` y `react-native-paper`. Aseguran transiciones de pantalla y gestos suaves (ej., apertura del Drawer, swipes). `react-native-reanimated` ejecuta animaciones en el hilo nativo para máximo rendimiento.
-    *   **UX Mejorada:** Usa `lottie-react-native` para renderizar animaciones Lottie (JSON desde After Effects). Ideal para indicadores de carga atractivos, animaciones de éxito (pedido confirmado), o feedback visual sutil. **Asegúrate de que las animaciones Lottie funcionen bien con ambos fondos de tema o diséñalas para que sean independientes del fondo.**
+    *   Navegación/Gestos: `react-native-reanimated` (v3), `react-native-gesture-handler` (v2) (Dependencias de Navigation).
+    *   Indicadores/UX: `lottie-react-native` (v7) para animaciones Lottie.
 
 ---
 
 ## 6. Gestión del Área Segura (Safe Area)
 
-*   **Proveedor Global:** Envuelve toda la aplicación (usualmente en `App.tsx`, dentro del `PaperProvider`) con `SafeAreaProvider` de `react-native-safe-area-context`.
-*   **Uso en Pantallas:** Utiliza el componente `SafeAreaView` de `react-native-safe-area-context` como contenedor principal en cada *pantalla* para evitar solapamientos con notches, barras de estado y barras de navegación del sistema. No añadas paddings manuales para este propósito. `SafeAreaView` se asegura de que el contenido importante sea visible.
+*   **Proveedor:** `SafeAreaProvider` de `react-native-safe-area-context` (v4) en la raíz.
+*   **Uso:** `SafeAreaView` de `react-native-safe-area-context` como contenedor principal en pantallas (`src/modules/*/screens/*`).
 
 ---
 
 ## 7. Optimización del Rendimiento
 
-*   **Gestión de Estado del Servidor: `@tanstack/react-query` (React Query)**
-    *   **Obligatorio:** Usar React Query para *toda* la interacción con la API (fetching, caching, mutations, sincronización). Es fundamental para manejar datos remotos eficientemente.
-    *   **Uso:** Define `queryKey` descriptivos. Usa `useQuery` para obtener datos (ej., listas de pedidos, menú), gestionando `isLoading`/`isError`. Usa `useMutation` para CUD (ej., crear pedido, actualizar estado), implementando `onSuccess` para invalidar queries (`queryClient.invalidateQueries`). Confía en el caching inteligente. Considera optimistic updates para mejorar UX.
-*   **Gestión de Estado Global del Cliente: `zustand`**
-    *   **Uso:** Para estado que *no* proviene del servidor y necesita ser compartido globalmente o entre componentes no relacionados directamente. Simple y eficiente.
-    *   **Casos de Uso:** Estado de autenticación (usuario logueado, datos del usuario), configuración global (restaurante/sucursal activa), estado de conexión/selección de la impresora Bluetooth, **preferencia de tema UI seleccionada ('light'/'dark'/'system') y el tema activo resultante de `react-native-paper`**, estado de conexión de red (`netinfo`).
-    *   **Persistencia (Opcional con Middleware):** Configura `zustand` con `persist` middleware para guardar automáticamente ciertos stores (como `themeStore`, `authStore` parcialmente) en `AsyncStorage`, para que el estado se restaure al reiniciar la app.
-*   **Minimizar `useState`/`useEffect`:** Prefiere derivar estado cuando sea posible. Usa React Query/Zustand para estados complejos o globales antes de recurrir a `useState` complejos o `useEffect` propensos a errores.
-*   **Imágenes: `expo-image`**
-    *   **Uso:** Usa el componente `<Image>` de `expo-image` en lugar del de `react-native` para mostrar imágenes (ej., fotos de platos, logos).
-    *   **Beneficios:** Ofrece mejor rendimiento, caching avanzado y soporte de formatos modernos (WebP). Incluye `width` y `height` explícitos para evitar saltos de layout.
-*   **Renderizados:**
-    *   Usa `React.memo` para componentes que reciben props complejas y no deben re-renderizarse innecesariamente si las props no cambian (comprobación shallow).
-    *   Usa `useMemo` para memoizar cálculos costosos o valores que no deben cambiar entre renders si sus dependencias no cambian (ej., estilos derivados del tema).
-    *   Usa `useCallback` para memoizar funciones pasadas como props a componentes memoizados, evitando re-renders innecesarios causados por referencias de función inestables. Usa estas optimizaciones *con moderación* y solo cuando identifiques un problema de rendimiento real.
-*   **Listas:** Usa `FlatList` o `SectionList` de React Native para listas largas (ej., lista de pedidos, menú), aprovechando su virtualización para optimizar el uso de memoria y rendimiento. Pasa `extraData={theme}` si los elementos de la lista dependen del tema y este puede cambiar.
-*   **Inicio de App:** Usa `expo-splash-screen` para mantener la pantalla de bienvenida visible mientras se carga la app inicial y se realizan comprobaciones esenciales (ej., verificar estado de autenticación, **cargar la preferencia de tema desde AsyncStorage**, cargar configuración inicial).
+*   **Estado Servidor: `@tanstack/react-query` (v5)**
+    *   **Obligatorio:** Para toda data fetching/mutation.
+    *   **Uso:** `useQuery` (fetch), `useMutation` (CUD). `queryKey` descriptivos. `queryClient.invalidateQueries` en `onSuccess` de mutaciones. `QueryClientProvider` en raíz.
+*   **Estado Global Cliente: `zustand` (v5)**
+    *   **Uso:** Estado global no-servidor.
+    *   **Stores:** En `src/app/store/` (`authStore`, `themeStore`, `snackbarStore`).
+    *   **Persistencia:** `persist` middleware (`zustand/middleware`) con `createJSONStorage(() => AsyncStorage)` o `EncryptedStorage`. Usado en `themeStore` con `AsyncStorage`.
+*   **Imágenes: `expo-image` (v2)**
+    *   Usar sobre `react-native` `<Image>`. Proporcionar `width`, `height`. Beneficios de caching/formato (WebP).
+*   **Renderizados:** `React.memo`, `useMemo` (para estilos/cálculos), `useCallback` con moderación.
+*   **Listas:** `FlatList`/`SectionList`. `keyExtractor`. `extraData={theme}` si es necesario.
+*   **Inicio App:** `expo-splash-screen` (no listado pero recomendado).
 
 ---
 
 ## 8. Navegación
 
-*   **Librería Principal: `react-navigation`**
-    *   **Core:** `@react-navigation/native` es la base indispensable.
-    *   **Navegador Principal:** `@react-navigation/drawer` (Menú lateral) para secciones principales (Dashboard, Pedidos, Menú, Clientes, Configuración, etc.).
-    *   **Navegador Secundario:** `@react-navigation/native-stack` (Pila) *dentro* de cada sección del drawer para flujos de tareas (Lista -> Detalles -> Editar).
-    *   **Theming:** Configura las opciones de los navegadores (`screenOptions`, `options`) para usar los colores del tema activo de `react-native-paper` (ej., `headerStyle: { backgroundColor: theme.colors.surface }`, `headerTintColor: theme.colors.primary`, `drawerActiveTintColor`, `drawerInactiveTintColor`, etc.).
-*   **Dependencias Clave:** `react-native-screens`, `react-native-gesture-handler`, `react-native-safe-area-context`. Deben estar correctamente instaladas y configuradas.
-*   **Paso de Parámetros:** Usa parámetros de ruta tipados para pasar datos entre pantallas de forma segura. Define los tipos en un archivo centralizado (ej., `src/navigation/types.ts`).
-*   **Deep Linking:** Configura deep linking usando `expo-linking` si necesitas navegar a pantallas específicas desde notificaciones push o enlaces externos.
+*   **Librería: `react-navigation` (v7)**
+    *   Dependencias: `@react-navigation/native`, `@react-navigation/native-stack` (v7), `@react-navigation/drawer` (v7) (u otros navegadores).
+    *   **Configuración:** Principal en `src/app/navigation/`.
+    *   **Theming:** Aplicar colores/fuentes de `useAppTheme` en `screenOptions`.
+*   **Dependencias Clave:** `react-native-screens` (v4), `react-native-gesture-handler` (v2), `react-native-safe-area-context` (v4).
+*   **Tipado:** Rutas y parámetros en `src/app/navigation/types.ts` (globales) o `src/modules/*/navigation/types.ts` (específicos).
+*   **URL Polyfill:** `react-native-url-polyfill` (v2) está instalado, puede ser necesario para algunas librerías o APIs web.
 
 ---
 
 ## 9. Comunicación con API
 
-*   **Cliente HTTP: `apisauce`**
-    *   **Propósito:** Wrapper ligero sobre `axios` para simplificar peticiones HTTP y manejo de respuestas/errores.
-    *   **Configuración:** Instancia única configurada (`baseURL`, `headers` comunes, `timeout`) en `src/services/apiClient.ts`.
-    *   **Funciones de Servicio:** Funciones tipadas por recurso (ej., `orderService.ts`) que usan la instancia de `apisauce`.
-    *   **Llamada:** Estas funciones son usadas por React Query (`queryFn`, `mutationFn`).
-    *   **Manejo de Errores:** Normaliza respuestas (`ok`, `problem`). Centralizar lógica común (ej., monitor para 401 -> logout).
-*   **Orquestación y Estado del Servidor: `@tanstack/react-query`** (Ver Sección 7).
+*   **Cliente HTTP: `apisauce` (v3)**
+    *   **Configuración Central:** `src/app/services/apiClient.ts`.
+        *   `baseURL` desde `@env` (`API_URL`).
+        *   Interceptor (`addAsyncRequestTransform`) para añadir `Authorization: Bearer <token>` (token leído desde `EncryptedStorage`).
+        *   Monitor (`addMonitor`) para 401 (llama a `authStore.logout`) y logueo de otros errores (`!response.ok`).
+    *   **Servicios Específicos:** En `src/modules/*/services/` (ej., `authService.ts`). Importan y usan `apiClient` central. Lanzan errores (`throw new Error(...)`) en caso de fallo para React Query.
+*   **Variables de Entorno:** Usar `react-native-dotenv`. Definir tipos en `src/app/types/env.d.ts`. Acceder con `import { VAR_NAME } from '@env';`. **Variables actuales:** `API_URL`, `API_KEY`, `ENVIRONMENT`, `VERSION`, `BUILD_NUMBER`.
 
 ---
 
 ## 10. Manejo de Formularios
 
-*   **Librería Principal: `react-hook-form`**
-    *   **Uso:** Gestión de estado, registro (`Controller`), validación y envío de *todos* los formularios (añadir/editar plato, pedido, cliente, configuración).
-    *   **Integración:** Conectar inputs de `react-native-paper` (`TextInput`, `Checkbox`, etc.) usando el componente `Controller` para manejar `onChange`, `onBlur`, `value`, `error`.
-*   **Validación:**
-    *   **Librería:** `zod` (Ver Sección 3).
-    *   **Esquemas:** Definir esquemas `zod` claros para la estructura de datos de cada formulario.
-    *   **Resolución:** Usar `@hookform/resolvers/zod` en la configuración de `useForm` para conectar los esquemas `zod`. Los errores de validación estarán disponibles en `formState.errors` y se pueden mostrar usando `HelperText` de `react-native-paper`.
+*   **Librería: `react-hook-form` (v7)**
+    *   Usar `useForm`, `Controller`.
+*   **Validación:** `zod` (v3) + `@hookform/resolvers` (v5) `zodResolver`. Esquemas en `src/modules/*/types/*.types.ts`.
+*   **UI:** Inputs de `react-native-paper`. `HelperText type="error"` para mostrar errores de `formState.errors`.
 
 ---
 
 ## 11. Manejo de Errores
 
-*   **Validación Preventiva:** Usa `zod` intensivamente para validar datos de formularios *antes* de enviarlos (ver Sección 10) y opcionalmente respuestas de API.
-*   **Errores de API:**
-    *   React Query (`isError`, `error` en `useQuery`/`useMutation`) para controlar el estado en la UI.
-    *   `apisauce` (`problem`, `originalError`) para detalles del error.
-    *   Mostrar mensajes claros y accionables al usuario. Usar componentes como `Snackbar` o `Banner` de Paper.
-    *   Centralizar manejo de errores críticos (ej., 401/403 -> logout).
-*   **Errores Inesperados (Runtime):** Implementa un `ErrorBoundary` global para capturar errores de renderizado y mostrar una pantalla de fallback amigable.
-*   **Conectividad:** Usa `@react-native-community/netinfo`.
-    *   Hook `useNetworkStatus` que proporcione estado actual.
-    *   Guardar estado en `zustand` si es necesario globalmente.
-    *   Mostrar indicador visual (ej., `Banner` de Paper) si está offline.
-    *   Deshabilitar funcionalidades online y notificar al usuario.
-*   **Logging:** Integra Sentry (`@sentry/react-native` o `sentry-expo`) para reportar errores en producción/staging.
-*   **Patrones de Código:** Guard clauses, early returns para simplificar lógica y mejorar legibilidad.
+*   **Validación:** `zod` en formularios.
+*   **API:** React Query (`isError`, `error`, `onError` en `useMutation`). `GlobalSnackbar` (vía `snackbarStore`) para feedback. Monitor 401 en `apiClient`.
+*   **Runtime:** `ErrorBoundary`.
+*   **Conectividad: `@react-native-community/netinfo` (v11)**. Hook/store en `src/app/`.
+*   **Logging:** Sentry (recomendado).
 
 ---
 
 ## 12. Funcionalidades Nativas y Hardware
 
-*   **Impresión Térmica Directa (Cocina/Recibos): `react-native-bluetooth-escpos-printer`**
-    *   **Core:** Librería *esencial* para impresión directa en impresoras térmicas Bluetooth (protocolo ESC/POS).
-    *   **Flujo:** Descubrir -> Conectar -> Guardar conexión (Zustand/AsyncStorage) -> Formatear datos (ESC/POS) -> Enviar comando de impresión. Manejar errores.
-    *   **Abstracción:** **Muy Recomendado:** Crear un hook `useThermalPrinter` o un servicio para encapsular la complejidad.
-*   **Notificaciones (Push y Locales): `expo-notifications`**
-    *   **Uso Principal:** Comunicación en tiempo real y alertas.
-    *   **Push (Remotas):** Configurar APN/FCM en servidor. *Crítico* para alertar sobre nuevos pedidos online.
-    *   **Locales:** Programar desde la app para recordatorios, confirmaciones, etc.
-    *   **Manejo:** Implementar listeners para foreground/background/killed state.
-*   **Sonido de Notificación: `expo-av` (Audio/Video)**
-    *   **Uso Principal:** Reproducir un sonido *distintivo* con notificaciones clave (nuevo pedido) para entornos ruidosos. Usa `expo-av` para cargar y reproducir el audio.
-*   **Selección Fecha/Hora: `@react-native-community/datetimepicker`**
-    *   **Uso:** Muestra el selector nativo OS para fechas/horas (pedidos programados, filtros).
-*   **Selección de Imágenes (Galería/Cámara): `expo-image-picker`**
-    *   **Uso:** Permite seleccionar/tomar fotos (ej., para platos del menú).
-    *   **Permisos:** Solicitar permisos de Cámara y/o Galería usando los métodos del propio módulo (`requestCameraPermissionsAsync`, `requestMediaLibraryPermissionsAsync`) de forma justificada y en el momento necesario.
-*   **Almacenamiento Local Simple: `@react-native-async-storage/async-storage`**
-    *   **Uso:** Almacenamiento persistente asíncrono clave-valor para datos **no sensibles**.
-    *   **Aplicación:** Guardar preferencias del usuario como **la preferencia de tema ('light'/'dark'/'system')**, ID de la impresora térmica predeterminada, email del último usuario (si no se considera sensible).
-*   **Almacenamiento Seguro: `react-native-encrypted-storage`**
-    *   **Uso:** Para almacenar datos sensibles como **tokens de autenticación (JWT refresh/access tokens)**. Utiliza Keychain (iOS) / Keystore (Android). **Preferir sobre AsyncStorage para cualquier dato sensible.**
-*   **Sistema de Archivos: `expo-file-system`**
-    *   **Uso:** Acceso al sistema de archivos local (leer/escribir).
-    *   **Aplicación:** Guardar temporalmente archivos generados (PDFs con `expo-print`), descargar assets, caching.
-*   **Impresión Estándar/PDF: `expo-print`**
-    *   **Uso:** Generar PDFs desde HTML y enviarlos al sistema de impresión estándar del OS (AirPrint/Android Print Service).
-    *   **Aplicación:** Para recibos/reportes en formato PDF (diferente a la impresión térmica directa).
+*   **Almacenamiento:**
+    *   **Preferencias No Sensibles:** `@react-native-async-storage/async-storage` (v2) (usado por `themeStore`).
+    *   **Datos Sensibles (Tokens):** `react-native-encrypted-storage` (v4) (usado por `authStore`). **Requiere `expo-dev-client`**.
+*   **Librerías Expo/Comunidad Instaladas:**
+    *   `@expo/vector-icons`: Iconos.
+    *   `@react-native-community/datetimepicker`: Selector Fecha/Hora nativo. **Requiere `expo-dev-client`**.
+    *   `@react-native-community/netinfo`: Estado de red. **Requiere `expo-dev-client`**.
+    *   `expo-audio`: Reproducción de audio.
+    *   `expo-file-system`: Acceso a archivos.
+    *   `expo-image`: Componente de imagen optimizado.
+    *   `expo-image-picker`: Selección/toma de imágenes.
+    *   `expo-notifications`: Notificaciones Push/Locales.
+    *   `expo-print`: Generación PDF / Impresión estándar OS.
+    *   `expo-status-bar`: Control barra de estado.
+*   **Permisos:** Solicitar just-in-time usando las APIs de los módulos Expo.
 
 ---
 
 ## 13. Build y Desarrollo
 
-*   **Development Builds con `expo-dev-client`:**
-    *   **Obligatorio:** Necesario porque usamos librerías con código nativo no incluidas en Expo Go (ej., `react-native-bluetooth-escpos-printer`, `react-native-encrypted-storage`, `@react-native-community/*`).
-    *   **Workflow:**
-        1.  Crear build: `eas build --profile development --platform android/ios` o localmente `npx expo run:android`/`npx expo run:ios`.
-        2.  Instalar el `.apk`/`.app` en dispositivo/emulador.
-        3.  Iniciar Metro: `npx expo start --dev-client`. La app instalada se conectará, permitiendo desarrollo con Fast Refresh y acceso a todo el código nativo.
-*   **EAS Build (Expo Application Services):**
-    *   **Uso:** Para crear todas las builds: `development`, `preview` (QA/TestFlight/Internal), `production` (Store).
-    *   **Configuración:** Definir perfiles en `eas.json` (variables de entorno, credenciales, etc.).
-*   **Expo Updates (OTA Updates):**
-    *   **Uso:** Implementar `expo-updates` para desplegar actualizaciones de JS y assets Over-the-Air sin pasar por revisión de tienda.
-    *   **Beneficios:** Ideal para bug fixes rápidos, cambios menores de UI/lógica.
-    *   **Configuración:** Configurar en `app.json`/`app.config.js` y usar EAS Update para publicar.
+*   **Development Builds:** **`expo-dev-client` (v5) es OBLIGATORIO** debido a las dependencias nativas (`encrypted-storage`, `netinfo`, `datetimepicker`). Workflow: `eas build -p development` / `npx expo run:*`, luego `npx expo start --dev-client`.
+*   **EAS Build:** Usar para todos los tipos de build. Gestionar secretos/variables de entorno con **EAS Secrets**.
+*   **Expo Updates:** Configurar `expo-updates` para actualizaciones OTA.
 
 ---
 
 ## 14. Utilidades Adicionales
 
-*   **Fechas y Horas: `date-fns`**
-    *   **Uso Estándar:** Utilizar `date-fns` para *toda* la manipulación, comparación y formateo de fechas/horas.
-    *   **Beneficios:** Moderna, inmutable, tree-shakeable, API funcional clara.
-    *   **Aplicación Específica:** Formateo para UI (ej., `format`, `formatDistanceToNow`), cálculos (ej., `differenceInMinutes`, `addHours`), parseo de fechas API (`parseISO`), comparaciones (`isBefore`, `isAfter`). Configurar localización (`locale: es`) donde sea necesario.
+*   **Fechas/Horas: `date-fns` (v4)**
+    *   Uso estándar. Helpers en `src/app/lib/`.
 
 ---
 
 ## 15. Seguridad
 
-*   **Comunicación:** Forzar **HTTPS** para toda la comunicación API. Configurar en `apisauce`.
-*   **Autenticación y Tokens:**
-    *   Utilizar tokens JWT.
-    *   **Almacenamiento Seguro:** Guardar tokens de sesión (refresh/access) usando **`react-native-encrypted-storage`**. No usar AsyncStorage para esto.
-    *   Incluir token de acceso en cabecera `Authorization: Bearer <token>`. Implementar lógica de refresh de tokens.
-*   **Validación de Entradas:** Usar `zod` rigurosamente para validar datos de formularios y potencialmente parámetros de ruta/API.
-*   **Permisos Nativos:**
-    *   Solicitar permisos just-in-time, explicando por qué son necesarios.
-    *   Usar las APIs de solicitud de permisos de los módulos específicos de Expo (ej., `expo-image-picker.requestCameraPermissionsAsync()`).
-    *   Manejar casos de denegación de permisos.
-*   **Secretos:** **Nunca** incluir claves de API, secretos u otra información sensible directamente en el código fuente. Usar variables de entorno gestionadas a través de **EAS Secrets** y cargadas en los perfiles de build en `eas.json`.
-*   **Dependencias:** Mantener dependencias actualizadas y auditar regularmente (`npm audit`/`yarn audit`) para mitigar vulnerabilidades conocidas.
-*   
+*   **HTTPS:** Asegurado en `apiClient` (`API_URL` debe ser HTTPS).
+*   **Tokens:** Almacenamiento seguro (`EncryptedStorage`), transmisión segura (Interceptor).
+*   **Validación:** `zod`.
+*   **Secretos:** Usar **EAS Secrets** + `@env`. **NO hardcodear `API_KEY` u otros secretos.**
+*   **Dependencias:** Mantener actualizadas (`npm outdated`, `npm audit`).
 
-Dependencias [package.json](mdc:package.json)
+---
 
+## 16. Estructura para Nuevos Features/Módulos
 
+1.  **Crear Carpeta:** `src/modules/newFeatureName/`.
+2.  **Añadir Subcarpetas:** `components/`, `screens/`, `services/`, `types/`, etc., según necesidad.
+3.  **Integrar:** Añadir pantallas a `src/app/navigation/`, usar elementos de `src/app/`, importar elementos internos del módulo.
