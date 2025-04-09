@@ -4,11 +4,12 @@ import { useAppTheme } from "../styles/theme";
 
 import LoginScreen from "../../modules/auth/screens/LoginScreen";
 import RegisterScreen from "../../modules/auth/screens/RegisterScreen";
-import type { RootStackParamList } from "./types";
+import type { AuthStackParamList } from "./types"; // Cambiado de RootStackParamList
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<AuthStackParamList>(); // Cambiado de RootStackParamList
 
-export function RootStack() {
+export function AuthStack() {
+  // Cambiado de RootStack
   const theme = useAppTheme();
 
   return (

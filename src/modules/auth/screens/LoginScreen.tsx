@@ -40,16 +40,15 @@ const LoginScreen = () => {
     mutationFn: (loginData) => authService.login(loginData),
     onSuccess: async (data) => {
       try {
-        await setToken(data.token);
+        await setToken(data.token); // Esto cambia isAuthenticated y dispara el cambio de navegador
         showSnackbar({
-          message: `¡Bienvenido!`,
+          message: `¡Bienvenido!`, // Puedes añadir el nombre de usuario si lo tienes
           type: "success",
         });
         queryClient.invalidateQueries({ queryKey: ["user", "me"] });
-        // TODO: Implementar navegación a la pantalla principal
-        console.log("Navegación pendiente a la pantalla principal");
+        // ¡No se necesita navegación explícita aquí! El cambio de estado es suficiente.
       } catch (error) {
-        console.error("Error al guardar token:", error);
+        console.error("Error al procesar post-login:", error);
         showSnackbar({
           message: "Error procesando el inicio de sesión.",
           type: "error",

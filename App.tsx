@@ -1,28 +1,27 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { PaperProvider } from "react-native-paper";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-
-import { RootStack } from "./src/app/navigation/RootStack";
-import { useThemeStore } from "./src/app/store/themeStore";
-import GlobalSnackbar from "./src/app/components/common/GlobalSnackbar";
+import React from 'react';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useThemeStore, useSystemThemeDetector } from './src/app/store/themeStore'; // Importar useSystemThemeDetector
+import { AppNavigator } from './src/app/navigation/AppNavigator'; // Importar AppNavigator
+import GlobalSnackbar from './src/app/components/common/GlobalSnackbar';
 
 const queryClient = new QueryClient();
 
 export default function App() {
-  const { activeTheme } = useThemeStore();
+  const activeTheme = useThemeStore((state) => state.activeTheme);
+  // Llama al hook para detectar y actualizar el tema del sistema en el store
+  useSystemThemeDetector();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <PaperProvider theme={activeTheme}>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <RootStack />
-          </NavigationContainer>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider theme={activeTheme}>
+          {/* AppNavigator ya contiene NavigationContainer */}
+          <AppNavigator />
           <GlobalSnackbar />
-        </SafeAreaProvider>
-      </PaperProvider>
-    </QueryClientProvider>
+        </PaperProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }
