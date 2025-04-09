@@ -169,12 +169,74 @@ Este documento es la **fuente de verdad** para las convenciones de codificación
 ---
 
 ## 11. Manejo de Errores
+Se implementa una estrategia estandarizada para el manejo de errores, especialmente los provenientes de la API, con el objetivo de proporcionar feedback claro y consistente al usuario, facilitar la depuración y mantener el código desacoplado.
 
-*   **Validación:** `zod` en formularios.
-*   **API:** React Query (`isError`, `error`, `onError` en `useMutation`). `GlobalSnackbar` (vía `snackbarStore`) para feedback. Monitor 401 en `apiClient`.
-*   **Runtime:** `ErrorBoundary`.
-*   **Conectividad: `@react-native-community/netinfo` (v11)**. Hook/store en `src/app/`.
-*   **Logging:** Sentry (recomendado).
+**Validación en Formularios:**
+*   Se utiliza `zod` junto con `react-hook-form` (`@hookform/resolvers`) para la validación del lado del cliente antes de enviar datos a la API.
+*   Los errores de validación de Zod se muestran directamente en la UI usando el estado `formState.errors` de `react-hook-form` y el componente `HelperText` de `react-native-paper`.
+
+**Errores de API (Flujo Estandarizado):**
+*   **Contrato Backend:** Se espera que el backend devuelva errores HTTP (4xx, 5xx) con una estructura JSON consistente:
+    ```json
+    {
+      "statusCode": number, // ej. 422, 401, 500
+      "code": string,       // ej. "AUTH_DUPLICATE_EMAIL", "RESOURCE_NOT_FOUND"
+      "message": string,    // Mensaje descriptivo (para logs/fallback)
+      "details": any        // Opcional: Detalles extra (ej. errores de validación por campo)
+    }
+    ```
+    El campo `code` es crucial para la identificación única del error en el frontend.
+*   **Componentes Frontend Clave:**
+    *   `src/app/types/api.types.ts`: Define la interfaz `BackendErrorResponse` que coincide con la estructura del error del backend.
+    *   `src/app/constants/apiErrorCodes.ts`: Define un objeto `ERROR_CODES` (`as const`) que enumera todos los códigos de error conocidos que el backend puede devolver. Debe mantenerse sincronizado con el backend.
+    *   `src/app/lib/errors.ts`: Define la clase `ApiError extends Error`. Esta clase encapsula la información del error (`code`, `status`, `details`, `originalMessage`) recibida de la API. Incluye un método estático `ApiError.fromApiResponse(responseData, responseStatus)` para facilitar su creación desde la respuesta de `apisauce`.
+    *   `src/app/services/apiClient.ts`: Cliente `apisauce` configurado.
+        *   **Interceptor de Token:** Añade automáticamente el token de autenticación a las peticiones.
+        *   **Monitor 401:** Detecta respuestas 401 Unauthorized (excepto en rutas de autenticación) y dispara el logout del `authStore`.
+        *   **Monitor de Logs:** Loguea en consola (`console.error`) información detallada sobre peticiones fallidas (`!response.ok`), incluyendo el `response.problem` detectado por `apisauce` y los datos (`response.data`) recibidos. **Importante:** Este monitor solo loguea, no lanza errores ni maneja la UI.
+    *   **Servicios (`src/modules/*/services/*.ts`):**
+        *   Responsables de realizar las llamadas a la API usando `apiClient`.
+        *   En caso de respuesta no exitosa (`!response.ok`), **DEBEN** capturar la respuesta y lanzar una instancia de `ApiError` usando `throw ApiError.fromApiResponse(response.data, response.status)`. Esto asegura que el error estructurado llegue a React Query.
+    *   `src/app/lib/errorMapping.ts`:
+        *   Contiene el mapeo `errorCodeMessages` que asocia cada `ApiErrorCode` con un mensaje descriptivo en español. (Actualmente NO utiliza i18n).
+        *   Exporta la función `getApiErrorMessage(error: unknown)`:
+            *   Recibe el error capturado (puede ser `ApiError`, `AxiosError`, `Error`, etc.).
+            *   Intenta obtener un mensaje del mapeo `errorCodeMessages` usando `error.code` (si es `ApiError`).
+            *   Si no encuentra un mensaje específico para el código, intenta buscar uno genérico basado en el `error.status` (ej., `status_404`).
+            *   Como último recurso, utiliza el `error.originalMessage` (mensaje del backend) o un mensaje por defecto.
+            *   También maneja errores de red comunes.
+*   **React Query (`useMutation`, `useQuery`):**
+    *   El callback `onError(error)` captura el error lanzado por el servicio (que ahora debería ser una instancia de `ApiError` para errores de API).
+    *   Dentro de `onError`, se llama a `getApiErrorMessage(error)` para obtener el mensaje final que se mostrará al usuario.
+*   **UI Feedback (`src/app/store/snackbarStore.ts`, `src/app/components/common/GlobalSnackbar.tsx`):**
+    *   El `onError` utiliza `useSnackbarStore().showSnackbar()` para mostrar el mensaje obtenido de `getApiErrorMessage` en el `GlobalSnackbar`.
+
+**Flujo Resumido de Error de API:**
+1.  Backend responde con error HTTP + JSON (`{statusCode, code, message, ...}`).
+2.  `apiClient` (`apisauce`) recibe la respuesta. El monitor puede loguear el `response.problem` y los `response.data`.
+3.  El método del Servicio (ej. `authService.register`) recibe la respuesta no-ok.
+4.  El Servicio lanza `throw ApiError.fromApiResponse(response.data, response.status)`.
+5.  React Query (`useMutation`) captura el `ApiError` en su callback `onError`.
+6.  `onError` llama a `getApiErrorMessage(error)`.
+7.  `getApiErrorMessage` busca en `errorCodeMessages` usando `error.code` o `error.status` y devuelve un string en español.
+8.  `onError` llama a `showSnackbar({ message: userMessage, type: 'error' })`.
+9.  `GlobalSnackbar` muestra el mensaje al usuario.
+
+**Errores de Red:**
+*   `apisauce` detecta problemas de red (`NETWORK_ERROR`, `TIMEOUT_ERROR`, etc.) y los reporta en `response.problem`.
+*   La función `getApiErrorMessage` también intenta detectar errores de red comunes (ej., `Network request failed`) directamente desde el objeto `Error` o `AxiosError`.
+*   Se mapean a un mensaje genérico de error de red definido en `errorCodeMessages`.
+
+**Errores Inesperados (Runtime):**
+*   Se recomienda usar un componente `ErrorBoundary` a nivel superior de la aplicación para capturar errores de renderizado o síncronos inesperados en React, evitando que la app crashee por completo.
+*   Los errores genéricos `Error` capturados en `onError` o por `ErrorBoundary` pueden mostrar su `error.message` si es relevante, o un mensaje genérico obtenido de `getApiErrorMessage`.
+
+**Conectividad:**
+*   Se puede usar `@react-native-community/netinfo` (instalado) para verificar el estado de la red antes de intentar una petición o para mostrar un mensaje persistente si no hay conexión. (Se recomienda crear un hook/store global en `src/app/` para esto).
+
+**Logging:**
+*   Se utiliza `console.error` para loguear detalles técnicos de los errores en `apiClient` y en los callbacks `onError`.
+*   Para producción, se recomienda fuertemente integrar un servicio de monitoreo de errores como Sentry (`@sentry/react-native`) para capturar y analizar errores de forma centralizada.
 
 ---
 
