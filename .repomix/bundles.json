@@ -1,14 +1,3 @@
 {
-  "bundles": {
-    "x": {
-      "name": "x",
-      "created": "2025-04-09T13:34:08.170Z",
-      "lastUsed": "2025-04-09T15:45:18.460Z",
-      "tags": [],
-      "files": [
-        ".cursor",
-        "src"
-      ]
-    }
-  }
+  "bundles": {}
 }
