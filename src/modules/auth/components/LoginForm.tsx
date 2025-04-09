@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { TextInput, Button, HelperText } from "react-native-paper";
+import { TextInput, Button, HelperText, Checkbox } from "react-native-paper"; // Corregido: Quitado View as PaperView
 import { useAppTheme } from "../../../app/styles/theme";
 
 // Esquema de validación con Zod
@@ -19,47 +19,90 @@ const loginSchema = z.object({
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
-  onSubmit: (data: LoginFormInputs) => void;
+  onSubmit: (data: LoginFormInputs, rememberMe: boolean) => void; // Añadido rememberMe
   isLoading: boolean;
+  initialEmailOrUsername?: string; // Añadido valor inicial
+  initialPassword?: string;        // Añadido valor inicial para contraseña
+  initialRememberMe?: boolean;     // Añadido valor inicial
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
+const LoginForm: React.FC<LoginFormProps> = ({
+  onSubmit,
+  isLoading,
+  initialEmailOrUsername = '', // Valor por defecto
+  initialPassword = '',        // Valor por defecto
+  initialRememberMe = false,   // Valor por defecto
+}) => {
   const theme = useAppTheme();
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [rememberMe, setRememberMe] = useState(initialRememberMe); // Usa el valor inicial
 
   const {
     control,
     handleSubmit,
     formState: { errors },
+    reset, // Añadido reset para el useEffect opcional
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      emailOrUsername: "",
-      password: "",
+      emailOrUsername: initialEmailOrUsername, // Usar valor inicial
+      password: initialPassword, // Usar contraseña inicial
     },
   });
+
+  // Opcional: Si defaultValues no funciona bien con carga asíncrona
+  // Opcional: Si defaultValues no funciona bien con carga asíncrona,
+  // actualizamos ambos campos aquí.
+  React.useEffect(() => {
+     // Solo resetea si hay valores iniciales (evita resetear a vacío si no hay nada guardado)
+     if (initialEmailOrUsername || initialPassword) {
+        reset({
+            emailOrUsername: initialEmailOrUsername || '', // Usa valor o vacío
+            password: initialPassword || '' // Usa valor o vacío
+        });
+     }
+  }, [initialEmailOrUsername, initialPassword, reset]); // Añadir initialPassword a dependencias
 
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
   };
 
-  // Estilos que dependen del tema
-  const styles = StyleSheet.create({
+  // Estilos que dependen del tema (usamos React.useMemo porque ahora dependen de theme)
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       width: "100%",
     },
     input: {
       marginBottom: 8,
-      // backgroundColor: theme.colors.surface, // TextInput de Paper maneja su fondo basado en el modo y tema
     },
     button: {
-      marginTop: 16,
+      marginTop: 16, // Ajustar si es necesario por el checkbox
     },
     helperText: {
-      // El color del HelperText tipo 'error' se maneja por el tema
       marginBottom: 8,
     },
-  });
+    // Nuevos estilos para el Checkbox
+    checkboxContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      // Ajusta el margen según sea necesario, por ejemplo, si quieres espacio antes del botón
+      marginTop: 8,
+      marginBottom: 8,
+      // Quitar padding horizontal si Checkbox.Item ya lo maneja bien
+      // paddingHorizontal: -8, // Puede ser necesario ajustar para alinear con inputs
+    },
+    checkboxItem: {
+      // Puedes ajustar padding aquí si es necesario, por ejemplo, para reducir espacio
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+    },
+    checkboxLabel: {
+      // Estilo para el texto "Recordarme"
+      color: theme.colors.onSurface, // Usar color del tema
+      // Quitar margen si Checkbox.Item lo maneja
+      // marginLeft: -8, // Puede ser necesario ajustar
+    },
+  }), [theme]); // Dependencia del tema
 
   return (
     <View style={styles.container}>
@@ -132,9 +175,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
         )}
       />
 
+      {/* Checkbox "Recordarme" añadido aquí */}
+      <View style={styles.checkboxContainer}> {/* Corregido: Usar View de react-native */}
+        <Checkbox.Item
+            label="Recordarme"
+            status={rememberMe ? 'checked' : 'unchecked'}
+            onPress={() => setRememberMe(!rememberMe)}
+            position="leading" // Icono a la izquierda del texto
+            labelStyle={styles.checkboxLabel}
+            style={styles.checkboxItem}
+            disabled={isLoading}
+            // Ajusta el color del checkbox si es necesario
+            // color={theme.colors.primary} // Color cuando está marcado
+            // uncheckedColor={theme.colors.onSurfaceVariant} // Color cuando está desmarcado
+        />
+      </View> {/* Corregido: Etiqueta de cierre */}
+
       <Button
         mode="contained"
-        onPress={handleSubmit(onSubmit)}
+        // Actualizar la llamada para pasar rememberMe
+        onPress={handleSubmit((data) => onSubmit(data, rememberMe))}
         loading={isLoading}
         disabled={isLoading}
         style={styles.button}

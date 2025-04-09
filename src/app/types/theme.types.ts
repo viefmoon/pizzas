@@ -3,6 +3,7 @@ import { z } from "zod";
 import { MD3Theme } from "react-native-paper";
 
 // Definición de las posibles preferencias de tema
+// Restaurado: Volvemos a permitir 'system'
 export const themePreferenceSchema = z.enum(["light", "dark", "system"]);
 export type ThemePreference = z.infer<typeof themePreferenceSchema>;
 
@@ -13,7 +14,7 @@ export const THEME_PREFERENCE_STORAGE_KEY = "app:theme_preference";
 export const THEME_MODE = {
   LIGHT: "light",
   DARK: "dark",
-  SYSTEM: "system",
+  SYSTEM: "system", // Restaurado
 } as const;
 
 // Extender el tema de Paper si es necesario
