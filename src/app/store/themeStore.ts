@@ -61,38 +61,37 @@ export const useThemeStore = create<ThemeState>()(
       name: THEME_PREFERENCE_STORAGE_KEY, // Nombre de la clave en AsyncStorage
       storage: createJSONStorage(() => AsyncStorage), // Usar AsyncStorage
       partialize: (state) => ({ themePreference: state.themePreference }), // Solo guardar 'themePreference'
-      // onRehydrateStorage para asegurar que el estado inicial sea correcto después de cargar
-      // onRehydrateStorage ahora SOLO establece la preferencia cargada.
-      onRehydrateStorage: (persistedState) => {
-        console.log("Hydrating theme preference:", persistedState?.themePreference);
+      // onRehydrateStorage: Se ejecuta DESPUÉS de que el estado se ha rehidratado.
+      // Aquí calculamos el estado inicial de activeTheme y isSystemDarkMode basado en la preferencia cargada.
+      onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {
             console.error("Error rehydrating theme store:", error);
             return;
           }
           if (!state) {
-            console.warn("State not available during theme rehydration");
+            console.warn("State not available during theme rehydration callback");
             return;
           }
 
-          // Obtener preferencia guardada o usar SYSTEM por defecto
-          let preference = persistedState?.themePreference;
-          if (preference !== THEME_MODE.LIGHT && preference !== THEME_MODE.DARK && preference !== THEME_MODE.SYSTEM) {
-            preference = THEME_MODE.SYSTEM;
-          }
+          const preference = state.themePreference; // Ya tiene el valor cargado o inicial
+          // console.log(`Theme store rehydrated. Initial preference: ${preference}`); // Log eliminado
 
-          // Solo aplicar la preferencia cargada al estado inicial
-          state.themePreference = preference;
-
-          // Si la preferencia cargada NO es SYSTEM, podemos calcular el tema activo aquí
-          if (preference !== THEME_MODE.SYSTEM) {
-             state.activeTheme = preference === THEME_MODE.DARK ? darkTheme : lightTheme;
-             console.log(`Theme state rehydrated with explicit preference: ${preference}`);
-          } else {
-             // Si es SYSTEM, dejamos activeTheme como está (light por defecto)
-             // y esperamos a que useSystemThemeDetector lo corrija.
-             console.log("Theme state rehydrated with SYSTEM preference. Waiting for detector.");
-             // No establecemos isSystemDarkMode aquí, lo hará el detector
+          if (preference === THEME_MODE.LIGHT) {
+            state.activeTheme = lightTheme;
+            state.isSystemDarkMode = Appearance.getColorScheme() === 'dark'; // Actualizar por si acaso
+            // console.log("Rehydrated with LIGHT theme."); // Log eliminado
+          } else if (preference === THEME_MODE.DARK) {
+            state.activeTheme = darkTheme;
+            state.isSystemDarkMode = Appearance.getColorScheme() === 'dark'; // Actualizar por si acaso
+            // console.log("Rehydrated with DARK theme."); // Log eliminado
+          } else { // preference === THEME_MODE.SYSTEM
+            const systemScheme = Appearance.getColorScheme(); // Intentar obtener síncronamente
+            const isSystemDark = systemScheme === 'dark';
+            state.isSystemDarkMode = isSystemDark;
+            state.activeTheme = isSystemDark ? darkTheme : lightTheme;
+            // console.log(`Rehydrated with SYSTEM theme. Detected system scheme: ${systemScheme ?? 'unknown'}. Active theme set.`); // Log eliminado
+            // useSystemThemeDetector refinará esto si cambia dinámicamente
           }
         };
       },
@@ -109,25 +108,14 @@ export function useSystemThemeDetector() {
   // Usamos useRef para saber si es la primera ejecución del efecto
   const isInitialMount = React.useRef(true);
 
+  // Simplificamos useEffect: Solo llama a setSystemDarkMode cuando el esquema del sistema cambia.
+  // La lógica en setSystemDarkMode (líneas 48-56) ya se encarga de actualizar activeTheme si es necesario.
   React.useEffect(() => {
     const isDarkMode = systemColorScheme === "dark";
-    // console.log("System theme detector run:", isDarkMode ? 'dark' : 'light'); // Log más detallado si es necesario
-
-    // Llamar a setSystemDarkMode siempre para actualizar el estado interno
-    // Esto también recalculará activeTheme si preference es SYSTEM (gracias a la lógica en setSystemDarkMode)
-    setSystemDarkMode(isDarkMode);
-
-    // Si es la primera ejecución Y la preferencia es SYSTEM,
-    // aseguramos que el activeTheme se establezca correctamente.
-    // Aunque setSystemDarkMode ya lo hace, esto es una doble verificación inicial.
-    if (isInitialMount.current && useThemeStore.getState().themePreference === THEME_MODE.SYSTEM) {
-       console.log("Initial system theme detection, ensuring active theme is set...");
-       // Usamos setState para actualizar directamente si es necesario, aunque setSystemDarkMode debería bastar
-       useThemeStore.setState({ activeTheme: isDarkMode ? darkTheme : lightTheme });
+    // Log eliminado
+    // Comprobar si el valor realmente cambió antes de llamar a set para evitar posibles bucles sutiles
+    if (useThemeStore.getState().isSystemDarkMode !== isDarkMode) {
+        setSystemDarkMode(isDarkMode);
     }
-
-    // Marcar que ya no es la montura inicial
-    isInitialMount.current = false;
-
-  }, [systemColorScheme, setSystemDarkMode]); // Dependencias correctas
+  }, [systemColorScheme, setSystemDarkMode]);
 }
