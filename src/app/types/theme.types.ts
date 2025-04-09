@@ -1,5 +1,6 @@
 // Define los tipos para el sistema de temas de la aplicación
 import { z } from "zod";
+import { MD3Theme } from "react-native-paper";
 
 // Definición de las posibles preferencias de tema
 export const themePreferenceSchema = z.enum(["light", "dark", "system"]);
@@ -14,3 +15,14 @@ export const THEME_MODE = {
   DARK: "dark",
   SYSTEM: "system",
 } as const;
+
+// Extender el tema de Paper si es necesario
+export interface AppTheme extends MD3Theme {
+  // Aquí puedes agregar propiedades adicionales al tema si es necesario
+}
+
+// Tipo para el estado del tema en el store
+export interface ThemeState {
+  preference: ThemePreference;
+  setPreference: (preference: ThemePreference) => void;
+}

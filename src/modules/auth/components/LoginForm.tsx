@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { TextInput, Button, HelperText, useTheme } from 'react-native-paper';
+import React, { useState } from "react";
+import { View, StyleSheet } from "react-native";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { TextInput, Button, HelperText } from "react-native-paper";
+import { useAppTheme } from "../../../app/styles/theme";
 
 // Esquema de validación con Zod
 const loginSchema = z.object({
   // Permitir email o username, refinar luego si es necesario validar formato específico
-  emailOrUsername: z.string().min(1, 'El correo o nombre de usuario es requerido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  emailOrUsername: z
+    .string()
+    .min(1, "El correo o nombre de usuario es requerido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 
 // Inferir el tipo de los inputs desde el esquema Zod
@@ -21,7 +24,7 @@ interface LoginFormProps {
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
   const {
@@ -31,8 +34,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      emailOrUsername: '',
-      password: '',
+      emailOrUsername: "",
+      password: "",
     },
   });
 
@@ -43,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
   // Estilos que dependen del tema
   const styles = StyleSheet.create({
     container: {
-      width: '100%',
+      width: "100%",
     },
     input: {
       marginBottom: 8,
@@ -79,7 +82,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
             />
             {/* Corrección: Usar && para renderizado condicional */}
             {errors.emailOrUsername && (
-              <HelperText type="error" visible={!!errors.emailOrUsername} style={styles.helperText}>
+              <HelperText
+                type="error"
+                visible={!!errors.emailOrUsername}
+                style={styles.helperText}
+              >
                 {errors.emailOrUsername?.message}
               </HelperText>
             )}
@@ -103,7 +110,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
               style={styles.input}
               right={
                 <TextInput.Icon
-                  icon={secureTextEntry ? 'eye' : 'eye-off'}
+                  icon={secureTextEntry ? "eye" : "eye-off"}
                   onPress={toggleSecureEntry}
                   forceTextInputFocus={false} // Evita que el input gane foco al tocar el icono
                   color={errors.password ? theme.colors.error : undefined} // Cambia color del icono si hay error
@@ -113,7 +120,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
             />
             {/* Corrección: Usar && para renderizado condicional */}
             {errors.password && (
-              <HelperText type="error" visible={!!errors.password} style={styles.helperText}>
+              <HelperText
+                type="error"
+                visible={!!errors.password}
+                style={styles.helperText}
+              >
                 {errors.password?.message}
               </HelperText>
             )}
@@ -128,7 +139,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => {
         disabled={isLoading}
         style={styles.button}
       >
-        {isLoading ? 'Ingresando...' : 'Ingresar'}
+        {isLoading ? "Ingresando..." : "Ingresar"}
       </Button>
     </View>
   );

@@ -11,13 +11,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, IconButton, Surface, TouchableRipple } from "react-native-paper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
-import { useAppTheme } from "../../styles/theme";
-import { useSnackbarStore } from "../../store/snackbarStore";
-import { useThemeStore } from "../../store/themeStore";
-import { useAuthStore } from "../../store/authStore";
-import { LoginFormInputs, LoginResponseDto } from "../../types/auth";
-import { authService } from "../../services/authService";
-import LoginForm from "../../components/auth/LoginForm";
+import { useAppTheme } from "../../../app/styles/theme";
+import { useSnackbarStore } from "../../../app/store/snackbarStore";
+import { useThemeStore } from "../../../app/store/themeStore";
+import { useAuthStore } from "../../../app/store/authStore";
+import { LoginFormInputs, LoginResponseDto } from "../types/auth.types";
+import { authService } from "../services/authService";
+import LoginForm from "../components/LoginForm";
 
 const LoginScreen = () => {
   const theme = useAppTheme();
@@ -158,7 +158,7 @@ const LoginScreen = () => {
             <View>
               <View style={styles.logoContainer}>
                 <Image
-                  source={require("../../assets/logo.png")}
+                  source={require("../../../assets/logo.png")}
                   style={styles.logo}
                   resizeMode="contain"
                 />

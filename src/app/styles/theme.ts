@@ -33,22 +33,26 @@ const spacing = {
 
 // Convertir nuestra tipografía a la estructura esperada por MD3Theme
 const typescale: MD3Typescale = {
-  default: typography.default,
-  displayLarge: typography.displayLarge,
-  displayMedium: typography.displayMedium,
-  displaySmall: typography.displaySmall,
-  headlineLarge: typography.headlineLarge,
-  headlineMedium: typography.headlineMedium,
-  headlineSmall: typography.headlineSmall,
-  titleLarge: typography.titleLarge,
-  titleMedium: typography.titleMedium,
-  titleSmall: typography.titleSmall,
-  bodyLarge: typography.bodyLarge,
-  bodyMedium: typography.bodyMedium,
-  bodySmall: typography.bodySmall,
-  labelLarge: typography.labelLarge,
-  labelMedium: typography.labelMedium,
-  labelSmall: typography.labelSmall,
+  default: {
+    fontFamily: typography.bodyMedium.fontFamily,
+    fontWeight: "normal",
+    letterSpacing: typography.bodyMedium.letterSpacing,
+  },
+  displayLarge: { ...typography.displayLarge, fontWeight: "normal" },
+  displayMedium: { ...typography.displayMedium, fontWeight: "normal" },
+  displaySmall: { ...typography.displaySmall, fontWeight: "normal" },
+  headlineLarge: { ...typography.headlineLarge, fontWeight: "normal" },
+  headlineMedium: { ...typography.headlineMedium, fontWeight: "normal" },
+  headlineSmall: { ...typography.headlineSmall, fontWeight: "normal" },
+  titleLarge: { ...typography.titleLarge, fontWeight: "normal" },
+  titleMedium: { ...typography.titleMedium, fontWeight: "500" },
+  titleSmall: { ...typography.titleSmall, fontWeight: "500" },
+  bodyLarge: { ...typography.bodyLarge, fontWeight: "normal" },
+  bodyMedium: { ...typography.bodyMedium, fontWeight: "normal" },
+  bodySmall: { ...typography.bodySmall, fontWeight: "normal" },
+  labelLarge: { ...typography.labelLarge, fontWeight: "500" },
+  labelMedium: { ...typography.labelMedium, fontWeight: "500" },
+  labelSmall: { ...typography.labelSmall, fontWeight: "500" },
 };
 
 // Crea y extiende el tema claro de Paper con nuestras personalizaciones

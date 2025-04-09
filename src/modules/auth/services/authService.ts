@@ -1,9 +1,9 @@
-import apiClient from "./apiClient";
+import apiClient from "../../../app/services/apiClient";
 import {
   AuthEmailLoginDto,
   LoginResponseDto,
   LoginFormInputs,
-} from "../types/auth";
+} from "../types/auth.types";
 
 class AuthService {
   async login(loginData: LoginFormInputs): Promise<LoginResponseDto> {

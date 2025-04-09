@@ -3,11 +3,14 @@ import { StatusBar } from "expo-status-bar";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useThemeStore, useSystemThemeDetector } from "./src/store/themeStore";
-import LoginScreen from "./src/screens/auth/LoginScreen";
+import {
+  useThemeStore,
+  useSystemThemeDetector,
+} from "./src/app/store/themeStore";
+import LoginScreen from "./src/modules/auth/screens/LoginScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import GlobalSnackbar from "./src/components/common/GlobalSnackbar"; // Importa el componente creado
+import GlobalSnackbar from "./src/app/components/common/GlobalSnackbar"; // Importa el componente creado
 
 // Crear una instancia de QueryClient para React Query
 const queryClient = new QueryClient();

@@ -1,11 +1,11 @@
 import { create } from "apisauce";
-import { API_BASE_URL } from "@env";
+import { API_URL } from "@env";
 import EncryptedStorage from "react-native-encrypted-storage";
 import { useAuthStore } from "../store/authStore";
 
 // Define la URL base de tu API
 const apiClient = create({
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
   headers: { "Cache-Control": "no-cache", Accept: "application/json" },
   // Puedes añadir un timeout si lo necesitas, por ejemplo 10 segundos
   // timeout: 10000,

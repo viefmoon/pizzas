@@ -9,7 +9,7 @@ import {
   ThemePreference,
   THEME_PREFERENCE_STORAGE_KEY,
   THEME_MODE,
-} from "../types/theme";
+} from "../types/theme.types";
 import { lightTheme, darkTheme } from "../styles/theme";
 
 interface ThemeState {

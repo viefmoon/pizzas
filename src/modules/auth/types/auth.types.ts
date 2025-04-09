@@ -1,13 +1,43 @@
 import { z } from "zod";
 
-// Esquema y tipo para el formulario de login (ya definido en LoginForm, pero puede ser centralizado)
+// Esquema de validación para el formulario de login
 export const loginSchema = z.object({
   emailOrUsername: z
     .string()
     .min(1, "El correo o nombre de usuario es requerido"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
+
+// Tipo inferido del esquema de login
 export type LoginFormInputs = z.infer<typeof loginSchema>;
+
+// Esquema para la respuesta de autenticación
+export const authResponseSchema = z.object({
+  token: z.string(),
+  user: z.object({
+    id: z.string(),
+    email: z.string().email(),
+    username: z.string(),
+    role: z.enum(["admin", "staff"]),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    avatar: z.string().url().optional(),
+  }),
+});
+
+// Tipo inferido del esquema de respuesta de autenticación
+export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+// Tipo para el estado de autenticación en el store
+export interface AuthState {
+  token: string | null;
+  user: AuthResponse["user"] | null;
+  isLoading: boolean;
+  error: string | null;
+  login: (credentials: LoginFormInputs) => Promise<void>;
+  logout: () => void;
+  clearError: () => void;
+}
 
 // DTO para la petición de login al backend
 // Basado en AuthEmailLoginDto del backend, permitiendo email o username
