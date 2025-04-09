@@ -1,14 +1,13 @@
 import React, { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet } from "react-native";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThemeStore, useSystemThemeDetector } from "./src/store/themeStore";
-import GlobalSnackbar from "./src/components/common/GlobalSnackbar";
 import LoginScreen from "./src/screens/auth/LoginScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import GlobalSnackbar from "./src/components/common/GlobalSnackbar"; // Importa el componente creado
 
 // Crear una instancia de QueryClient para React Query
 const queryClient = new QueryClient();
@@ -38,21 +37,12 @@ export default function App() {
             </Stack.Navigator>
             {/* Ajustar StatusBar según el tema */}
             <StatusBar style={isDarkMode ? "light" : "dark"} />
-
-            {/* Snackbar global accesible desde cualquier parte */}
-            <GlobalSnackbar />
           </NavigationContainer>
+          {/* Renderiza GlobalSnackbar aquí */}
+          {/* Estará "escuchando" los cambios en useSnackbarStore */}
+          <GlobalSnackbar />
         </PaperProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

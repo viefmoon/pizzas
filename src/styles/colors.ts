@@ -45,10 +45,13 @@ export const lightColors = {
   // Otros colores semánticos
   success: "#4CAF50",
   successContainer: "#CCFFE3",
+  onSuccessContainer: "#00381A", // Verde oscuro para contraste en claro
   warning: "#FB8C00",
   warningContainer: "#FFEACF",
+  onWarningContainer: "#3D2100", // Naranja oscuro para contraste en claro
   info: "#2196F3",
   infoContainer: "#D4E8FF",
+  onInfoContainer: "#002E60", // Azul oscuro para contraste en claro
 };
 
 // Paleta de colores para modo oscuro
@@ -95,8 +98,11 @@ export const darkColors = {
   // Otros colores semánticos
   success: "#69F0AE",
   successContainer: "#1B5E20",
+  onSuccessContainer: "#B3FFD1", // Verde claro para contraste en oscuro
   warning: "#FFC107",
   warningContainer: "#795548",
+  onWarningContainer: "#FFE0B2", // Naranja claro para contraste en oscuro
   info: "#64B5F6",
   infoContainer: "#1565C0",
+  onInfoContainer: "#B3E5FC", // Azul claro para contraste en oscuro
 };

@@ -10,10 +10,13 @@ declare global {
     interface MD3Colors {
       success: string;
       successContainer: string;
+      onSuccessContainer: string;
       warning: string;
       warningContainer: string;
+      onWarningContainer: string;
       info: string;
       infoContainer: string;
+      onInfoContainer: string;
     }
   }
 }
