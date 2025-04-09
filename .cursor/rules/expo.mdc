@@ -1,4 +1,8 @@
-
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Guía de Estilo, Arquitectura y Convenciones del Proyecto (ClearByte) (ANDROID)
 
 Este documento es la **fuente de verdad** para las convenciones de codificación, arquitectura y uso de librerías en ClearByte. Utiliza Expo (SDK 52), React Native (0.76), TypeScript, y un stack moderno incluyendo React Native Paper (v5), Zustand (v5), React Query (v5), y Apisauce (v3). **La aplicación soporta temas claro y oscuro**. La estructura del proyecto se basa en una separación clara entre código central/compartido (`src/app`) y módulos de funcionalidades específicas (`src/modules`).
@@ -224,3 +228,67 @@ Este documento es la **fuente de verdad** para las convenciones de codificación
 1.  **Crear Carpeta:** `src/modules/newFeatureName/`.
 2.  **Añadir Subcarpetas:** `components/`, `screens/`, `services/`, `types/`, etc., según necesidad.
 3.  **Integrar:** Añadir pantallas a `src/app/navigation/`, usar elementos de `src/app/`, importar elementos internos del módulo.
+
+## 17. Dependencias: {
+  "name": "pizza",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^14.0.4",
+    "@hookform/resolvers": "^5.0.1",
+    "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-native-community/datetimepicker": "^8.3.0",
+    "@react-native-community/netinfo": "^11.4.1",
+    "@react-navigation/drawer": "^7.3.8",
+    "@react-navigation/native": "^7.1.5",
+    "@react-navigation/native-stack": "^7.3.9",
+    "@tanstack/react-query": "^5.72.1",
+    "apisauce": "^3.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
+    "expo": "~52.0.43",
+    "expo-audio": "^0.3.5",
+    "expo-dev-client": "~5.0.19",
+    "expo-file-system": "~18.0.12",
+    "expo-image": "~2.0.7",
+    "expo-image-picker": "^16.0.6",
+    "expo-notifications": "^0.29.14",
+    "expo-print": "~14.0.3",
+    "expo-status-bar": "~2.0.1",
+    "lottie-react-native": "^7.2.2",
+    "react": "18.3.1",
+    "react-hook-form": "^7.55.0",
+    "react-native": "0.76.9",
+    "react-native-encrypted-storage": "^4.0.3",
+    "react-native-gesture-handler": "~2.20.2",
+    "react-native-paper": "^5.13.1",
+    "react-native-reanimated": "~3.16.1",
+    "react-native-safe-area-context": "^4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-url-polyfill": "^2.0.0",
+    "zod": "^3.24.2",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.3.12",
+    "@typescript-eslint/eslint-plugin": "^7.13.1",
+    "@typescript-eslint/parser": "^7.13.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-native": "^4.1.0",
+    "react-native-dotenv": "^3.4.11",
+    "typescript": "^5.3.3"
+  },
+  "private": true
+}
+
