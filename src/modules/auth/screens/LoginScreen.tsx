@@ -19,6 +19,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 import { useAppTheme } from "../../../app/styles/theme";
 import { useSnackbarStore } from "../../../app/store/snackbarStore";
+import { getApiErrorMessage } from "../../../app/lib/errorMapping";
+import { ApiError } from "../../../app/lib/errors";
 import { useThemeStore } from "../../../app/store/themeStore";
 import { useAuthStore } from "../../../app/store/authStore";
 import { LoginFormInputs, LoginResponseDto } from "../types/auth.types";
@@ -54,14 +56,18 @@ const LoginScreen = () => {
         });
       }
     },
-    onError: (error) => {
+    onError: (error: unknown) => { // Tipar error como unknown es más seguro
+      const userMessage = getApiErrorMessage(error); // Obtiene el mensaje mapeado
       showSnackbar({
-        message:
-          error.message ||
-          "Error al iniciar sesión. Por favor, intenta de nuevo.",
+        message: userMessage,
         type: "error",
         duration: 5000,
       });
+      console.error("Login failed:", error); // Loguear el error original
+      // Loguear detalles adicionales si es un ApiError
+      if (error instanceof ApiError) {
+         console.error("API Error Details:", { code: error.code, status: error.status, details: error.details });
+      }
     },
   });
 

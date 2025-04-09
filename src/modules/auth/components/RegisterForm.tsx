@@ -10,6 +10,7 @@ import { RegisterFormInputs, registerSchema } from "../types/auth.types";
 import { authService } from "../services/authService";
 import { useAppTheme } from "../../../app/styles/theme";
 import { useSnackbarStore } from "../../../app/store/snackbarStore";
+import { getApiErrorMessage } from "../../../app/lib/errorMapping";
 
 export function RegisterForm() {
   const theme = useAppTheme();
@@ -40,10 +41,13 @@ export function RegisterForm() {
       });
       navigation.goBack();
     },
-    onError: (error: Error) => {
+    onError: (error: unknown) => {
+      // Tipar error como unknown
+      const userMessage = getApiErrorMessage(error); // Obtener mensaje mapeado
       showSnackbar({
-        message: error.message,
+        message: userMessage,
         type: "error",
+        duration: 5000,
       });
     },
   });

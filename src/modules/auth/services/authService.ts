@@ -1,4 +1,5 @@
 import apiClient from "../../../app/services/apiClient";
+import { ApiError } from "../../../app/lib/errors";
 import {
   AuthEmailLoginDto,
   LoginResponseDto,
@@ -25,17 +26,8 @@ class AuthService {
 
     // Apisauce envuelve la respuesta. Verificamos si fue exitosa.
     if (!response.ok || !response.data) {
-      // Intentar obtener un mensaje de error más específico si está disponible
-      const apiError =
-        (response.data as any)?.errors?.auth ||
-        (response.data as any)?.errors?.password ||
-        "credentialsIncorrect";
-      // Mapear errores del backend a mensajes amigables
-      const errorMessages: { [key: string]: string } = {
-        credentialsIncorrect: "Usuario o contraseña incorrectos.",
-        incorrectPassword: "La contraseña es incorrecta.",
-      };
-      throw new Error(errorMessages[apiError] || "Error al iniciar sesión.");
+      // Lanzar un ApiError estructurado
+      throw ApiError.fromApiResponse(response.data, response.status);
     }
     return response.data;
   }
@@ -47,7 +39,8 @@ class AuthService {
     );
 
     if (!response.ok) {
-      throw new Error(response.data?.message || "Error al registrar usuario");
+      // Lanzar un ApiError estructurado
+      throw ApiError.fromApiResponse(response.data, response.status);
     }
   }
 
