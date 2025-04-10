@@ -28,7 +28,8 @@ export const productVariantSchema = z.object({
 });
 export type ProductVariantInput = z.infer<typeof productVariantSchema>;
 
-export const productSchema = z.object({
+// Esquema base sin el refine, para poder extenderlo
+const productSchemaBase = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(1, 'El nombre es requerido'),
   price: z.number().positive('El precio debe ser positivo').refine(val => {
@@ -47,9 +48,49 @@ export const productSchema = z.object({
   modifierGroupIds: z.array(z.string().uuid()).optional(),
 });
 
+// Esquema para el formulario, con la validación condicional
+export const productSchema = productSchemaBase.superRefine((data, ctx) => {
+  if (data.hasVariants) {
+    // Si tiene variantes, el precio no es requerido, pero debe haber al menos una variante
+    if (!data.variants || data.variants.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Debe añadir al menos una variante si marca esta opción.',
+        path: ['variants'], // Asociar el error al campo de variantes
+      });
+    }
+    // Asegurarse de que el precio principal sea null si hay variantes
+    if (data.price !== null && data.price !== undefined) {
+       ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El precio principal debe estar vacío si el producto tiene variantes.',
+        path: ['price'],
+      });
+    }
+  } else {
+    // Si no tiene variantes, el precio es requerido
+    if (data.price === null || data.price === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El precio es requerido si el producto no tiene variantes.',
+        path: ['price'], // Asociar el error al campo de precio
+      });
+    }
+    // Asegurarse de que el array de variantes esté vacío si no tiene variantes
+     if (data.variants && data.variants.length > 0) {
+       ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'No debe haber variantes si el producto no está marcado como "Tiene Variantes".',
+        path: ['variants'],
+      });
+    }
+  }
+});
+
 export type ProductFormInputs = z.infer<typeof productSchema>;
 
-export const productResponseSchema = productSchema.extend({
+// Esquema para la respuesta de la API, extendiendo el base
+export const productResponseSchema = productSchemaBase.extend({
   id: z.string().uuid(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
