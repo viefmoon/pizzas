@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react"; // Añadir useState
+import React, { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -7,10 +7,16 @@ import {
   StyleProp,
   View,
 } from "react-native";
-import { List, Chip, Text, Surface, Searchbar } from "react-native-paper"; // Añadir Searchbar
+import { List, Chip, Text, Surface, Searchbar, SegmentedButtons, FAB, Portal } from "react-native-paper";
 import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
 import { getImageUrl } from "../../lib/imageUtils";
+export interface FilterOption<TValue> {
+  value: TValue;
+  label: string;
+  icon?: string;
+  disabled?: boolean;
+}
 
 interface StatusConfig<TItem> {
   field: keyof TItem;
@@ -39,11 +45,21 @@ interface GenericListProps<TItem extends { id: string }> {
   listItemStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<any>;
-  itemActionsContainerStyle?: StyleProp<ViewStyle>; // Estilo opcional para el contenedor de acciones
+  itemActionsContainerStyle?: StyleProp<ViewStyle>;
   renderItemActions?: (item: TItem) => React.ReactNode;
-  enableSearch?: boolean; // Prop para habilitar búsqueda
-  searchPlaceholder?: string; // Placeholder para la barra de búsqueda
-  enableSort?: boolean; // Prop para habilitar ordenación alfabética
+  enableSearch?: boolean;
+  searchPlaceholder?: string;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  enableSort?: boolean;
+  filterValue?: string | number;
+  onFilterChange?: (value: any) => void;
+  filterOptions?: FilterOption<any>[];
+  showFab?: boolean;
+  onFabPress?: () => void;
+  fabIcon?: string;
+  fabLabel?: string;
+  fabVisible?: boolean;
 }
 
 const getStyles = (theme: AppTheme) => {
@@ -53,18 +69,17 @@ const getStyles = (theme: AppTheme) => {
       flex: 1,
     },
     searchbarContainer: {
-      paddingHorizontal: listItemHorizontalMargin - theme.spacing.xs, // Alinear con items
+      paddingHorizontal: listItemHorizontalMargin - theme.spacing.xs,
       paddingTop: theme.spacing.s,
       paddingBottom: theme.spacing.xs,
-      backgroundColor: theme.colors.background, // O el color que prefieras
+      backgroundColor: theme.colors.background,
     },
     searchbar: {
-      // elevation: 1, // Opcional: añadir sombra ligera
-      backgroundColor: theme.colors.elevation.level2, // Un poco diferente del fondo
+      backgroundColor: theme.colors.elevation.level2,
     },
     listItem: {
-      backgroundColor: theme.colors.surface, // Mantener el fondo del item
-      marginVertical: theme.spacing.xs, // Usar la variable
+      backgroundColor: theme.colors.surface,
+      marginVertical: theme.spacing.xs,
       marginHorizontal: theme.spacing.m,
       borderRadius: theme.roundness * 1.5,
       elevation: 2,
@@ -103,14 +118,38 @@ const getStyles = (theme: AppTheme) => {
       paddingTop: theme.spacing.xs,
     },
     itemActionsContainer: {
-      // Definición correcta DENTRO de StyleSheet.create
       justifyContent: "center",
       alignItems: "center",
       paddingLeft: theme.spacing.s,
     },
+    filtersOuterContainer: {
+      paddingTop: theme.spacing.s,
+      paddingBottom: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.m,
+      backgroundColor: theme.colors.background,
+    },
+    segmentedButtons: {
+      backgroundColor: "transparent",
+      borderRadius: theme.roundness,
+      minHeight: 48,
+    },
+    filterButton: {
+      borderWidth: 0,
+      paddingVertical: theme.spacing.s,
+    },
+    filterButtonLabel: {
+      fontSize: 15,
+      letterSpacing: 0.15,
+      paddingVertical: theme.spacing.xs,
+    },
+    fab: {
+      position: 'absolute',
+      margin: 16,
+      right: 0,
+      bottom: 0,
+    },
   });
 };
-// Eliminar la definición duplicada que estaba aquí fuera
 
 const GenericList = <TItem extends { id: string }>({
   items,
@@ -126,19 +165,29 @@ const GenericList = <TItem extends { id: string }>({
   imageStyle,
   renderItemActions,
   itemActionsContainerStyle,
-  enableSearch = false, // Valor por defecto false
-  searchPlaceholder = "Buscar...", // Placeholder por defecto
-  enableSort = false, // Valor por defecto false
+  enableSearch = false,
+  searchPlaceholder = "Buscar...",
+  enableSort = false,
+  filterValue,
+  onFilterChange,
+  filterOptions,
+  searchQuery: externalSearchQuery,
+  onSearchChange,
+  showFab = false,
+  onFabPress,
+  fabIcon = "plus",
+  fabLabel,
+  fabVisible = true,
 }: GenericListProps<TItem>) => {
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
-  const [searchTerm, setSearchTerm] = useState(""); // Estado para la búsqueda
+  const [internalSearchTerm, setInternalSearchTerm] = useState("");
+  const isSearchControlled = externalSearchQuery !== undefined && onSearchChange !== undefined;
+  const currentSearchTerm = isSearchControlled ? externalSearchQuery : internalSearchTerm;
 
-  // --- Procesamiento de Items (Ordenación y Filtrado) ---
   const processedItems = useMemo(() => {
-    let processed = [...items]; // Copiar para no mutar el original
+    let processed = [...items];
 
-    // 1. Ordenar si está habilitado
     if (enableSort && renderConfig.titleField) {
       processed.sort((a, b) => {
         const titleA = String(a[renderConfig.titleField] ?? "").toLowerCase();
@@ -147,30 +196,27 @@ const GenericList = <TItem extends { id: string }>({
       });
     }
 
-    // 2. Filtrar si la búsqueda está habilitada y hay término
-    if (enableSearch && searchTerm.trim()) {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      processed = processed.filter((item) => {
-        // Buscar en título
-        const title = String(item[renderConfig.titleField] ?? "").toLowerCase();
-        if (title.includes(lowerCaseSearchTerm)) {
-          return true;
-        }
-        // Buscar en descripción (si existe)
-        if (renderConfig.descriptionField) {
-          const description = String(
-            item[renderConfig.descriptionField] ?? ""
-          ).toLowerCase();
-          if (description.includes(lowerCaseSearchTerm)) {
+    if (enableSearch && !isSearchControlled && currentSearchTerm.trim()) {
+        const lowerCaseSearchTerm = currentSearchTerm.toLowerCase();
+        processed = processed.filter((item) => {
+            const title = String(item[renderConfig.titleField] ?? "").toLowerCase();
+            if (title.includes(lowerCaseSearchTerm)) {
             return true;
-          }
-        }
-        return false;
-      });
+            }
+            if (renderConfig.descriptionField) {
+            const description = String(
+                item[renderConfig.descriptionField] ?? ""
+            ).toLowerCase();
+            if (description.includes(lowerCaseSearchTerm)) {
+                return true;
+            }
+            }
+            return false;
+        });
     }
 
     return processed;
-  }, [items, enableSort, enableSearch, searchTerm, renderConfig]);
+  }, [items, enableSort, enableSearch, isSearchControlled, currentSearchTerm, renderConfig]);
   const renderGenericItem = useCallback(
     ({ item }: { item: TItem }) => {
       const title = String(item[renderConfig.titleField] ?? "");
@@ -198,7 +244,6 @@ const GenericList = <TItem extends { id: string }>({
         item.hasOwnProperty(renderConfig.imageField)
       ) {
         const imageFieldValue = item[renderConfig.imageField];
-        // Verificar si es un objeto con 'path' (como nuestro objeto Photo)
         if (
           typeof imageFieldValue === "object" &&
           imageFieldValue !== null &&
@@ -206,9 +251,8 @@ const GenericList = <TItem extends { id: string }>({
           typeof imageFieldValue.path === "string"
         ) {
           const url = getImageUrl(imageFieldValue.path);
-          imageSource = url ?? undefined; // Asignar undefined si getImageUrl devuelve null
+          imageSource = url ?? undefined;
         }
-        // Fallback: si es directamente una URL string
         else if (typeof imageFieldValue === "string") {
           imageSource = imageFieldValue;
         }
@@ -273,15 +317,12 @@ const GenericList = <TItem extends { id: string }>({
                   transition={300}
                 />
               ) : (
-                // Renderiza un View vacío con el mismo estilo para reservar el espacio
                 <View style={[styles.listItemImage, imageStyle]} />
               )
             }
-            // Modificar 'right' para incluir tanto statusChip como renderItemActions
             right={(props) => (
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 {statusChip && statusChip(props)}
-                {/* Usar las props desestructuradas */}
                 {renderItemActions && (
                   <View
                     style={[
@@ -295,7 +336,7 @@ const GenericList = <TItem extends { id: string }>({
               </View>
             )}
             onPress={() => onItemPress(item)}
-            style={styles.listItemContent} // Este estilo es para el contenedor del List.Item, no solo el texto
+            style={styles.listItemContent}
           />
         </Surface>
       );
@@ -309,51 +350,72 @@ const GenericList = <TItem extends { id: string }>({
       imageStyle,
       renderItemActions,
       itemActionsContainerStyle,
-    ] // Añadir dependencias que faltaban
+    ]
   );
 
   const finalContentContainerStyle = useMemo(() => {
-    // Usar processedItems para determinar si la lista (después de filtrar) está vacía
     const baseStyle =
-      processedItems.length === 0 && !searchTerm // Mostrar empty state solo si no hay items Y no se está buscando activamente
+      processedItems.length === 0 && !currentSearchTerm
         ? styles.emptyListContainer
         : styles.defaultContentContainer;
     return StyleSheet.flatten([baseStyle, contentContainerStyle]);
-  }, [items, styles, contentContainerStyle]);
+  }, [processedItems, currentSearchTerm, styles, contentContainerStyle]);
 
-  // --- Renderizado ---
   return (
     <View style={styles.listContainer}>
-      {/* Barra de Búsqueda (si está habilitada) */}
+      {filterOptions && filterValue !== undefined && onFilterChange && (
+        <Surface style={styles.filtersOuterContainer} elevation={0}>
+          <SegmentedButtons
+            value={String(filterValue)}
+            onValueChange={(value) => {
+              const selectedOption = filterOptions.find(
+                (opt) => String(opt.value) === value
+              );
+              if (selectedOption) {
+                onFilterChange(selectedOption.value);
+              }
+            }}
+            buttons={filterOptions.map((option) => ({
+              value: String(option.value),
+              label: option.label,
+              icon: option.icon,
+              disabled: option.disabled,
+              style: styles.filterButton,
+              labelStyle: styles.filterButtonLabel,
+              showSelectedCheck: false,
+            }))}
+            style={styles.segmentedButtons}
+            density="medium"
+          />
+        </Surface>
+      )}
+
       {enableSearch && (
         <View style={styles.searchbarContainer}>
           <Searchbar
             placeholder={searchPlaceholder}
-            onChangeText={setSearchTerm}
-            value={searchTerm}
+            onChangeText={isSearchControlled ? onSearchChange : setInternalSearchTerm}
+            value={currentSearchTerm}
             style={styles.searchbar}
-            inputStyle={{ color: theme.colors.onSurface }} // Asegurar color de texto legible
-            placeholderTextColor={theme.colors.onSurfaceVariant} // Color del placeholder
-            iconColor={theme.colors.onSurfaceVariant} // Color del icono de lupa
+            inputStyle={{ color: theme.colors.onSurface }}
+            placeholderTextColor={theme.colors.onSurfaceVariant}
+            iconColor={theme.colors.onSurfaceVariant}
             clearIcon={
-              searchTerm
+              currentSearchTerm
                 ? (props) => <List.Icon {...props} icon="close-circle" />
                 : undefined
-            } // Icono para limpiar
-            onClearIconPress={() => setSearchTerm("")} // Acción al limpiar
-            // elevation={1} // Opcional
+            }
+            onClearIconPress={() => isSearchControlled ? onSearchChange("") : setInternalSearchTerm("")}
           />
         </View>
       )}
 
-      {/* Lista */}
       <FlatList
-        data={processedItems} // Usar los items procesados
+        data={processedItems}
         renderItem={renderGenericItem}
         keyExtractor={(item) => item.id}
-        style={listStyle} // Aplicar estilo de lista general aquí, no al contenedor View
+        style={listStyle}
         contentContainerStyle={finalContentContainerStyle}
-        // Mostrar ListEmptyComponent si processedItems está vacío (incluso si se está buscando)
         ListEmptyComponent={
           processedItems.length === 0 ? ListEmptyComponent : null
         }
@@ -361,15 +423,32 @@ const GenericList = <TItem extends { id: string }>({
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={() => {
-              setSearchTerm(""); // Limpiar búsqueda al refrescar
+              if (isSearchControlled) {
+                onSearchChange("");
+              } else {
+                setInternalSearchTerm("");
+              }
               onRefresh();
             }}
             colors={[theme.colors.primary]}
             tintColor={theme.colors.primary}
           />
         }
-        keyboardShouldPersistTaps="handled" // Para que el teclado no interfiera con taps en la lista
+        keyboardShouldPersistTaps="handled"
       />
+      {showFab && onFabPress && (
+        <Portal>
+          <FAB
+            icon={fabIcon}
+            style={styles.fab}
+            onPress={onFabPress}
+            visible={fabVisible}
+            label={fabLabel}
+            color={theme.colors.onPrimary}
+            theme={{ colors: { primaryContainer: theme.colors.primary } }}
+          />
+        </Portal>
+      )}
     </View>
   );
 };
