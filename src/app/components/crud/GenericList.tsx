@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react"; // Añadir useState
 import {
   FlatList,
   StyleSheet,
@@ -7,10 +7,10 @@ import {
   StyleProp,
   View,
 } from "react-native";
-import { List, Chip, Text, Surface } from "react-native-paper";
+import { List, Chip, Text, Surface, Searchbar } from "react-native-paper"; // Añadir Searchbar
 import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
-import { getImageUrl } from "../../lib/imageUtils"; // Importar getImageUrl
+import { getImageUrl } from "../../lib/imageUtils";
 
 interface StatusConfig<TItem> {
   field: keyof TItem;
@@ -40,17 +40,31 @@ interface GenericListProps<TItem extends { id: string }> {
   contentContainerStyle?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<any>;
   itemActionsContainerStyle?: StyleProp<ViewStyle>; // Estilo opcional para el contenedor de acciones
-  renderItemActions?: (item: TItem) => React.ReactNode; // Añadir prop aquí
+  renderItemActions?: (item: TItem) => React.ReactNode;
+  enableSearch?: boolean; // Prop para habilitar búsqueda
+  searchPlaceholder?: string; // Placeholder para la barra de búsqueda
+  enableSort?: boolean; // Prop para habilitar ordenación alfabética
 }
 
-const getStyles = (theme: AppTheme) =>
-  StyleSheet.create({
+const getStyles = (theme: AppTheme) => {
+  const listItemHorizontalMargin = theme.spacing.m;
+  return StyleSheet.create({
     listContainer: {
       flex: 1,
     },
+    searchbarContainer: {
+      paddingHorizontal: listItemHorizontalMargin - theme.spacing.xs, // Alinear con items
+      paddingTop: theme.spacing.s,
+      paddingBottom: theme.spacing.xs,
+      backgroundColor: theme.colors.background, // O el color que prefieras
+    },
+    searchbar: {
+      // elevation: 1, // Opcional: añadir sombra ligera
+      backgroundColor: theme.colors.elevation.level2, // Un poco diferente del fondo
+    },
     listItem: {
-      backgroundColor: theme.colors.surface,
-      marginVertical: theme.spacing.xs,
+      backgroundColor: theme.colors.surface, // Mantener el fondo del item
+      marginVertical: theme.spacing.xs, // Usar la variable
       marginHorizontal: theme.spacing.m,
       borderRadius: theme.roundness * 1.5,
       elevation: 2,
@@ -95,6 +109,7 @@ const getStyles = (theme: AppTheme) =>
       paddingLeft: theme.spacing.s,
     },
   });
+};
 // Eliminar la definición duplicada que estaba aquí fuera
 
 const GenericList = <TItem extends { id: string }>({
@@ -111,10 +126,51 @@ const GenericList = <TItem extends { id: string }>({
   imageStyle,
   renderItemActions,
   itemActionsContainerStyle,
+  enableSearch = false, // Valor por defecto false
+  searchPlaceholder = "Buscar...", // Placeholder por defecto
+  enableSort = false, // Valor por defecto false
 }: GenericListProps<TItem>) => {
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
+  const [searchTerm, setSearchTerm] = useState(""); // Estado para la búsqueda
 
+  // --- Procesamiento de Items (Ordenación y Filtrado) ---
+  const processedItems = useMemo(() => {
+    let processed = [...items]; // Copiar para no mutar el original
+
+    // 1. Ordenar si está habilitado
+    if (enableSort && renderConfig.titleField) {
+      processed.sort((a, b) => {
+        const titleA = String(a[renderConfig.titleField] ?? "").toLowerCase();
+        const titleB = String(b[renderConfig.titleField] ?? "").toLowerCase();
+        return titleA.localeCompare(titleB);
+      });
+    }
+
+    // 2. Filtrar si la búsqueda está habilitada y hay término
+    if (enableSearch && searchTerm.trim()) {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      processed = processed.filter((item) => {
+        // Buscar en título
+        const title = String(item[renderConfig.titleField] ?? "").toLowerCase();
+        if (title.includes(lowerCaseSearchTerm)) {
+          return true;
+        }
+        // Buscar en descripción (si existe)
+        if (renderConfig.descriptionField) {
+          const description = String(
+            item[renderConfig.descriptionField] ?? ""
+          ).toLowerCase();
+          if (description.includes(lowerCaseSearchTerm)) {
+            return true;
+          }
+        }
+        return false;
+      });
+    }
+
+    return processed;
+  }, [items, enableSort, enableSearch, searchTerm, renderConfig]);
   const renderGenericItem = useCallback(
     ({ item }: { item: TItem }) => {
       const title = String(item[renderConfig.titleField] ?? "");
@@ -244,34 +300,77 @@ const GenericList = <TItem extends { id: string }>({
         </Surface>
       );
     },
-    [theme, renderConfig, onItemPress, styles, listItemStyle, imageStyle]
+    [
+      theme,
+      renderConfig,
+      onItemPress,
+      styles,
+      listItemStyle,
+      imageStyle,
+      renderItemActions,
+      itemActionsContainerStyle,
+    ] // Añadir dependencias que faltaban
   );
 
   const finalContentContainerStyle = useMemo(() => {
+    // Usar processedItems para determinar si la lista (después de filtrar) está vacía
     const baseStyle =
-      items.length === 0
+      processedItems.length === 0 && !searchTerm // Mostrar empty state solo si no hay items Y no se está buscando activamente
         ? styles.emptyListContainer
         : styles.defaultContentContainer;
     return StyleSheet.flatten([baseStyle, contentContainerStyle]);
   }, [items, styles, contentContainerStyle]);
 
+  // --- Renderizado ---
   return (
-    <FlatList
-      data={items}
-      renderItem={renderGenericItem}
-      keyExtractor={(item) => item.id}
-      style={[styles.listContainer, listStyle]}
-      contentContainerStyle={finalContentContainerStyle}
-      ListEmptyComponent={ListEmptyComponent}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={onRefresh}
-          colors={[theme.colors.primary]}
-          tintColor={theme.colors.primary}
-        />
-      }
-    />
+    <View style={styles.listContainer}>
+      {/* Barra de Búsqueda (si está habilitada) */}
+      {enableSearch && (
+        <View style={styles.searchbarContainer}>
+          <Searchbar
+            placeholder={searchPlaceholder}
+            onChangeText={setSearchTerm}
+            value={searchTerm}
+            style={styles.searchbar}
+            inputStyle={{ color: theme.colors.onSurface }} // Asegurar color de texto legible
+            placeholderTextColor={theme.colors.onSurfaceVariant} // Color del placeholder
+            iconColor={theme.colors.onSurfaceVariant} // Color del icono de lupa
+            clearIcon={
+              searchTerm
+                ? (props) => <List.Icon {...props} icon="close-circle" />
+                : undefined
+            } // Icono para limpiar
+            onClearIconPress={() => setSearchTerm("")} // Acción al limpiar
+            // elevation={1} // Opcional
+          />
+        </View>
+      )}
+
+      {/* Lista */}
+      <FlatList
+        data={processedItems} // Usar los items procesados
+        renderItem={renderGenericItem}
+        keyExtractor={(item) => item.id}
+        style={listStyle} // Aplicar estilo de lista general aquí, no al contenedor View
+        contentContainerStyle={finalContentContainerStyle}
+        // Mostrar ListEmptyComponent si processedItems está vacío (incluso si se está buscando)
+        ListEmptyComponent={
+          processedItems.length === 0 ? ListEmptyComponent : null
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => {
+              setSearchTerm(""); // Limpiar búsqueda al refrescar
+              onRefresh();
+            }}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
+        keyboardShouldPersistTaps="handled" // Para que el teclado no interfiera con taps en la lista
+      />
+    </View>
   );
 };
 

@@ -1,29 +1,36 @@
 // src/modules/menu/screens/CategoriesScreen.tsx
-import React, { useState, useMemo, useCallback } from "react"; // Añadir useCallback
+import React, { useState, useMemo, useCallback } from "react";
 import { View, Alert, StyleSheet } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Button,
   FAB,
   Portal,
   Text,
+  IconButton,
+  // Searchbar, // Se maneja dentro de GenericList
 } from "react-native-paper";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppTheme } from "../../../app/styles/theme";
 import { useSnackbarStore } from "../../../app/store/snackbarStore";
 import { getApiErrorMessage } from "../../../app/lib/errorMapping";
-import { getImageUrl } from "../../../app/lib/imageUtils"; // Importar getImageUrl
+import { getImageUrl } from "../../../app/lib/imageUtils";
 import GenericFilters, {
   FilterOption,
 } from "../../../app/components/crud/GenericFilters";
 import GenericList from "../../../app/components/crud/GenericList";
 import GenericDetailModal from "../../../app/components/crud/GenericDetailModal";
-import GenericFormModal, { // Importar como default
+import GenericFormModal, {
   FormFieldConfig,
   ImagePickerConfig,
 } from "../../../app/components/crud/GenericFormModal";
-import { ImageUploadService, EntityWithOptionalPhoto, FileObject } from "../../../app/lib/imageUploadService"; // Importar servicio y tipo
+import {
+  ImageUploadService,
+  FileObject,
+} from "../../../app/lib/imageUploadService";
 import categoryService from "../services/categoryService";
 import {
   Category,
@@ -34,21 +41,37 @@ import {
   ActiveFilter,
 } from "../types/category.types";
 
+// Asumiendo que RootStackParamList está definido en algún lugar global o lo definimos aquí/importamos
+type RootStackParamList = {
+  Categories: undefined;
+  SubCategoriesScreen: { categoryId: string; categoryName?: string };
+  // ... otras rutas del stack
+};
+type CategoriesScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Categories"
+>;
 
 const CategoriesScreen: React.FC = () => {
   // --- Hooks Principales ---
   const theme = useAppTheme();
   const queryClient = useQueryClient();
+  const navigation = useNavigation<CategoriesScreenNavigationProp>();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
   // --- Estados Locales ---
   const [modalVisible, setModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  );
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [localSelectedFile, setLocalSelectedFile] = useState<FileObject | null>(null);
+  const [localSelectedFile, setLocalSelectedFile] = useState<FileObject | null>(
+    null
+  );
+  // const [searchQuery, setSearchQuery] = useState(""); // Estado movido a GenericList
 
   // --- React Query: Fetching ---
   const {
@@ -84,64 +107,74 @@ const CategoriesScreen: React.FC = () => {
   };
 
   const createCategoryMutation = useMutation({
-    mutationFn: (data: CreateCategoryDto) => categoryService.createCategory(data),
+    mutationFn: (data: CreateCategoryDto) =>
+      categoryService.createCategory(data),
     ...commonMutationOptions,
     onSuccess: () => {
-        commonMutationOptions.onSuccess(); // Llamar al onSuccess común
-        showSnackbar({ message: "Categoría creada exitosamente", type: "success" });
-    }
+      commonMutationOptions.onSuccess(); // Llamar al onSuccess común
+      showSnackbar({
+        message: "Categoría creada exitosamente",
+        type: "success",
+      });
+    },
   });
 
   const updateCategoryMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateCategoryDto }) =>
       categoryService.updateCategory(id, data),
     ...commonMutationOptions,
-     onSuccess: () => {
-        commonMutationOptions.onSuccess(); // Llamar al onSuccess común
-        showSnackbar({ message: "Categoría actualizada exitosamente", type: "success" });
-    }
+    onSuccess: () => {
+      commonMutationOptions.onSuccess(); // Llamar al onSuccess común
+      showSnackbar({
+        message: "Categoría actualizada exitosamente",
+        type: "success",
+      });
+    },
   });
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (id: string) => categoryService.deleteCategory(id),
     ...commonMutationOptions,
-     onSuccess: () => {
-        commonMutationOptions.onSuccess(); // Llamar al onSuccess común
-        showSnackbar({ message: "Categoría eliminada", type: "success" });
-    }
+    onSuccess: () => {
+      commonMutationOptions.onSuccess(); // Llamar al onSuccess común
+      showSnackbar({ message: "Categoría eliminada", type: "success" });
+    },
   });
-// --- Callbacks y Handlers ---
-const openAddModal = useCallback(() => {
-  setEditingCategory(null);
-  setModalVisible(true);
-}, []);
+  // --- Callbacks y Handlers ---
+  const openAddModal = useCallback(() => {
+    setEditingCategory(null);
+    setModalVisible(true);
+  }, []);
 
-const openEditModal = useCallback((category: Category) => {
-  setEditingCategory(category);
-  setDetailModalVisible(false); // Cerrar detalle si estaba abierto
-  setModalVisible(true);
-}, []);
+  const openEditModal = useCallback((category: Category) => {
+    setEditingCategory(category);
+    setDetailModalVisible(false); // Cerrar detalle si estaba abierto
+    setModalVisible(true);
+  }, []);
 
-const openDetailModal = useCallback((category: Category & { photoUrl?: string | null }) => {
-  setSelectedCategory(category);
-  setDetailModalVisible(true);
-}, []);
+  const openDetailModal = useCallback(
+    (category: Category & { photoUrl?: string | null }) => {
+      setSelectedCategory(category);
+      setDetailModalVisible(true);
+    },
+    []
+  );
 
-const closeModals = useCallback(() => {
-  setModalVisible(false);
-  setDetailModalVisible(false);
-  setEditingCategory(null);
-  setSelectedCategory(null);
-  setIsUploadingImage(false); // Resetear estado de subida al cerrar
-  setLocalSelectedFile(null); // Limpiar archivo local al cerrar
-}, []);
+  const closeModals = useCallback(() => {
+    setModalVisible(false);
+    setDetailModalVisible(false);
+    setEditingCategory(null);
+    setSelectedCategory(null);
+    setIsUploadingImage(false); // Resetear estado de subida al cerrar
+    setLocalSelectedFile(null); // Limpiar archivo local al cerrar
+  }, []);
 
   // --- Lógica de Subida de Imagen y Submit del Formulario ---
 
   // Esta función se pasará al GenericFormModal para que la llame CustomImagePicker
   // y actualice el estado local con el FileObject seleccionado.
   const handleFileSelectedForUpload = useCallback((file: FileObject | null) => {
-      setLocalSelectedFile(file);
+    setLocalSelectedFile(file);
   }, []);
 
   // Esta es la función onSubmit que se pasa a GenericFormModal.
@@ -150,27 +183,29 @@ const closeModals = useCallback(() => {
     formData: CategoryFormData,
     photoIdResult: string | null | undefined // Recibido desde GenericFormModal
   ) => {
-
     // 1. Preparar DTO para crear/actualizar categoría
     const categoryDto = {
-        name: formData.name,
-        description: formData.description || null,
-        isActive: formData.isActive,
-        // Incluir photoId SOLO si es un string (nuevo ID) o null (eliminar)
-        // Si es undefined (sin cambios o nueva imagen ya subida), no se incluye.
-        ...(photoIdResult !== undefined && { photoId: photoIdResult }),
+      name: formData.name,
+      description: formData.description || null,
+      isActive: formData.isActive,
+      // Incluir photoId SOLO si es un string (nuevo ID) o null (eliminar)
+      // Si es undefined (sin cambios o nueva imagen ya subida), no se incluye.
+      ...(photoIdResult !== undefined && { photoId: photoIdResult }),
     };
 
     // 2. Llamar a la mutación correspondiente
     if (editingCategory) {
-      updateCategoryMutation.mutate({ id: editingCategory.id, data: categoryDto as UpdateCategoryDto });
+      updateCategoryMutation.mutate({
+        id: editingCategory.id,
+        data: categoryDto as UpdateCategoryDto,
+      });
     } else {
       createCategoryMutation.mutate(categoryDto as CreateCategoryDto);
     }
 
-     // Resetear estado del archivo local seleccionado después del submit
-     // closeModals() ya lo hace, pero por seguridad lo ponemos aquí también.
-     setLocalSelectedFile(null);
+    // Resetear estado del archivo local seleccionado después del submit
+    // closeModals() ya lo hace, pero por seguridad lo ponemos aquí también.
+    setLocalSelectedFile(null);
   };
 
   const handleDelete = (id: string) => {
@@ -190,26 +225,60 @@ const closeModals = useCallback(() => {
 
   // --- Valores Memoizados ---
   const categories = useMemo(() => {
-    return (categoriesResponse?.data ?? []).map((cat) => ({
+    const baseCategories = (categoriesResponse?.data ?? []).map((cat) => ({
       ...cat,
-      photoUrl: getImageUrl(cat.photo?.path), // Usar getImageUrl
+      photoUrl: getImageUrl(cat.photo?.path),
     }));
-  }, [categoriesResponse?.data]);
 
-  const styles = useMemo(() => StyleSheet.create({
-      container: { flex: 1, backgroundColor: theme.colors.background },
-      filtersContainer: {
+    // Ordenar alfabéticamente
+    const sortedCategories = baseCategories.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
+    // El filtrado por búsqueda ahora se hace dentro de GenericList
+    return sortedCategories;
+    // }, [categoriesResponse?.data, searchQuery]); // Quitar searchQuery de las dependencias
+  }, [categoriesResponse?.data]); // Dependencia solo de los datos base
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: theme.colors.background },
+        filtersContainer: {
           backgroundColor: theme.colors.surface,
+          paddingHorizontal: theme.spacing.m, // Añadir padding horizontal
+          paddingTop: theme.spacing.s, // Añadir padding top
           paddingBottom: theme.spacing.xs,
-      },
-      fab: {
-          position: "absolute", margin: 16, right: 0, bottom: 0,
+        },
+        // searchbar: { // Estilo movido a GenericList
+        //   // Estilo para el Searchbar
+        //   marginBottom: theme.spacing.s,
+        // },
+        fab: {
+          position: "absolute",
+          margin: 16,
+          right: 0,
+          bottom: 0,
           backgroundColor: theme.colors.primary,
-      },
-      loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-      emptyListContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: theme.spacing.l },
-      emptyListText: { marginBottom: theme.spacing.m, color: theme.colors.onSurfaceVariant },
-  }), [theme]);
+        },
+        loadingContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        emptyListContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: theme.spacing.l,
+        },
+        emptyListText: {
+          marginBottom: theme.spacing.m,
+          color: theme.colors.onSurfaceVariant,
+        },
+      }),
+    [theme]
+  );
   // Preparar initialValues para el formulario
   const formInitialValues = useMemo((): CategoryFormData => {
     if (editingCategory) {
@@ -261,8 +330,18 @@ const closeModals = useCallback(() => {
 
   const formFieldsConfig: FormFieldConfig<CategoryFormData>[] = [
     { name: "name", label: "Nombre", type: "text", required: true },
-    { name: "description", label: "Descripción", type: "textarea", numberOfLines: 3 },
-    { name: "isActive", label: "Estado", type: "switch", switchLabel:"Activa" },
+    {
+      name: "description",
+      label: "Descripción",
+      type: "textarea",
+      numberOfLines: 3,
+    },
+    {
+      name: "isActive",
+      label: "Estado",
+      type: "switch",
+      switchLabel: "Activa",
+    },
     // imageUri se maneja con imagePickerConfig
   ];
 
@@ -272,18 +351,18 @@ const closeModals = useCallback(() => {
     // La función que se llamará cuando CustomImagePicker seleccione una imagen.
     // Esta función AHORA se ejecuta DENTRO de GenericFormModal.
     onImageUpload: async (file: FileObject) => {
-        // Reutilizar ImageUploadService para la subida real
-        setIsUploadingImage(true); // Indicar inicio de subida VISUAL en CategoriesScreen
-        try {
-            const result = await ImageUploadService.uploadImage(file);
-            if (result.success && result.photoId) {
-                return { id: result.photoId }; // Devolver el ID según espera GenericFormModal
-            }
-            // Lanzar error si falla, GenericFormModal lo manejará
-            throw new Error(result.error || "Error desconocido al subir imagen");
-        } finally {
-            setIsUploadingImage(false); // Indicar fin de subida VISUAL
+      // Reutilizar ImageUploadService para la subida real
+      setIsUploadingImage(true); // Indicar inicio de subida VISUAL en CategoriesScreen
+      try {
+        const result = await ImageUploadService.uploadImage(file);
+        if (result.success && result.photoId) {
+          return { id: result.photoId }; // Devolver el ID según espera GenericFormModal
         }
+        // Lanzar error si falla, GenericFormModal lo manejará
+        throw new Error(result.error || "Error desconocido al subir imagen");
+      } finally {
+        setIsUploadingImage(false); // Indicar fin de subida VISUAL
+      }
     },
     // Usar la lógica por defecto de ImageUploadService para decidir el photoId final
     determineFinalPhotoId: ImageUploadService.determinePhotoId,
@@ -291,13 +370,22 @@ const closeModals = useCallback(() => {
   };
 
   // Variable para el estado general de carga (se define después de las mutaciones)
-  const isProcessing = isUploadingImage || createCategoryMutation.isPending || updateCategoryMutation.isPending || deleteCategoryMutation.isPending || (isLoadingCategories && !categoriesResponse);
+  const isProcessing =
+    isUploadingImage ||
+    createCategoryMutation.isPending ||
+    updateCategoryMutation.isPending ||
+    deleteCategoryMutation.isPending ||
+    (isLoadingCategories && !categoriesResponse);
 
   // --- Lógica de Renderizado Condicional (Early Returns) ---
   if (isLoadingCategories && !categoriesResponse) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator animating={true} size="large" color={theme.colors.primary} />
+        <ActivityIndicator
+          animating={true}
+          size="large"
+          color={theme.colors.primary}
+        />
       </View>
     );
   }
@@ -305,9 +393,17 @@ const closeModals = useCallback(() => {
   if (isErrorCategories && !categoriesResponse) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={{ color: theme.colors.error }}>Error al cargar categorías:</Text>
-        <Text style={{ color: theme.colors.error }}>{getApiErrorMessage(errorCategories)}</Text>
-        <Button onPress={() => refetchCategories()} mode="contained" style={{ marginTop: theme.spacing.m }}>
+        <Text style={{ color: theme.colors.error }}>
+          Error al cargar categorías:
+        </Text>
+        <Text style={{ color: theme.colors.error }}>
+          {getApiErrorMessage(errorCategories)}
+        </Text>
+        <Button
+          onPress={() => refetchCategories()}
+          mode="contained"
+          style={{ marginTop: theme.spacing.m }}
+        >
           Reintentar
         </Button>
       </View>
@@ -316,9 +412,10 @@ const closeModals = useCallback(() => {
 
   // --- Renderizado Principal ---
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      {/* Filtros */}
+    <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
+      {/* Filtros y Buscador */}
       <View style={styles.filtersContainer}>
+        {/* Searchbar eliminado de aquí, ahora está dentro de GenericList */}
         <GenericFilters
           filterValue={activeFilter}
           onFilterChange={setActiveFilter}
@@ -329,15 +426,38 @@ const closeModals = useCallback(() => {
       {/* Lista */}
       <GenericList
         items={categories}
+        enableSort={true} // Habilitar ordenación alfabética por defecto
+        enableSearch={true} // Habilitar la barra de búsqueda
+        searchPlaceholder="Buscar categorías..." // Placeholder personalizado (opcional)
+        // Añadir renderItemActions para el botón de subcategorías
+        renderItemActions={(item: Category) => (
+          <IconButton
+            icon="playlist-play" // Icono que sugiere una lista o sub-elementos
+            size={24}
+            onPress={() =>
+              navigation.navigate("SubCategoriesScreen", {
+                categoryId: item.id,
+                categoryName: item.name,
+              })
+            }
+            // Podrías añadir color o estilo si es necesario
+            // iconColor={theme.colors.primary}
+          />
+        )}
         renderConfig={listRenderConfig}
         onItemPress={openDetailModal}
         onRefresh={refetchCategories}
         isRefreshing={isFetchingCategories && !isLoadingCategories} // Mostrar refresh solo si no es la carga inicial
         ListEmptyComponent={
-            <View style={styles.emptyListContainer}>
-                <Text style={styles.emptyListText}>No hay categorías {activeFilter !== 'all' ? activeFilter + 's' : ''} para mostrar.</Text>
-                <Button mode="contained" onPress={openAddModal}>Añadir Categoría</Button>
-            </View>
+          <View style={styles.emptyListContainer}>
+            <Text style={styles.emptyListText}>
+              No hay categorías{" "}
+              {activeFilter !== "all" ? activeFilter + "s" : ""} para mostrar.
+            </Text>
+            <Button mode="contained" onPress={openAddModal}>
+              Añadir Categoría
+            </Button>
+          </View>
         }
         // isLoading={isLoadingCategories && !categoriesResponse} // Indicador opcional para carga inicial
       />
@@ -364,10 +484,16 @@ const closeModals = useCallback(() => {
           imagePickerConfig={imagePickerConfig} // Pasar la configuración
           initialValues={formInitialValues}
           editingItem={editingCategory}
-          isSubmitting={createCategoryMutation.isPending || updateCategoryMutation.isPending} // Solo mutaciones de guardar
-          modalTitle={(isEditing) => isEditing ? "Editar Categoría" : "Nueva Categoría"}
-          submitButtonLabel={(isEditing) => isEditing ? "Guardar Cambios" : "Crear Categoría"}
-           // Pasar la nueva prop para actualizar el estado del archivo local
+          isSubmitting={
+            createCategoryMutation.isPending || updateCategoryMutation.isPending
+          } // Solo mutaciones de guardar
+          modalTitle={(isEditing) =>
+            isEditing ? "Editar Categoría" : "Nueva Categoría"
+          }
+          submitButtonLabel={(isEditing) =>
+            isEditing ? "Guardar Cambios" : "Crear Categoría"
+          }
+          // Pasar la nueva prop para actualizar el estado del archivo local
           onFileSelected={handleFileSelectedForUpload}
         />
 
