@@ -19,7 +19,7 @@ interface FileObject {
 
 // Interfaz para la entidad existente que podría tener una foto
 // Adaptar según la estructura real de tus entidades (Category, Product, etc.)
-interface EntityWithOptionalPhoto {
+export interface EntityWithOptionalPhoto { // <--- Añadido export
     photo?: {
         id: string;
         path: string; // Necesitamos el path para comparar con la imageUri del formulario

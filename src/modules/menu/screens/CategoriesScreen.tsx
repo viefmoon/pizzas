@@ -8,12 +8,22 @@ import {
   Text,
 } from "react-native-paper";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Image } from "expo-image";
-
+// Quitar Image de expo-image si no se usa directamente
+// import { Image } from "expo-image";
 import { useAppTheme } from "../../../app/styles/theme";
 import { useSnackbarStore } from "../../../app/store/snackbarStore";
 import { getApiErrorMessage } from "../../../app/lib/errorMapping";
-import { getImageUrl } from "../../../app/lib/imageUtils"; // Importar getImageUrl
+import { getImageUrl } from "../../../app/lib/imageUtils";
+import GenericFilters, {
+  FilterOption,
+} from "../../../app/components/crud/GenericFilters";
+import GenericList from "../../../app/components/crud/GenericList";
+import GenericDetailModal from "../../../app/components/crud/GenericDetailModal";
+import GenericFormModal, {
+  FormFieldConfig,
+  ImagePickerConfig,
+} from "../../../app/components/crud/GenericFormModal"; // Cambiado a import default
+import { ImageUploadService } from "../../../app/lib/imageUploadService"; // Para config por defecto
 import categoryService from "../services/categoryService";
 import fileService from "../services/fileService";
 import {
@@ -21,13 +31,9 @@ import {
   CategoryFormData,
   CreateCategoryDto,
   UpdateCategoryDto,
+  categoryFormSchema, // Importar schema
+  ActiveFilter, // Mover import de ActiveFilter aquí
 } from "../types/category.types";
-
-import CategoryFilters from "../components/CategoryFilters";
-import CategoryList from "../components/CategoryList";
-import { ActiveFilter } from "../types/category.types";
-import CategoryFormModal from "../components/CategoryFormModal";
-import CategoryDetailModal from "../components/CategoryDetailModal";
 
 const CategoriesScreen: React.FC = () => {
   const theme = useAppTheme();
@@ -58,7 +64,14 @@ const CategoriesScreen: React.FC = () => {
       }),
   });
 
-  const categories = categoriesResponse?.data ?? [];
+  // Mapear categorías para incluir la URL completa en 'photoUrl' para GenericList/GenericDetailModal
+  const categories = useMemo(() => {
+    return (categoriesResponse?.data ?? []).map((cat) => ({
+      ...cat,
+      // Añadir un campo con la URL completa para los componentes genéricos
+      photoUrl: getImageUrl(cat.photo?.path),
+    }));
+  }, [categoriesResponse?.data]);
 
   const commonMutationOptions = {
     onSuccess: () => {
@@ -110,7 +123,11 @@ const CategoriesScreen: React.FC = () => {
     setModalVisible(true);
   };
 
-  const openDetailModal = (category: Category) => {
+  // Ajustar para recibir el item mapeado si es necesario, o mapear aquí
+  const openDetailModal = (
+    category: Category & { photoUrl?: string | null }
+  ) => {
+    // El item ya viene mapeado desde GenericList
     setSelectedCategory(category);
     setDetailModalVisible(true);
   };
@@ -133,8 +150,8 @@ const CategoriesScreen: React.FC = () => {
     file: FileObject // Aceptar el objeto FileObject completo
   ): Promise<{ id: string } | null> => {
     if (!file || !file.uri) {
-        console.error("handleImageUpload: No se proporcionó archivo válido.");
-        return null;
+      console.error("handleImageUpload: No se proporcionó archivo válido.");
+      return null;
     }
     try {
       // Usar uploadFile (o uploadImage si se mantuvo el alias) y pasar el objeto file
@@ -143,7 +160,10 @@ const CategoriesScreen: React.FC = () => {
       if (uploadResponse && uploadResponse.file && uploadResponse.file.id) {
         return { id: uploadResponse.file.id };
       } else {
-        console.error("handleImageUpload: Respuesta de subida inválida", uploadResponse);
+        console.error(
+          "handleImageUpload: Respuesta de subida inválida",
+          uploadResponse
+        );
         return null;
       }
     } catch (error) {
@@ -284,15 +304,74 @@ const CategoriesScreen: React.FC = () => {
     );
   }
 
+  // --- Configuraciones para Componentes Genéricos ---
+
+  const filterOptions: FilterOption<ActiveFilter>[] = [
+    { value: "all", label: "Todas" },
+    { value: "active", label: "Activas" },
+    { value: "inactive", label: "Inactivas" },
+  ];
+
+  const listRenderConfig = {
+    titleField: "name" as keyof Category,
+    descriptionField: "description" as keyof Category,
+    descriptionMaxLength: 50,
+    imageField: "photoUrl" as keyof (Category & { photoUrl?: string | null }), // Usar el campo mapeado
+    statusConfig: {
+      field: "isActive" as keyof Category,
+      activeValue: true,
+      activeLabel: "Activa",
+      inactiveLabel: "Inactiva",
+    },
+  };
+
+  const formFieldsConfig: FormFieldConfig<CategoryFormData>[] = [
+    { name: "name", label: "Nombre", type: "text", required: true },
+    {
+      name: "description",
+      label: "Descripción (Opcional)",
+      type: "textarea",
+      numberOfLines: 3,
+    },
+    {
+      name: "isActive",
+      label: "Activa",
+      type: "switch",
+      switchLabel: "Activa",
+      defaultValue: true,
+    },
+    // imageUri se maneja con imagePickerConfig
+  ];
+
+  const imagePickerConfig: ImagePickerConfig<CategoryFormData, Category> = {
+    imageUriField: "imageUri",
+    onImageUpload: handleImageUpload, // Usar la función existente
+    // determineFinalPhotoId: ImageUploadService.determinePhotoId, // Usar el por defecto
+    imagePickerSize: 150,
+  };
+
+  // Mapear selectedCategory para GenericDetailModal
+  const selectedCategoryMapped = useMemo(() => {
+    if (!selectedCategory) return null;
+    return {
+      ...selectedCategory,
+      photoUrl: getImageUrl(selectedCategory.photo?.path),
+    };
+  }, [selectedCategory]);
+
   return (
     <SafeAreaView style={styles.container}>
-      <CategoryFilters
-        activeFilter={activeFilter}
+      {/* Usar GenericFilters */}
+      <GenericFilters
+        filterValue={activeFilter}
         onFilterChange={setActiveFilter}
+        filterOptions={filterOptions}
       />
 
-      <CategoryList
-        categories={categories}
+      {/* Usar GenericList */}
+      <GenericList
+        items={categories} // Ya están mapeadas con photoUrl
+        renderConfig={listRenderConfig}
         onItemPress={openDetailModal}
         onRefresh={refetchCategories}
         isRefreshing={isFetchingCategories && !isLoadingCategories}
@@ -317,23 +396,39 @@ const CategoriesScreen: React.FC = () => {
       />
 
       <Portal>
-        <CategoryFormModal
+        {/* Usar GenericFormModal */}
+        <GenericFormModal
           visible={modalVisible}
           onDismiss={closeModals}
           onSubmit={handleFormSubmit}
+          formSchema={categoryFormSchema}
+          formFields={formFieldsConfig}
+          imagePickerConfig={imagePickerConfig}
           initialValues={formInitialValues}
+          editingItem={editingCategory}
           isSubmitting={
             createCategoryMutation.isPending || updateCategoryMutation.isPending
           }
-          editingCategory={editingCategory}
-          onImageUpload={handleImageUpload}
+          // Añadir tipo explícito a isEditing
+          modalTitle={(isEditing: boolean) =>
+            isEditing ? "Editar Categoría" : "Nueva Categoría"
+          }
+          submitButtonLabel={(isEditing: boolean) =>
+            isEditing ? "Guardar Cambios" : "Crear Categoría"
+          }
         />
 
-        <CategoryDetailModal
+        {/* Usar GenericDetailModal */}
+        <GenericDetailModal
           visible={detailModalVisible}
           onDismiss={closeModals}
-          category={selectedCategory}
-          onEdit={openEditModal}
+          item={selectedCategoryMapped} // Usar el item mapeado
+          titleField="name"
+          imageField="photoUrl" // Usar el campo mapeado
+          descriptionField="description"
+          statusConfig={listRenderConfig.statusConfig} // Reutilizar config
+          // fieldsToDisplay={[{ field: 'id', label: 'ID' }]} // Ejemplo campos adicionales
+          onEdit={openEditModal as (item: any) => void} // Cast si es necesario por el mapeo
           onDelete={handleDelete}
           isDeleting={deleteCategoryMutation.isPending}
         />
