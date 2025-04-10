@@ -1,5 +1,9 @@
-import { z } from 'zod';
-import { baseListQuerySchema } from '../../../app/types/query.types';
+import { z } from "zod";
+import { baseListQuerySchema } from "../../../app/types/query.types";
+import {
+  ModifierGroup,
+  modifierGroupApiSchema,
+} from "../../modifiers/types/modifierGroup.types";
 
 
 export const photoSchema = z.object({
@@ -40,6 +44,7 @@ export const productSchema = z.object({
   preparationScreenId: z.string().uuid().optional().nullable(),
   variants: z.array(productVariantSchema).optional(),
   variantsToDelete: z.array(z.string().uuid()).optional(),
+  modifierGroupIds: z.array(z.string().uuid()).optional(),
 });
 
 export type ProductFormInputs = z.infer<typeof productSchema>;
@@ -49,7 +54,10 @@ export const productResponseSchema = productSchema.extend({
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
   photo: photoSchema.optional().nullable(),
-  variants: z.array(productVariantSchema.extend({ id: z.string().uuid() })).optional(),
+  variants: z
+    .array(productVariantSchema.extend({ id: z.string().uuid() }))
+    .optional(),
+  modifierGroups: z.array(modifierGroupApiSchema).optional(),
 });
 export type Product = z.infer<typeof productResponseSchema>;
 

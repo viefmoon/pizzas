@@ -12,6 +12,7 @@ import {
   Divider,
   IconButton,
   Card,
+  Checkbox,
 } from "react-native-paper";
 import {
   useForm,
@@ -26,8 +27,9 @@ import {
   ProductFormInputs,
   productSchema,
   ProductVariantInput,
-  Product,
+  Product, // Re-añadir la importación
 } from "../types/products.types";
+import { ModifierGroup } from "../../modifiers/types/modifierGroup.types";
 import { getApiErrorMessage } from "@/app/lib/errorMapping";
 import { useSnackbarStore } from "@/app/store/snackbarStore";
 import VariantFormModal from "./VariantFormModal";
@@ -36,6 +38,7 @@ import CustomImagePicker, {
 } from "@/app/components/common/CustomImagePicker";
 import { ImageUploadService } from "@/app/lib/imageUploadService";
 import { getImageUrl } from "@/app/lib/imageUtils";
+import { useModifierGroupsQuery } from "../../modifiers/hooks/useModifierGroupsQueries";
 
 interface ProductFormModalProps {
   visible: boolean;
@@ -88,6 +91,7 @@ function ProductFormModal({
       variants: [],
       variantsToDelete: [],
       imageUri: null,
+      modifierGroupIds: [],
     }),
     [subCategoryId]
   );
@@ -138,6 +142,7 @@ function ProductFormModal({
           variants: initialData.variants || [],
           variantsToDelete: [],
           imageUri: getImageUrl(initialData.photo?.path) ?? null,
+          modifierGroupIds: [],
         });
         setLocalSelectedFile(null);
       } else {
@@ -149,6 +154,43 @@ function ProductFormModal({
 
   const hasVariants = watch("hasVariants");
   const currentImageUri = watch("imageUri");
+  const selectedModifierGroupIds = watch("modifierGroupIds") || [];
+
+  // --- Fetch Modifier Groups ---
+  const { data: allModifierGroups, isLoading: isLoadingGroups } =
+    useModifierGroupsQuery({}); // Ajustar filtros si es necesario
+
+  // Efecto para setear los IDs de los grupos asignados desde initialData
+  useEffect(() => {
+    if (visible) {
+      // if (isEditing && initialData) { // Log de depuración eliminado
+      //   console.log("Initial product data:", JSON.stringify(initialData, null, 2));
+      // }
+
+      // Setear IDs desde initialData si estamos editando
+      if (isEditing && initialData?.modifierGroups) {
+        if (Array.isArray(initialData.modifierGroups)) {
+          const assignedIds = initialData.modifierGroups.map(
+            (group: ModifierGroup) => group.id // Añadir tipo explícito
+          );
+          // console.log("Setting modifierGroupIds from initialData:", assignedIds); // Log de depuración eliminado
+          setValue("modifierGroupIds", assignedIds);
+        } else {
+          // console.warn("initialData.modifierGroups is not an array:", initialData.modifierGroups); // Log de depuración eliminado
+          setValue("modifierGroupIds", []);
+        }
+      } else if (!isEditing) {
+        // Resetear al abrir para crear
+        // console.log("Resetting modifierGroupIds for new product"); // Log de depuración eliminado
+        setValue("modifierGroupIds", []);
+      } else if (isEditing && !initialData?.modifierGroups) {
+        // Resetear si estamos editando pero initialData no tiene grupos
+        // console.log("Resetting modifierGroupIds as none found in initialData"); // Log de depuración eliminado
+        setValue("modifierGroupIds", []);
+      }
+    }
+  }, [visible, isEditing, initialData, setValue, reset, defaultValues]);
+  // --- Fin Fetch Modifier Groups ---
 
   const handleImageSelected = useCallback(
     (uri: string, file: FileObject) => {
@@ -203,7 +245,7 @@ function ProductFormModal({
       price: hasVariants ? null : formData.price,
       variants: hasVariants ? formData.variants : [],
     };
-    delete (finalData as any).imageUri;
+    // imageUri se maneja en ProductsScreen antes de la mutación
 
     // 3. Llamar al onSubmit del padre
     await onSubmit(finalData, finalPhotoId, localSelectedFile);
@@ -224,8 +266,7 @@ function ProductFormModal({
 
       const dataToUpdate = {
         ...variantData,
-        // Asegurarse de que el precio sea un número válido
-        price: isNaN(priceAsNumber) ? 0 : priceAsNumber,
+        price: isNaN(priceAsNumber) ? 0 : priceAsNumber, // Asegurar que el precio sea un número
         ...(originalVariantId && { id: originalVariantId }),
       };
 
@@ -361,14 +402,13 @@ function ProductFormModal({
                             const formattedText = text.replace(/,/g, ".");
 
                             if (/^(\d*\.?\d*)$/.test(formattedText)) {
-                              // Actualizar el estado local
-                              setInputValue(formattedText);
+                              setInputValue(formattedText); // Actualizar estado local
 
-                              // Actualizar el valor del formulario (number | null)
+                              // Actualizar valor del formulario (number | null)
                               if (formattedText === "") {
                                 field.onChange(null);
                               } else if (formattedText !== ".") {
-                                field.onChange(parseFloat(formattedText)); // Convertir a número
+                                field.onChange(parseFloat(formattedText));
                               }
                             }
                           }}
@@ -472,7 +512,6 @@ function ProductFormModal({
                 </HelperText>
               )}
 
-
               <View style={styles.switchContainer}>
                 <Text style={styles.label}>Activo</Text>
                 <Controller
@@ -487,6 +526,67 @@ function ProductFormModal({
                   )}
                 />
               </View>
+
+              <Divider style={styles.divider} />
+
+              {/* Grupos de Modificadores */}
+              <View style={styles.modifierGroupSection}>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  Grupos de Modificadores
+                </Text>
+                {isLoadingGroups ? (
+                  <ActivityIndicator
+                    animating={true}
+                    style={{ marginVertical: theme.spacing.m }}
+                  />
+                ) : !allModifierGroups ||
+                  !Array.isArray(allModifierGroups) ||
+                  allModifierGroups.length === 0 ? (
+                  <Text style={styles.noItemsText}>
+                    No hay grupos de modificadores disponibles.
+                  </Text>
+                ) : (
+                  <Controller
+                    control={control}
+                    name="modifierGroupIds"
+                    render={({ field: { onChange, value } }) => {
+                      const currentIds = Array.isArray(value) ? value : []; // Asegurar que sea array
+                      const availableGroups = allModifierGroups; // El hook devuelve ModifierGroup[]
+
+                      return (
+                        <>
+                          {availableGroups.map((group: ModifierGroup) => {
+                            // Renderizar Checkbox.Item
+                            const isSelected = currentIds.includes(group.id);
+                            return (
+                              <Checkbox.Item
+                                key={group.id}
+                                label={group.name}
+                                status={isSelected ? "checked" : "unchecked"}
+                                onPress={() => {
+                                  const newIds = isSelected
+                                    ? currentIds.filter((id) => id !== group.id)
+                                    : [...currentIds, group.id];
+                                  onChange(newIds);
+                                }}
+                                disabled={isSubmitting}
+                                style={styles.checkboxItem}
+                                labelStyle={styles.checkboxLabel}
+                              />
+                            );
+                          })}
+                        </>
+                      );
+                    }}
+                  />
+                )}
+                {errors.modifierGroupIds && (
+                  <HelperText type="error" visible={!!errors.modifierGroupIds}>
+                    {errors.modifierGroupIds.message as string}
+                  </HelperText>
+                )}
+              </View>
+              {/* Fin Grupos Modificadores */}
             </Card.Content>
           </Card>
         </ScrollView>
@@ -606,6 +706,26 @@ const createStyles = (theme: AppTheme) =>
     imagePickerContainer: {
       alignItems: "center",
       marginBottom: theme.spacing.l,
+    },
+    modifierGroupSection: {
+      marginTop: theme.spacing.m,
+    },
+    sectionTitle: {
+      marginBottom: theme.spacing.s,
+      marginLeft: theme.spacing.xs,
+    },
+    checkboxItem: {
+      paddingVertical: 0,
+      paddingLeft: 0,
+    },
+    checkboxLabel: {
+      fontSize: 15,
+    },
+    noItemsText: {
+      textAlign: "center",
+      color: theme.colors.onSurfaceVariant,
+      marginVertical: theme.spacing.s,
+      fontStyle: "italic",
     },
     modalActions: {
       flexDirection: "row",

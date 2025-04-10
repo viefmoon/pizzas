@@ -76,7 +76,7 @@ function ProductsScreen(): JSX.Element {
 
   const createMutation = useCreateProductMutation();
   const updateMutation = useUpdateProductMutation();
-  // const deleteMutation = useDeleteProductMutation();
+  const deleteMutation = useDeleteProductMutation();
 
   const products = useMemo(() => {
     return (productsResponse?.[0] ?? []).map((p) => ({
@@ -113,60 +113,67 @@ function ProductsScreen(): JSX.Element {
       _file?: FileObject | null
     ) => {
       const isEditing = !!editingProduct;
+
+      // Preparar datos para la mutación, incluyendo modifierGroupIds
+      // imageUri se maneja internamente en el modal y no se envía directamente
+      const { imageUri, ...dataToSend } = formData;
+
       const mutationData = {
-        ...formData,
+        ...dataToSend,
+        modifierGroupIds: dataToSend.modifierGroupIds ?? [], // Asegurar que sea un array
         // Ensure photoId is included correctly
         ...(photoId !== undefined && { photoId: photoId }),
       };
 
-      // Remove fields not needed for DTO
-      delete mutationData.imageUri;
+      // Logs de depuración eliminados
 
       try {
+        // Lógica simplificada: solo una llamada para crear/actualizar
+        const handleMutationSuccess = (createdOrUpdatedProduct: Product) => {
+          const message = isEditing
+            ? "Producto actualizado con éxito"
+            : "Producto creado con éxito";
+
+          showSnackbar({ message, type: "success" });
+
+          // Cerrar modal e invalidar queries relevantes
+          handleCloseFormModal();
+          queryClient.invalidateQueries({
+            queryKey: ["products", queryFilters],
+          }); // Invalidar lista
+          // Invalidar detalles del producto específico para refrescar datos (incluyendo grupos)
+          if (createdOrUpdatedProduct?.id) {
+            queryClient.invalidateQueries({
+              queryKey: ["product", createdOrUpdatedProduct.id],
+            });
+          }
+        };
+
+        const handleMutationError = (err: unknown) => {
+          showSnackbar({
+            message: `Error al ${isEditing ? "actualizar" : "crear"} producto: ${getApiErrorMessage(err)}`,
+            type: "error",
+          });
+        };
+
+        // Paso 1: Crear o Actualizar el producto
         if (isEditing && editingProduct) {
           await updateMutation.mutateAsync(
             { id: editingProduct.id, data: mutationData },
             {
-              onSuccess: () => {
-                showSnackbar({
-                  message: "Producto actualizado con éxito",
-                  type: "success",
-                });
-                handleCloseFormModal();
-                queryClient.invalidateQueries({
-                  queryKey: ["products", queryFilters],
-                });
-                queryClient.invalidateQueries({
-                  queryKey: ["product", editingProduct.id],
-                });
-              },
-              onError: (err) => {
-                showSnackbar({
-                  message: getApiErrorMessage(err),
-                  type: "error",
-                });
-              },
+              onSuccess: handleMutationSuccess,
+              onError: handleMutationError,
             }
           );
         } else {
           await createMutation.mutateAsync(mutationData, {
-            onSuccess: () => {
-              showSnackbar({
-                message: "Producto creado con éxito",
-                type: "success",
-              });
-              handleCloseFormModal();
-              queryClient.invalidateQueries({
-                queryKey: ["products", queryFilters],
-              });
-            },
-            onError: (err) => {
-              showSnackbar({ message: getApiErrorMessage(err), type: "error" });
-            },
+            onSuccess: handleMutationSuccess,
+            onError: handleMutationError,
           });
         }
       } catch (err) {
-        console.error("Error during product mutation:", err);
+        // Catch genérico por si algo más falla fuera de las mutaciones
+        console.error("Unexpected error during form submission:", err);
         showSnackbar({ message: "Ocurrió un error inesperado", type: "error" });
       }
     },
@@ -178,6 +185,7 @@ function ProductsScreen(): JSX.Element {
       handleCloseFormModal,
       queryClient,
       queryFilters,
+      // assignGroupsMutation,
     ]
   );
 
