@@ -381,7 +381,7 @@ const GenericFormModal = <
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   label={fieldConfig.label}
-                  value={value ?? ""}
+                  value={value === null || value === undefined ? '' : String(value)}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   mode="outlined"
