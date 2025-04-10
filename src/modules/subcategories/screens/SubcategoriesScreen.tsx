@@ -236,8 +236,9 @@ const SubcategoriesScreen: React.FC = () => {
         // Props para FAB integrado
         showFab={true}
         onFabPress={handleOpenCreateModal}
-        fabVisible={!detailModalVisible && !formModalVisible} // Controlar visibilidad
-      />
+        isModalOpen={detailModalVisible || formModalVisible}
+        showImagePlaceholder={true} 
+    />
 
       {/* Portal para Modales */}
       <Portal>

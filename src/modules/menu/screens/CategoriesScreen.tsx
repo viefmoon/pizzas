@@ -385,8 +385,9 @@ const CategoriesScreen: React.FC = () => {
         }
         showFab={true}
         onFabPress={openAddModal}
-        fabVisible={!modalVisible && !detailModalVisible}
-      />
+        isModalOpen={modalVisible || detailModalVisible}
+        showImagePlaceholder={true}
+    />
 
       <Portal>
         <GenericFormModal

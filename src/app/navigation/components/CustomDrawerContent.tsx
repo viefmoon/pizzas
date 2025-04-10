@@ -101,23 +101,81 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               style={{
                 paddingHorizontal: 16,
                 paddingVertical: 12 + theme.spacing.s,
-                flexDirection: 'row',
-                alignItems: 'center',
+                flexDirection: "row",
+                alignItems: "center",
                 borderRadius: theme.roundness * 2,
                 marginHorizontal: theme.spacing.s,
               }}
-              rippleColor={theme.colors.primary + '20'}
+              rippleColor={theme.colors.primary + "20"}
             >
               <>
                 <View style={{ marginRight: 32 }}>
                   <Icon
                     source="menu"
                     size={24}
-                    color={props.state.routes[props.state.index]?.name === "Menu" ? theme.colors.primary : theme.colors.onSurfaceVariant}
+                    color={
+                      props.state.routes[props.state.index]?.name === "Menu"
+                        ? theme.colors.primary
+                        : theme.colors.onSurfaceVariant
+                    }
                   />
                 </View>
-                <Text style={{ fontSize: 16, fontWeight: '500', color: props.state.routes[props.state.index]?.name === "Menu" ? theme.colors.primary : theme.colors.onSurfaceVariant }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "500",
+                    color:
+                      props.state.routes[props.state.index]?.name === "Menu"
+                        ? theme.colors.primary
+                        : theme.colors.onSurfaceVariant,
+                  }}
+                >
                   Menú
+                </Text>
+              </>
+            </TouchableRipple>
+
+            <TouchableRipple
+              onPress={() => {
+                props.navigation.navigate("Modifiers", {
+                  screen: "ModifierGroupsScreen",
+                });
+              }}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 12 + theme.spacing.s,
+                flexDirection: "row",
+                alignItems: "center",
+                borderRadius: theme.roundness * 2,
+                marginHorizontal: theme.spacing.s,
+              }}
+              rippleColor={theme.colors.primary + "20"}
+            >
+              <>
+                <View style={{ marginRight: 32 }}>
+                  <Icon
+                    source="tune"
+                    size={24}
+                    color={
+                      props.state.routes[props.state.index]?.name ===
+                      "Modifiers"
+                        ? theme.colors.primary
+                        : theme.colors.onSurfaceVariant
+                    }
+                  />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "500",
+                    color:
+                      props.state.routes[props.state.index]?.name ===
+                      "Modifiers"
+                        ? theme.colors.primary
+                        : theme.colors.onSurfaceVariant,
+                  }}
+                >
+                  Modificadores
                 </Text>
               </>
             </TouchableRipple>
@@ -133,12 +191,12 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
           style={{
             paddingHorizontal: 16,
             paddingVertical: 12 + theme.spacing.s,
-            flexDirection: 'row',
-            alignItems: 'center',
+            flexDirection: "row",
+            alignItems: "center",
             borderRadius: theme.roundness * 2,
             marginHorizontal: theme.spacing.s,
           }}
-          rippleColor={theme.colors.primary + '20'}
+          rippleColor={theme.colors.primary + "20"}
         >
           <>
             <View style={{ marginRight: 32 }}>
@@ -148,7 +206,13 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                 color={theme.colors.onSurfaceVariant}
               />
             </View>
-            <Text style={{ fontSize: 16, fontWeight: '500', color: theme.colors.onSurfaceVariant }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "500",
+                color: theme.colors.onSurfaceVariant,
+              }}
+            >
               Cerrar Sesión
             </Text>
           </>
