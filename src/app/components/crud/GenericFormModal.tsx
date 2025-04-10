@@ -10,13 +10,13 @@ import {
 import {
   Modal,
   Portal,
-  Surface,
   Text,
   TextInput,
   Button,
   Switch,
   HelperText,
   ActivityIndicator,
+  Divider,
 } from "react-native-paper";
 import {
   useForm,
@@ -28,15 +28,15 @@ import {
   DeepPartial,
   DefaultValues,
   Control,
-} from "react-hook-form"; // Importar Control
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodSchema } from "zod";
-import { useAppTheme, AppTheme } from "../../styles/theme"; // Ajustar ruta
-import CustomImagePicker from "../common/CustomImagePicker"; // Ajustar ruta
+import { useAppTheme, AppTheme } from "../../styles/theme";
+import CustomImagePicker from "../common/CustomImagePicker";
 import {
   ImageUploadService,
   EntityWithOptionalPhoto,
-} from "../../lib/imageUploadService"; // Ajustar ruta
+} from "../../lib/imageUploadService";
 
 // Interfaz para el objeto FileObject
 interface FileObject {
@@ -60,7 +60,7 @@ export interface FormFieldConfig<TFormData extends FieldValues> {
   label: string;
   type: FieldType;
   placeholder?: string;
-  required?: boolean; // Solo para UI, Zod maneja la validación
+  required?: boolean;
   defaultValue?: any;
   inputProps?: Partial<React.ComponentProps<typeof TextInput>>;
   switchProps?: Partial<React.ComponentProps<typeof Switch>>;
@@ -74,7 +74,7 @@ export interface ImagePickerConfig<TFormData extends FieldValues, TItem> {
   onImageUpload: (file: FileObject) => Promise<{ id: string } | null>;
   determineFinalPhotoId?: (
     currentImageUri: string | null,
-    editingItem: TItem | null | undefined // Aceptar TItem, null, o undefined
+    editingItem: TItem | null | undefined
   ) => string | null | undefined;
   imagePickerSize?: number;
 }
@@ -92,7 +92,7 @@ interface GenericFormModalProps<
   formSchema: ZodSchema<TFormData>;
   formFields: FormFieldConfig<TFormData>[];
   imagePickerConfig?: ImagePickerConfig<TFormData, TItem>;
-  initialValues?: DeepPartial<TFormData>; // Usar DeepPartial para valores iniciales
+  initialValues?: DeepPartial<TFormData>;
   editingItem: TItem | null;
   isSubmitting: boolean;
   modalTitle: (isEditing: boolean) => string;
@@ -102,7 +102,7 @@ interface GenericFormModalProps<
   formContainerStyle?: StyleProp<ViewStyle>;
 }
 
-// Función helper para obtener valor por defecto según tipo (definida fuera del componente)
+// Función helper para obtener valor por defecto según tipo
 const getDefaultValueForType = (type: FieldType): any => {
   switch (type) {
     case "text":
@@ -111,9 +111,9 @@ const getDefaultValueForType = (type: FieldType): any => {
     case "password":
       return "";
     case "number":
-      return null; // o 0 según la lógica de negocio
+      return null;
     case "switch":
-      return false; // o true según la lógica
+      return false;
     default:
       return undefined;
   }
@@ -123,23 +123,35 @@ const getDefaultValueForType = (type: FieldType): any => {
 const getStyles = (theme: AppTheme) =>
   StyleSheet.create({
     modalSurface: {
-      padding: theme.spacing.l,
+      padding: 0,
       margin: theme.spacing.l,
       borderRadius: theme.roundness * 2,
       elevation: 4,
-      backgroundColor: theme.colors.elevation.level2,
+      backgroundColor: theme.colors.background,
       maxHeight: "90%",
+      overflow: "hidden",
+    },
+    modalHeader: {
+      backgroundColor: theme.colors.primary,
+      paddingVertical: theme.spacing.m,
+      paddingHorizontal: theme.spacing.l,
+    },
+    formContainer: {
+      maxHeight: "100%",
     },
     scrollViewContent: {
-      paddingBottom: theme.spacing.l,
+      padding: theme.spacing.l,
+      paddingBottom: theme.spacing.xl,
     },
     modalTitle: {
-      marginBottom: theme.spacing.m,
+      color: theme.colors.onPrimary,
+      fontWeight: "700",
       textAlign: "center",
     },
     input: {
       marginBottom: theme.spacing.m,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: theme.roundness,
     },
     switchContainer: {
       flexDirection: "row",
@@ -147,22 +159,33 @@ const getStyles = (theme: AppTheme) =>
       justifyContent: "space-between",
       marginBottom: theme.spacing.m,
       paddingVertical: theme.spacing.s,
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: theme.roundness,
+      paddingHorizontal: theme.spacing.m,
+    },
+    switchLabel: {
+      color: theme.colors.onSurfaceVariant,
+      fontWeight: "500",
     },
     imagePickerContainer: {
       alignItems: "center",
-      marginBottom: theme.spacing.m,
+      marginBottom: theme.spacing.l,
     },
     modalActions: {
       flexDirection: "row",
       justifyContent: "flex-end",
-      marginTop: theme.spacing.l,
-      paddingTop: theme.spacing.m,
-      borderTopWidth: StyleSheet.hairlineWidth,
+      paddingVertical: theme.spacing.m,
+      paddingHorizontal: theme.spacing.l,
+      borderTopWidth: 1,
       borderTopColor: theme.colors.outlineVariant,
+      backgroundColor: theme.colors.surface,
     },
-    formButton: {},
+    formButton: {
+      borderRadius: theme.roundness,
+      paddingHorizontal: theme.spacing.s,
+    },
     cancelButton: {
-      marginRight: theme.spacing.s,
+      marginRight: theme.spacing.m,
     },
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
@@ -171,6 +194,10 @@ const getStyles = (theme: AppTheme) =>
       alignItems: "center",
       borderRadius: theme.roundness * 2,
       zIndex: 10,
+    },
+    helperText: {
+      marginTop: -theme.spacing.s,
+      marginBottom: theme.spacing.s,
     },
   });
 
@@ -214,14 +241,12 @@ const GenericFormModal = <
     formState: { errors },
   }: UseFormReturn<TFormData> = useForm<TFormData>({
     resolver: zodResolver(formSchema),
-    // Usar DefaultValues<TFormData> para el tipo de retorno de useMemo
     defaultValues: useMemo((): DefaultValues<TFormData> => {
       const defaults = formFields.reduce((acc, field) => {
         (acc as any)[field.name] =
           field.defaultValue ?? getDefaultValueForType(field.type);
         return acc;
       }, {} as DefaultValues<TFormData>);
-      // Sobrescribir con initialValues si existen (asegurarse que initialValues sea compatible)
       return { ...defaults, ...(initialValues as DefaultValues<TFormData>) };
     }, [formFields, initialValues]),
   });
@@ -230,7 +255,6 @@ const GenericFormModal = <
   const watchedImageUri = imagePickerConfig
     ? watch(imagePickerConfig.imageUriField)
     : undefined;
-  // Asegurar que currentImageUri sea string | null
   const currentImageUri =
     typeof watchedImageUri === "string" ? watchedImageUri : null;
 
@@ -242,7 +266,6 @@ const GenericFormModal = <
           field.defaultValue ?? getDefaultValueForType(field.type);
         return acc;
       }, {} as DefaultValues<TFormData>);
-      // Pasar el tipo correcto a reset
       reset({ ...defaults, ...(initialValues as DefaultValues<TFormData>) });
       setSelectedFileObject(null);
       setIsInternalImageUploading(false);
@@ -279,7 +302,7 @@ const GenericFormModal = <
 
     // --- Manejo de Imagen (si está configurado) ---
     if (imagePickerConfig) {
-      const currentUriForLogic = currentImageUri; // string | null
+      const currentUriForLogic = currentImageUri;
 
       // 1. Determinar acción sobre la foto
       const determineFn =
@@ -288,49 +311,42 @@ const GenericFormModal = <
 
       let photoAction: string | null | undefined;
       if (determineFn === ImageUploadService.determinePhotoId) {
-        // Llama a la función por defecto, pasando EntityWithOptionalPhoto | undefined
         photoAction = ImageUploadService.determinePhotoId(
           currentUriForLogic,
-          // Cast explícito para asegurar que pasamos el tipo correcto o undefined
           editingItem as EntityWithOptionalPhoto | undefined
         );
       } else {
-        // Llama a la función personalizada, pasando TItem | null | undefined
         photoAction = determineFn(currentUriForLogic, editingItem ?? undefined);
       }
 
       // 2. Subir si es una nueva imagen local
-      // Usar && y verificar que currentUriForLogic no sea null
-      // Primero, aseguramos que es una cadena
       if (typeof currentUriForLogic === "string") {
-        // Ahora usamos la cadena verificada
         if ((currentUriForLogic as string).startsWith("file://")) {
-        if (!selectedFileObject) {
-          Alert.alert(
-            "Error",
-            "Faltan datos del archivo de imagen seleccionado."
-          );
-          return;
-        }
-        setIsInternalImageUploading(true);
-        try {
-          // Acceso seguro a onImageUpload ya que estamos dentro de if(imagePickerConfig)
-          const uploadResult =
-            await imagePickerConfig.onImageUpload(selectedFileObject);
-          if (uploadResult?.id) {
-            finalPhotoId = uploadResult.id;
-          } else {
-            setIsInternalImageUploading(false);
+          if (!selectedFileObject) {
+            Alert.alert(
+              "Error",
+              "Faltan datos del archivo de imagen seleccionado."
+            );
             return;
           }
-        } catch (error) {
-          console.error("Error subiendo imagen:", error);
-          Alert.alert("Error", "No se pudo subir la imagen.");
-          setIsInternalImageUploading(false);
-          return;
-        } finally {
-          setIsInternalImageUploading(false);
-        }
+          setIsInternalImageUploading(true);
+          try {
+            const uploadResult =
+              await imagePickerConfig.onImageUpload(selectedFileObject);
+            if (uploadResult?.id) {
+              finalPhotoId = uploadResult.id;
+            } else {
+              setIsInternalImageUploading(false);
+              return;
+            }
+          } catch (error) {
+            console.error("Error subiendo imagen:", error);
+            Alert.alert("Error", "No se pudo subir la imagen.");
+            setIsInternalImageUploading(false);
+            return;
+          } finally {
+            setIsInternalImageUploading(false);
+          }
         }
       } else {
         finalPhotoId = photoAction;
@@ -356,7 +372,7 @@ const GenericFormModal = <
           <View key={String(fieldName)}>
             <Controller
               name={fieldName}
-              control={control as Control<FieldValues>} // Cast Control a tipo más genérico si es necesario
+              control={control as Control<FieldValues>}
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   label={fieldConfig.label}
@@ -385,9 +401,12 @@ const GenericFormModal = <
                 />
               )}
             />
-            {/* Usar && para renderizado condicional */}
             {errorMessage && (
-              <HelperText type="error" visible={!!errorMessage}>
+              <HelperText
+                type="error"
+                visible={!!errorMessage}
+                style={styles.helperText}
+              >
                 {errorMessage}
               </HelperText>
             )}
@@ -395,25 +414,30 @@ const GenericFormModal = <
         );
       case "switch":
         return (
-          <View key={String(fieldName)} style={styles.switchContainer}>
-            <Text variant="bodyLarge" style={{ color: theme.colors.onSurface }}>
-              {fieldConfig.switchLabel ?? fieldConfig.label}
-            </Text>
-            <Controller
-              name={fieldName}
-              control={control as Control<FieldValues>} // Cast Control
-              render={({ field: { onChange, value } }) => (
-                <Switch
-                  value={value}
-                  onValueChange={onChange}
-                  disabled={isActuallySubmitting}
-                  {...fieldConfig.switchProps}
-                />
-              )}
-            />
-            {/* Usar && para renderizado condicional */}
+          <View key={String(fieldName)}>
+            <View style={styles.switchContainer}>
+              <Text variant="bodyLarge" style={styles.switchLabel}>
+                {fieldConfig.switchLabel ?? fieldConfig.label}
+              </Text>
+              <Controller
+                name={fieldName}
+                control={control as Control<FieldValues>}
+                render={({ field: { onChange, value } }) => (
+                  <Switch
+                    value={value}
+                    onValueChange={onChange}
+                    disabled={isActuallySubmitting}
+                    {...fieldConfig.switchProps}
+                  />
+                )}
+              />
+            </View>
             {errorMessage && (
-              <HelperText type="error" visible={!!errorMessage}>
+              <HelperText
+                type="error"
+                visible={!!errorMessage}
+                style={styles.helperText}
+              >
                 {errorMessage}
               </HelperText>
             )}
@@ -433,36 +457,37 @@ const GenericFormModal = <
         contentContainerStyle={[styles.modalSurface, modalStyle]}
         dismissable={!isActuallySubmitting}
       >
-        <Surface style={[styles.modalSurface, { padding: 0 }]} elevation={0}>
-          <Text
-            variant="headlineSmall"
-            style={[styles.modalTitle, { marginTop: theme.spacing.l }]}
-          >
-            {modalTitle(isEditing)}
-          </Text>
+        <View style={styles.formContainer}>
+          {/* Cabecera del modal */}
+          <View style={styles.modalHeader}>
+            <Text variant="titleLarge" style={styles.modalTitle}>
+              {modalTitle(isEditing)}
+            </Text>
+          </View>
 
-          {/* <ScrollView contentContainerStyle={styles.scrollViewContent}> */}
-          <View
-            style={[{ paddingHorizontal: theme.spacing.l }, formContainerStyle]}
+          {/* Contenido del formulario */}
+          <ScrollView
+            contentContainerStyle={[
+              styles.scrollViewContent,
+              formContainerStyle,
+            ]}
           >
-            {/* Image Picker (si está configurado) */}
-            {/* Usar && y verificar imagePickerConfig */}
+            {/* Image Picker */}
             {imagePickerConfig && (
               <View style={styles.imagePickerContainer}>
                 <CustomImagePicker
-                  value={currentImageUri} // Ya es string | null
+                  value={currentImageUri}
                   onImageSelected={handleImageSelected}
                   onImageRemoved={handleImageRemoved}
                   isLoading={isInternalImageUploading}
                   disabled={isParentSubmitting}
-                  // Acceso seguro a imagePickerSize
-                  size={imagePickerConfig.imagePickerSize ?? 150}
+                  size={imagePickerConfig.imagePickerSize ?? 180}
                 />
-                {/* Usar && y verificar imagePickerConfig y el campo de error */}
                 {errors[imagePickerConfig.imageUriField] && (
                   <HelperText
                     type="error"
                     visible={!!errors[imagePickerConfig.imageUriField]}
+                    style={styles.helperText}
                   >
                     {(errors[imagePickerConfig.imageUriField] as any)?.message}
                   </HelperText>
@@ -471,11 +496,9 @@ const GenericFormModal = <
             )}
 
             {formFields.map(renderFormField)}
-          </View>
-          {/* </ScrollView> */}
+          </ScrollView>
 
           {/* Overlay de carga */}
-          {/* Usar && para renderizado condicional */}
           {isActuallySubmitting && (
             <View style={styles.loadingOverlay}>
               <ActivityIndicator
@@ -486,11 +509,12 @@ const GenericFormModal = <
             </View>
           )}
 
+          {/* Acciones */}
           <View style={styles.modalActions}>
             <Button
               mode="outlined"
               onPress={onDismiss}
-              style={styles.cancelButton}
+              style={[styles.formButton, styles.cancelButton]}
               disabled={isActuallySubmitting}
             >
               {cancelButtonLabel}
@@ -505,7 +529,7 @@ const GenericFormModal = <
               {submitButtonLabel(isEditing)}
             </Button>
           </View>
-        </Surface>
+        </View>
       </Modal>
     </Portal>
   );

@@ -5,8 +5,9 @@ import {
   RefreshControl,
   ViewStyle,
   StyleProp,
+  View,
 } from "react-native";
-import { List, Chip, Text } from "react-native-paper";
+import { List, Chip, Text, Surface } from "react-native-paper";
 import AutoImage from "../common/AutoImage"; // Ajustar ruta si es necesario
 import { useAppTheme, AppTheme } from "../../styles/theme"; // Ajustar ruta
 
@@ -49,17 +50,34 @@ const getStyles = (theme: AppTheme) =>
       flex: 1,
     },
     listItem: {
-      backgroundColor: theme.colors.surfaceVariant,
-      marginBottom: theme.spacing.s,
-      borderRadius: theme.roundness,
+      backgroundColor: theme.colors.surface,
+      marginVertical: theme.spacing.xs,
       marginHorizontal: theme.spacing.m,
+      borderRadius: theme.roundness * 1.5,
+      elevation: 2,
+      overflow: "hidden",
+    },
+    listItemContent: {
+      paddingVertical: theme.spacing.xs,
     },
     listItemImage: {
-      width: 50,
-      height: 50,
-      borderRadius: theme.roundness * 0.5,
+      width: 60,
+      height: 60,
+      borderRadius: theme.roundness,
       marginRight: theme.spacing.m,
-      backgroundColor: theme.colors.outlineVariant,
+      backgroundColor: theme.colors.surfaceDisabled,
+    },
+    statusChip: {
+      borderRadius: theme.roundness * 1.5,
+      height: 40, // Aumentado
+      alignSelf: "center", // Centrado verticalmente
+    },
+    title: {
+      fontWeight: "600",
+      color: theme.colors.onSurface,
+    },
+    description: {
+      color: theme.colors.onSurfaceVariant,
     },
     emptyListContainer: {
       flex: 1,
@@ -69,6 +87,7 @@ const getStyles = (theme: AppTheme) =>
     },
     defaultContentContainer: {
       paddingBottom: 80, // Padding por defecto para FAB u otros elementos flotantes
+      paddingTop: theme.spacing.xs,
     },
   });
 
@@ -95,22 +114,24 @@ const GenericList = <TItem extends { id: string }>({
       const title = String(item[renderConfig.titleField] ?? "");
 
       // --- Descripción ---
-      let description = "Sin descripción";
-      // Verificar que descriptionField exista antes de usarlo para indexar
+      let description = "";
       if (
         renderConfig.descriptionField &&
         item.hasOwnProperty(renderConfig.descriptionField)
       ) {
-        const rawDescription = String(item[renderConfig.descriptionField]);
-        const maxLength = renderConfig.descriptionMaxLength ?? 50;
-        description =
-          rawDescription.length > maxLength
-            ? `${rawDescription.substring(0, maxLength)}...`
-            : rawDescription;
+        const rawDescription = String(
+          item[renderConfig.descriptionField] || ""
+        );
+        if (rawDescription && rawDescription.toLowerCase() !== "null") {
+          const maxLength = renderConfig.descriptionMaxLength ?? 50;
+          description =
+            rawDescription.length > maxLength
+              ? `${rawDescription.substring(0, maxLength)}...`
+              : rawDescription;
+        }
       }
 
       // --- Imagen ---
-      // Verificar que imageField exista antes de usarlo para indexar
       const imageSource =
         renderConfig.imageField && item.hasOwnProperty(renderConfig.imageField)
           ? (item[renderConfig.imageField] as string | undefined)
@@ -118,7 +139,6 @@ const GenericList = <TItem extends { id: string }>({
 
       // --- Estado (Chip) ---
       let statusChip = null;
-      // Verificar que statusConfig y su field existan antes de usarlo para indexar
       if (
         renderConfig.statusConfig &&
         item.hasOwnProperty(renderConfig.statusConfig.field)
@@ -128,21 +148,24 @@ const GenericList = <TItem extends { id: string }>({
         const isActive = item[field] === activeValue;
         const chipLabel = isActive ? activeLabel : inactiveLabel;
         const chipIcon = isActive ? "check-circle" : "close-circle";
-        const chipSelectedColor = isActive
-          ? theme.colors.success
-          : theme.colors.error;
-        const chipBackgroundColor = isActive
-          ? theme.colors.successContainer
-          : theme.colors.errorContainer;
 
-        statusChip = (
-          props: any // Recibe props de List.Item
-        ) => (
+        statusChip = (props: any) => (
           <Chip
             {...props}
-            icon={chipIcon}
-            selectedColor={chipSelectedColor}
-            style={{ backgroundColor: chipBackgroundColor }}
+            // icon={isActive ? "check" : "close"} // Icono eliminado según solicitud
+            mode="flat" // Cambiado de outlined a flat
+            selectedColor={
+              isActive ? theme.colors.success : theme.colors.onSurfaceVariant
+            } // Usar color success para activo
+            style={[
+              styles.statusChip,
+              {
+                backgroundColor: isActive
+                  ? theme.colors.successContainer // Usar successContainer para fondo activo
+                  : theme.colors.surfaceVariant,
+              },
+            ]}
+            // elevated // Eliminado para un look más plano
           >
             {chipLabel}
           </Chip>
@@ -150,29 +173,42 @@ const GenericList = <TItem extends { id: string }>({
       }
 
       return (
-        <List.Item
-          title={title}
-          description={description}
-          left={
-            imageSource
-              ? (props) => (
-                  <AutoImage
-                    source={imageSource}
-                    placeholder={require("../../../../assets/icon.png")} // Placeholder genérico
-                    style={[styles.listItemImage, imageStyle]} // Combina estilos
-                    contentFit="cover"
-                    transition={300}
-                  />
-                )
-              : undefined
-          } // No renderizar si no hay imageField
-          right={statusChip ? (props) => statusChip(props) : undefined} // Renderizar chip si está configurado
-          onPress={() => onItemPress(item)}
-          style={[styles.listItem, listItemStyle]} // Combina estilos
-        />
+        <Surface style={[styles.listItem, listItemStyle]} elevation={1}>
+          <List.Item
+            title={(props) => (
+              <Text variant="titleMedium" style={styles.title}>
+                {title}
+              </Text>
+            )}
+            description={
+              description
+                ? (props) => (
+                    <Text variant="bodyMedium" style={styles.description}>
+                      {description}
+                    </Text>
+                  )
+                : undefined
+            }
+            left={
+              imageSource
+                ? (props) => (
+                    <AutoImage
+                      source={imageSource}
+                      placeholder={require("../../../../assets/icon.png")}
+                      style={[styles.listItemImage, imageStyle]}
+                      contentFit="cover"
+                      transition={300}
+                    />
+                  )
+                : undefined
+            }
+            right={statusChip ? (props) => statusChip(props) : undefined}
+            onPress={() => onItemPress(item)}
+            style={styles.listItemContent}
+          />
+        </Surface>
       );
     },
-    // Asegurar que todas las dependencias externas estén aquí
     [theme, renderConfig, onItemPress, styles, listItemStyle, imageStyle]
   );
 
@@ -182,9 +218,7 @@ const GenericList = <TItem extends { id: string }>({
       items.length === 0
         ? styles.emptyListContainer
         : styles.defaultContentContainer;
-    // Combina el estilo base con el estilo proporcionado por las props
     return StyleSheet.flatten([baseStyle, contentContainerStyle]);
-    // Asegurar que todas las dependencias externas estén aquí
   }, [items, styles, contentContainerStyle]);
 
   return (
@@ -192,7 +226,7 @@ const GenericList = <TItem extends { id: string }>({
       data={items}
       renderItem={renderGenericItem}
       keyExtractor={(item) => item.id}
-      style={[styles.listContainer, listStyle]} // Combina estilos
+      style={[styles.listContainer, listStyle]}
       contentContainerStyle={finalContentContainerStyle}
       ListEmptyComponent={ListEmptyComponent}
       refreshControl={
@@ -203,7 +237,6 @@ const GenericList = <TItem extends { id: string }>({
           tintColor={theme.colors.primary}
         />
       }
-      // Podríamos añadir un ActivityIndicator aquí si isLoading es true
     />
   );
 };

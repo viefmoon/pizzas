@@ -1,7 +1,6 @@
 // src/app/navigation/AppDrawerNavigator.tsx
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import WelcomeScreen from '../../modules/home/screens/WelcomeScreen';
 import { MenuStack } from '../../modules/menu/navigation/MenuStack'; // Importar el nuevo Stack
 import { CustomDrawerContent } from './components/CustomDrawerContent';
 import { useAppTheme } from '../styles/theme';
@@ -41,16 +40,6 @@ export function AppDrawerNavigator() {
       }}
     >
       {/* Define las pantallas del Drawer */}
-      <Drawer.Screen
-        name="Welcome"
-        component={WelcomeScreen}
-        options={{
-          title: 'Bienvenida', // Título que podría aparecer en el header si se muestra
-          // drawerIcon: ({ color, size }) => ( // Icono para el drawer item (manejado en CustomDrawerContent)
-          //   <MaterialCommunityIcons name="home-outline" color={color} size={size} />
-          // ),
-        }}
-      />
       {/* Pantalla para el Módulo de Menú (Categorías, etc.) */}
       <Drawer.Screen
         name="Menu"

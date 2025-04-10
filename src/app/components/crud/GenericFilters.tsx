@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, StyleSheet, StyleProp, ViewStyle } from "react-native";
-import { SegmentedButtons } from "react-native-paper";
-import { useAppTheme, AppTheme } from "../../styles/theme"; // Ajustar ruta
+import { SegmentedButtons, Surface, Text } from "react-native-paper";
+import { useAppTheme, AppTheme } from "../../styles/theme";
 
 // Tipo para las opciones de filtro
 export interface FilterOption<TValue> {
@@ -19,12 +19,31 @@ interface GenericFiltersProps<TValue> {
   containerStyle?: StyleProp<ViewStyle>; // Estilo opcional para el contenedor
 }
 
-const getStyles = (theme: AppTheme) => StyleSheet.create({
-  filterContainer: {
-    padding: theme.spacing.m,
-    backgroundColor: theme.colors.surface, // Fondo para los filtros
-  },
-});
+const getStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    outerContainer: {
+      marginHorizontal: theme.spacing.s,
+      marginVertical: theme.spacing.m,
+      backgroundColor: "transparent",
+    },
+    filterContainer: {
+      paddingHorizontal: theme.spacing.s,
+    },
+    segmentedButtons: {
+      backgroundColor: "transparent",
+      borderRadius: theme.roundness,
+      minHeight: 48,
+    },
+    button: {
+      borderWidth: 0,
+      paddingVertical: theme.spacing.s,
+    },
+    buttonLabel: {
+      fontSize: 15,
+      letterSpacing: 0.15,
+      paddingVertical: theme.spacing.xs,
+    },
+  });
 
 // Restringir TValue a tipos válidos para el 'value' de SegmentedButtons (string o number)
 const GenericFilters = <TValue extends string | number>({
@@ -34,34 +53,38 @@ const GenericFilters = <TValue extends string | number>({
   containerStyle,
 }: GenericFiltersProps<TValue>) => {
   const theme = useAppTheme();
-  const styles = getStyles(theme); // No necesita useMemo si no depende de props
+  const styles = useMemo(() => getStyles(theme), [theme]);
 
   // Mapear filterOptions al formato esperado por SegmentedButtons
-  // Asegurándose de que 'value' sea string como espera SegmentedButtons
-  const buttons = filterOptions.map(option => ({
+  const buttons = filterOptions.map((option) => ({
     value: String(option.value), // Convertir a string
     label: option.label,
     icon: option.icon,
     disabled: option.disabled,
-    // Añadir otras props si es necesario
+    style: styles.button,
+    labelStyle: styles.buttonLabel,
+    showSelectedCheck: false,
   }));
 
   return (
-    <View style={[styles.filterContainer, containerStyle]}>
-      <SegmentedButtons
-        value={String(filterValue)} // El valor también debe ser string
-        onValueChange={(value) => {
-            // Intentar encontrar la opción original para devolver el tipo correcto
-            const selectedOption = filterOptions.find(opt => String(opt.value) === value);
+    <Surface style={styles.outerContainer} elevation={0}>
+      <View style={[styles.filterContainer, containerStyle]}>
+        <SegmentedButtons
+          value={String(filterValue)}
+          onValueChange={(value) => {
+            const selectedOption = filterOptions.find(
+              (opt) => String(opt.value) === value
+            );
             if (selectedOption) {
-                onFilterChange(selectedOption.value); // Devolver el valor con el tipo original
+              onFilterChange(selectedOption.value);
             }
-            // Considerar qué hacer si no se encuentra (no debería pasar si value viene de los botones)
-        }}
-        buttons={buttons}
-        // density="medium" // Opcional: ajustar densidad
-      />
-    </View>
+          }}
+          buttons={buttons}
+          style={styles.segmentedButtons}
+          density="medium"
+        />
+      </View>
+    </Surface>
   );
 };
 

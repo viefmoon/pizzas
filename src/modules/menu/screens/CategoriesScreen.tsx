@@ -216,6 +216,12 @@ const CategoriesScreen: React.FC = () => {
           flex: 1,
           backgroundColor: theme.colors.background,
         },
+        filtersContainer: {
+          backgroundColor: theme.colors.surface,
+          paddingVertical: theme.spacing.xs,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.surfaceVariant,
+        },
         fab: {
           position: "absolute",
           margin: 16,
@@ -361,14 +367,14 @@ const CategoriesScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Usar GenericFilters */}
-      <GenericFilters
-        filterValue={activeFilter}
-        onFilterChange={setActiveFilter}
-        filterOptions={filterOptions}
-      />
+      <View style={styles.filtersContainer}>
+        <GenericFilters
+          filterValue={activeFilter}
+          onFilterChange={setActiveFilter}
+          filterOptions={filterOptions}
+        />
+      </View>
 
-      {/* Usar GenericList */}
       <GenericList
         items={categories} // Ya están mapeadas con photoUrl
         renderConfig={listRenderConfig}

@@ -11,7 +11,7 @@ export const lightColors = {
 
   // Colores secundarios
   secondary: "#775652",
-  secondaryContainer: "#FFDBDB",
+  secondaryContainer: "#B0E0E6", // Azul más claro
   onSecondary: "#FFFFFF",
   onSecondaryContainer: "#2C1512",
 
@@ -80,13 +80,13 @@ export const darkColors = {
   surface: "#1E1E1E", // Superficie ligeramente más clara que el fondo
   onSurface: "#FFFFFF",
   surfaceVariant: "#2C2C2C",
-  onSurfaceVariant: "#E0E0E0",
+  onSurfaceVariant: "#9E9E9E",
 
   // Colores de estado/feedback
-  error: "#FF5252",
-  errorContainer: "#8B0000",
+  error: "#FF6B6B",
+  errorContainer: "#4D2626",
   onError: "#FFFFFF",
-  onErrorContainer: "#FFEBEE",
+  onErrorContainer: "#FFE5E5",
 
   // Elementos de UI
   outline: "#4F4F4F",

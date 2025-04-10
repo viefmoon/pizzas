@@ -71,42 +71,58 @@ const getStyles = (theme: AppTheme) =>
     modalTitle: {
       marginBottom: theme.spacing.m,
       textAlign: "center",
+      fontWeight: "700",
     },
     detailContent: {
       alignItems: "center",
       marginBottom: theme.spacing.m,
     },
     detailImage: {
-      width: 150, // Tamaño más genérico
-      height: 150,
-      borderRadius: theme.roundness,
+      width: 180,
+      height: 180,
+      borderRadius: theme.roundness * 1.5,
       marginBottom: theme.spacing.m,
-      backgroundColor: theme.colors.outlineVariant,
+      backgroundColor: theme.colors.surfaceDisabled,
     },
     detailDescription: {
-      marginBottom: theme.spacing.m, // Más espacio si hay campos debajo
+      marginBottom: theme.spacing.m,
       textAlign: "center",
+      lineHeight: 22,
     },
     statusChipContainer: {
       marginBottom: theme.spacing.m,
+      marginTop: theme.spacing.s,
+    },
+    statusChip: {
+      paddingHorizontal: theme.spacing.s,
+      height: 36,
     },
     fieldsContainer: {
       width: "100%",
       marginBottom: theme.spacing.m,
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: theme.roundness,
+      padding: theme.spacing.m,
     },
     fieldRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       marginBottom: theme.spacing.s,
-      paddingHorizontal: theme.spacing.m, // Algo de padding
+      paddingVertical: theme.spacing.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outlineVariant,
+    },
+    lastFieldRow: {
+      marginBottom: 0,
+      borderBottomWidth: 0,
     },
     fieldLabel: {
-      fontWeight: "bold",
+      fontWeight: "600",
       marginRight: theme.spacing.s,
       color: theme.colors.onSurfaceVariant,
     },
     fieldValue: {
-      flexShrink: 1, // Permitir que el valor se ajuste
+      flexShrink: 1,
       textAlign: "right",
       color: theme.colors.onSurface,
     },
@@ -119,11 +135,18 @@ const getStyles = (theme: AppTheme) =>
     closeButton: {
       marginTop: theme.spacing.l,
       alignSelf: "center",
+      borderRadius: theme.roundness,
+      backgroundColor: theme.colors.surfaceVariant,
+      minWidth: 120,
     },
     loadingContainer: {
       justifyContent: "center",
       alignItems: "center",
-      minHeight: 200, // Altura mínima para el spinner
+      minHeight: 200,
+    },
+    actionButton: {
+      borderRadius: theme.roundness,
+      paddingHorizontal: theme.spacing.m,
     },
   });
 
@@ -135,7 +158,7 @@ const GenericDetailModal = <TItem extends { id: string }>({
   imageField,
   descriptionField,
   statusConfig,
-  fieldsToDisplay = [], // Default a array vacío
+  fieldsToDisplay = [],
   onEdit,
   onDelete,
   isDeleting = false,
@@ -155,14 +178,12 @@ const GenericDetailModal = <TItem extends { id: string }>({
   const styles = useMemo(() => getStyles(theme), [theme]);
 
   const handleEdit = () => {
-    // Asegurarse que onEdit existe y item no es null antes de llamar
     if (onEdit && item) {
       onEdit(item);
     }
   };
 
   const handleDelete = () => {
-    // Asegurarse que onDelete existe y item no es null antes de llamar
     if (onDelete && item) {
       onDelete(item.id);
     }
@@ -171,8 +192,6 @@ const GenericDetailModal = <TItem extends { id: string }>({
   // Contenido del modal
   const renderContent = () => {
     if (!item) {
-      // Podríamos mostrar un spinner si visible es true pero item es null (cargando)
-      // O simplemente no mostrar nada o un mensaje. Por ahora, spinner.
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator animating={true} size="large" />
@@ -181,33 +200,38 @@ const GenericDetailModal = <TItem extends { id: string }>({
     }
 
     const title = String(item[titleField] ?? "Detalle");
-    // Verificar que imageField existe y que item tiene esa propiedad
     const imageSource =
       imageField && item.hasOwnProperty(imageField)
         ? (item[imageField] as string | undefined)
         : undefined;
-    // Verificar que descriptionField existe y que item tiene esa propiedad
     const description =
       descriptionField && item.hasOwnProperty(descriptionField)
         ? String(item[descriptionField] ?? "")
         : null;
 
-    // Renderizar Chip de Estado
+    // Renderizar Chip de Estado mejorado
     let statusChip = null;
-    // Verificar que statusConfig existe y que item tiene la propiedad field definida en statusConfig
     if (statusConfig && item.hasOwnProperty(statusConfig.field)) {
       const { field, activeValue, activeLabel, inactiveLabel } = statusConfig;
       const isActive = item[field] === activeValue;
       statusChip = (
         <View style={styles.statusChipContainer}>
           <Chip
-            icon={isActive ? "check-circle" : "close-circle"}
-            selectedColor={isActive ? theme.colors.success : theme.colors.error}
-            style={{
-              backgroundColor: isActive
-                ? theme.colors.successContainer
-                : theme.colors.errorContainer,
-            }}
+            // icon={isActive ? "check-circle" : "close-circle"} // Eliminado para evitar duplicado
+            mode="flat" // Cambiado de outlined a flat
+            // icon={isActive ? "check" : "close"} // Icono eliminado según solicitud
+            selectedColor={
+              isActive ? theme.colors.success : theme.colors.onSurfaceVariant
+            } // Usar color success para activo
+            style={[
+              styles.statusChip,
+              {
+                backgroundColor: isActive
+                  ? theme.colors.successContainer // Usar successContainer para fondo activo
+                  : theme.colors.surfaceVariant,
+              },
+            ]}
+            // elevated // Eliminado para un look más plano
           >
             {isActive ? activeLabel : inactiveLabel}
           </Chip>
@@ -221,7 +245,6 @@ const GenericDetailModal = <TItem extends { id: string }>({
           {title}
         </Text>
         <View style={styles.detailContent}>
-          {/* Usar && para renderizado condicional */}
           {imageSource && (
             <AutoImage
               source={imageSource}
@@ -231,32 +254,33 @@ const GenericDetailModal = <TItem extends { id: string }>({
               transition={300}
             />
           )}
+          {statusChip}
           {description && (
             <Text style={[styles.detailDescription, descriptionStyle]}>
               {description}
             </Text>
           )}
-          {statusChip}
         </View>
 
-        {/* Campos Adicionales */}
-        {/* Usar && para renderizado condicional */}
         {fieldsToDisplay.length > 0 && (
           <View style={styles.fieldsContainer}>
-            {fieldsToDisplay.map(({ field, label, render }) => {
-              // Asegurarse que item no es null y tiene la propiedad
+            {fieldsToDisplay.map(({ field, label, render }, index) => {
               if (!item || !item.hasOwnProperty(field)) return null;
               const value = item[field];
+              const isLastItem = index === fieldsToDisplay.length - 1;
+
               return (
-                <View key={String(field)} style={styles.fieldRow}>
+                <View
+                  key={String(field)}
+                  style={[styles.fieldRow, isLastItem && styles.lastFieldRow]}
+                >
                   <Text style={[styles.fieldLabel, fieldLabelStyle]}>
-                    {label}:
+                    {label}
                   </Text>
                   {render ? (
-                    render(value, item) // Usar renderizador personalizado
+                    render(value, item)
                   ) : (
                     <Text style={[styles.fieldValue, fieldValueStyle]}>
-                      {/* Mostrar booleanos como Sí/No, formatear fechas, etc. */}
                       {typeof value === "boolean"
                         ? value
                           ? "Sí"
@@ -270,34 +294,33 @@ const GenericDetailModal = <TItem extends { id: string }>({
           </View>
         )}
 
-        {/* Contenido Adicional */}
         {children}
 
-        {/* Acciones */}
-        {/* Usar && para renderizado condicional */}
         {(onEdit || onDelete) && (
           <View style={[styles.detailActions, actionsContainerStyle]}>
-            {/* Usar && para renderizado condicional */}
             {onEdit && (
               <Button
                 icon="pencil"
-                mode="contained"
+                mode="contained-tonal"
                 onPress={handleEdit}
                 disabled={isDeleting}
+                style={[styles.actionButton]}
+                buttonColor={theme.colors.secondaryContainer}
+                textColor={theme.colors.onSecondaryContainer}
               >
                 {editButtonLabel}
               </Button>
             )}
-            {/* Usar && para renderizado condicional */}
             {onDelete && (
               <Button
                 icon="delete"
-                mode="contained"
-                buttonColor={theme.colors.error}
-                textColor={theme.colors.onError}
+                mode="contained-tonal"
+                buttonColor={theme.colors.errorContainer}
+                textColor={theme.colors.error}
                 onPress={handleDelete}
                 loading={isDeleting}
                 disabled={isDeleting}
+                style={styles.actionButton}
               >
                 {deleteButtonLabel}
               </Button>
@@ -306,10 +329,12 @@ const GenericDetailModal = <TItem extends { id: string }>({
         )}
 
         <Button
-          mode="outlined"
+          mode="contained-tonal"
           onPress={onDismiss}
           style={styles.closeButton}
           disabled={isDeleting}
+          buttonColor={theme.colors.surfaceVariant}
+          textColor={theme.colors.onSurfaceVariant}
         >
           {closeButtonLabel}
         </Button>
@@ -323,10 +348,9 @@ const GenericDetailModal = <TItem extends { id: string }>({
         visible={visible}
         onDismiss={onDismiss}
         contentContainerStyle={[styles.modalSurface, modalStyle]}
-        dismissable={!isDeleting} // No cerrar si se está eliminando
+        dismissable={!isDeleting}
       >
-        {/* Usar Surface aquí puede ser redundante si contentContainerStyle ya lo define */}
-        <Surface style={[styles.modalSurface, modalStyle]} elevation={0}>
+        <Surface style={[styles.modalSurface, { padding: 0 }]} elevation={0}>
           {renderContent()}
         </Surface>
       </Modal>
