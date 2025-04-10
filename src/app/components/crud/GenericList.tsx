@@ -10,6 +10,7 @@ import {
 import { List, Chip, Text, Surface } from "react-native-paper";
 import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
+import { getImageUrl } from "../../lib/imageUtils"; // Importar getImageUrl
 
 interface StatusConfig<TItem> {
   field: keyof TItem;
@@ -38,6 +39,8 @@ interface GenericListProps<TItem extends { id: string }> {
   listItemStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<any>;
+  itemActionsContainerStyle?: StyleProp<ViewStyle>; // Estilo opcional para el contenedor de acciones
+  renderItemActions?: (item: TItem) => React.ReactNode; // Añadir prop aquí
 }
 
 const getStyles = (theme: AppTheme) =>
@@ -85,7 +88,14 @@ const getStyles = (theme: AppTheme) =>
       paddingBottom: 80,
       paddingTop: theme.spacing.xs,
     },
+    itemActionsContainer: {
+      // Definición correcta DENTRO de StyleSheet.create
+      justifyContent: "center",
+      alignItems: "center",
+      paddingLeft: theme.spacing.s,
+    },
   });
+// Eliminar la definición duplicada que estaba aquí fuera
 
 const GenericList = <TItem extends { id: string }>({
   items,
@@ -99,6 +109,8 @@ const GenericList = <TItem extends { id: string }>({
   listItemStyle,
   contentContainerStyle,
   imageStyle,
+  renderItemActions,
+  itemActionsContainerStyle,
 }: GenericListProps<TItem>) => {
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -124,10 +136,27 @@ const GenericList = <TItem extends { id: string }>({
         }
       }
 
-      const imageSource =
-        renderConfig.imageField && item.hasOwnProperty(renderConfig.imageField)
-          ? (item[renderConfig.imageField] as string | undefined)
-          : undefined;
+      let imageSource: string | undefined = undefined;
+      if (
+        renderConfig.imageField &&
+        item.hasOwnProperty(renderConfig.imageField)
+      ) {
+        const imageFieldValue = item[renderConfig.imageField];
+        // Verificar si es un objeto con 'path' (como nuestro objeto Photo)
+        if (
+          typeof imageFieldValue === "object" &&
+          imageFieldValue !== null &&
+          "path" in imageFieldValue &&
+          typeof imageFieldValue.path === "string"
+        ) {
+          const url = getImageUrl(imageFieldValue.path);
+          imageSource = url ?? undefined; // Asignar undefined si getImageUrl devuelve null
+        }
+        // Fallback: si es directamente una URL string
+        else if (typeof imageFieldValue === "string") {
+          imageSource = imageFieldValue;
+        }
+      }
 
       let statusChip = null;
       if (
@@ -192,9 +221,25 @@ const GenericList = <TItem extends { id: string }>({
                 <View style={[styles.listItemImage, imageStyle]} />
               )
             }
-            right={statusChip ? (props) => statusChip(props) : undefined}
+            // Modificar 'right' para incluir tanto statusChip como renderItemActions
+            right={(props) => (
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                {statusChip && statusChip(props)}
+                {/* Usar las props desestructuradas */}
+                {renderItemActions && (
+                  <View
+                    style={[
+                      styles.itemActionsContainer,
+                      itemActionsContainerStyle,
+                    ]}
+                  >
+                    {renderItemActions(item)}
+                  </View>
+                )}
+              </View>
+            )}
             onPress={() => onItemPress(item)}
-            style={styles.listItemContent}
+            style={styles.listItemContent} // Este estilo es para el contenedor del List.Item, no solo el texto
           />
         </Surface>
       );
