@@ -6,7 +6,6 @@ import { useAuthStore } from "../store/authStore";
 const AUTH_TOKEN_KEY = "auth_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 
-// --- Lógica de Refresh Token ---
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value: unknown) => void;
@@ -38,7 +37,6 @@ async function refreshToken(): Promise<string | null> {
       `REFRESH: Attempting refresh. Found token? ${!!currentRefreshToken}`
     );
     // Por seguridad, no loguear el token completo. Podrías loguear los últimos 4 caracteres si necesitas identificarlo:
-    // console.log(`REFRESH: Using token ending in ...${currentRefreshToken?.slice(-4)}`);
     const refreshApiClient = create({ baseURL: API_URL });
     const response: ApiResponse<{
       accessToken: string;
@@ -62,26 +60,20 @@ async function refreshToken(): Promise<string | null> {
 
       return newAccessToken;
     } else {
-      // Log más detallado del error de refresco
       console.error("REFRESH: Refresh token request failed.");
       console.error("REFRESH: Status:", response.status);
       console.error("REFRESH: Problem:", response.problem);
       console.error("REFRESH: Headers:", response.headers);
       console.error("REFRESH: Data:", response.data);
-      // Mantener el logout en caso de fallo
       await useAuthStore.getState().logout();
-      // Devolver null para indicar fallo, la lógica del monitor ya maneja el logout
       return null;
-      // throw new Error(response.problem || "Failed to refresh token"); // No lanzar error aquí, dejar que el monitor maneje el flujo
     }
   } catch (error) {
-    // Log del error general en el proceso de refresco
     console.error("REFRESH: Unexpected error during refresh process:", error);
-    await useAuthStore.getState().logout(); // Asegurar logout en caso de error inesperado
+    await useAuthStore.getState().logout();
     return null;
   }
 }
-// --- Fin Lógica de Refresh Token ---
 
 const apiClient = create({
   baseURL: API_URL,

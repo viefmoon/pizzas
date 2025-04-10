@@ -1,26 +1,24 @@
-import { uploadFile, FileUploadResponse } from '../../modules/menu/services/fileService'; // Ajusta ruta
-import { ApiError } from './errors'; // Ajusta ruta
-import { getImageUrl } from './imageUtils'; // Importar getImageUrl
-import { API_URL } from '@env'; // Importar API_URL
+import { uploadFile, FileUploadResponse } from '../../modules/menu/services/fileService';
+import { ApiError } from './errors';
+import { getImageUrl } from './imageUtils';
+import { API_URL } from '@env';
 
 export interface ImageUploadResult {
     success: boolean;
-    photoId?: string; // ID de la foto subida
-    error?: string; // Mensaje de error si falla
+    photoId?: string;
+    error?: string;
 }
 
-// Interfaz para el objeto archivo esperado por el servicio
 export interface FileObject {
     uri: string;
     name: string;
     type: string;
 }
 
-// Interfaz para la entidad existente que podría tener una foto
 export interface EntityWithOptionalPhoto {
     photo?: {
         id: string;
-        path: string; // Necesitamos el path para comparar con la imageUri del formulario
+        path: string;
     } | null;
 }
 
@@ -39,7 +37,6 @@ export class ImageUploadService {
         }
 
         try {
-            // Usar la función importada directamente
             const uploadResult: FileUploadResponse = await uploadFile(imageFile);
 
             if (!uploadResult || !uploadResult.file || !uploadResult.file.id) {
@@ -81,35 +78,24 @@ export class ImageUploadService {
      ): undefined | null {
 
          const existingPhotoPath = existingEntity?.photo?.path;
-         // Construir la URL completa de la foto existente para comparar
          const existingPhotoFullUrl = existingPhotoPath ? getImageUrl(existingPhotoPath) : null;
 
-         // Caso 1: Hay una nueva imagen seleccionada (URI local 'file://')
-         // La subida se maneja por separado. Aquí indicamos que no hay acción *sobre el ID existente*.
-         // El DTO no incluirá `photoId`. El backend usará el ID de la nueva imagen subida.
          if (formImageUri && formImageUri.startsWith('file://')) {
              return undefined;
          }
-         // Caso 2: Se eliminó la imagen (formImageUri es null) Y había una foto antes.
          else if ((formImageUri === null || formImageUri === undefined) && existingEntity?.photo) {
-             return null; // Indica que se debe eliminar la foto existente (photoId: null en el DTO)
+             return null;
          }
-         // Caso 3: La imagen en el form es la misma URL remota que la existente.
          else if (formImageUri && !formImageUri.startsWith('file://') && formImageUri === existingPhotoFullUrl) {
-             return undefined; // No hay cambios, no incluir photoId en el DTO.
+             return undefined;
          }
-         // Caso 4: La imagen en el form es una URL remota, pero NO coincide con la existente (o no había).
-         // Este caso usualmente significa que no se quiere cambiar la foto existente por una URL externa,
-         // así que no enviamos nada referente a photoId.
          else if (formImageUri && !formImageUri.startsWith('file://') && formImageUri !== existingPhotoFullUrl) {
-             return undefined; // No hay cambios en el ID.
+             return undefined;
          }
-         // Caso 5: No hay imagen en el form (null/undefined) y tampoco había antes.
          else if ((formImageUri === null || formImageUri === undefined) && !existingEntity?.photo) {
-             return undefined; // No hay cambios
+             return undefined;
          }
 
-         // Caso por defecto: No hay cambios definidos.
          return undefined;
      }
 }

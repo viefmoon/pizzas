@@ -1,12 +1,11 @@
 import * as FileSystem from 'expo-file-system';
 import * as Crypto from 'expo-crypto';
-import { API_URL } from '@env'; // Importación adaptada
+import { API_URL } from '@env';
 
 const CACHE_DIR = `${FileSystem.cacheDirectory}image-cache/`;
-const MAX_CACHE_SIZE_MB = 100; // Límite de tamaño del caché en MB
-const MAX_CACHE_AGE_DAYS = 7; // Límite de antigüedad de los archivos en días
+const MAX_CACHE_SIZE_MB = 100;
+const MAX_CACHE_AGE_DAYS = 7;
 
-// Asegura que el directorio de caché exista
 async function ensureCacheDirExists() {
     const dirInfo = await FileSystem.getInfoAsync(CACHE_DIR);
     if (!dirInfo.exists) {
@@ -15,10 +14,9 @@ async function ensureCacheDirExists() {
     }
 }
 
-// Genera un nombre de archivo seguro basado en la URL
 async function getCacheFilename(remoteUrl: string): Promise<string> {
     let urlToHash = remoteUrl;
-    if (API_URL && remoteUrl.startsWith(API_URL)) { // Check if API_URL exists before using startsWith
+    if (API_URL && remoteUrl.startsWith(API_URL)) {
         try {
             const parsedUrl = new URL(remoteUrl);
             urlToHash = parsedUrl.pathname;
@@ -37,7 +35,6 @@ async function getCacheFilename(remoteUrl: string): Promise<string> {
 }
 
 
-// Limpia el caché eliminando archivos viejos o si se excede el tamaño
 interface ExistingFileInfo {
     uri: string;
     size: number;
@@ -83,7 +80,6 @@ async function cleanCache() {
         let filesDeletedCount = 0;
         let sizeDeleted = 0;
 
-        // Eliminar por antigüedad
         const filesToDeleteByAge = existingFileInfos.filter(file => now - file.modificationTime * 1000 > maxAgeMillis);
         for (const file of filesToDeleteByAge) {
             await FileSystem.deleteAsync(file.uri, { idempotent: true });
@@ -92,13 +88,11 @@ async function cleanCache() {
             filesDeletedCount++;
         }
 
-         // Filtrar los archivos restantes que no fueron eliminados por edad
         const remainingFiles = existingFileInfos
             .filter(file => !(now - file.modificationTime * 1000 > maxAgeMillis))
-            .sort((a, b) => a.modificationTime - b.modificationTime); // Ordenar de nuevo por si acaso
+            .sort((a, b) => a.modificationTime - b.modificationTime);
 
 
-        // Eliminar por tamaño si aún se excede
         let currentIndex = 0;
         while (totalSize > maxSizeInBytes && currentIndex < remainingFiles.length) {
             const fileToDelete = remainingFiles[currentIndex];
@@ -125,10 +119,9 @@ async function cleanCache() {
     }
 }
 
-// Obtiene la URI local de una imagen cacheada, o la descarga si no existe
 export async function getCachedImageUri(remoteUrl: string): Promise<string | null> {
     if (!remoteUrl || typeof remoteUrl !== 'string' || (!remoteUrl.startsWith('http://') && !remoteUrl.startsWith('https://'))) {
-        return remoteUrl; // Devolver la URL original si no es http/https
+        return remoteUrl;
     }
 
     await ensureCacheDirExists();
@@ -148,12 +141,11 @@ export async function getCachedImageUri(remoteUrl: string): Promise<string | nul
             if (partialFileInfo.exists) {
                 await FileSystem.deleteAsync(localUri, { idempotent: true });
             }
-            return null; // Devolver null en caso de error de descarga
+            return null;
         }
     }
 }
 
-// Inicializa el caché (limpia al inicio)
 export async function initImageCache() {
     console.log("🚀 [CACHÉ] Inicializando caché de imágenes...");
     await ensureCacheDirExists();
@@ -161,7 +153,6 @@ export async function initImageCache() {
     console.log("✅ [CACHÉ] Caché inicializado.");
 }
 
-// Elimina una imagen específica del caché (útil si la imagen remota cambia)
 export async function removeImageFromCache(remoteUrl: string) {
     if (!remoteUrl || typeof remoteUrl !== 'string') return;
     try {
@@ -172,13 +163,12 @@ export async function removeImageFromCache(remoteUrl: string) {
     }
 }
 
-// Limpia todo el caché (acción manual o de depuración)
 export async function clearImageCache() {
     console.log("⚠️ [CACHÉ] Limpiando todo el caché de imágenes...");
     try {
         await FileSystem.deleteAsync(CACHE_DIR, { idempotent: true });
         console.log("✅ [CACHÉ] Caché limpiado.");
-        await ensureCacheDirExists(); // Recrear el directorio
+        await ensureCacheDirExists();
     } catch (error) {
         console.error("❌ [CACHÉ] Error limpiando el caché:", error);
     }

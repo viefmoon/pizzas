@@ -27,7 +27,6 @@ export function AppNavigator() {
       border: paperTheme.colors.outline,
       notification: paperTheme.colors.error,
     },
-    // Mapear fuentes de Paper a la estructura esperada por Navigation
     fonts: {
       regular: {
         ...paperTheme.fonts.bodyMedium,
@@ -37,13 +36,13 @@ export function AppNavigator() {
         ...paperTheme.fonts.titleMedium,
         fontWeight: paperTheme.fonts.titleMedium.fontWeight ?? 'normal',
       },
-      bold: { // Aproximación
+      bold: {
         ...paperTheme.fonts.titleLarge,
         fontWeight: paperTheme.fonts.titleLarge.fontWeight ?? 'bold',
       },
-      heavy: { // Aproximación
+      heavy: {
         ...paperTheme.fonts.titleLarge,
-        fontWeight: paperTheme.fonts.titleLarge.fontWeight ?? '900', // 'heavy' suele ser 900
+        fontWeight: paperTheme.fonts.titleLarge.fontWeight ?? '900',
       },
     },
   };

@@ -2,6 +2,10 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "moduleResolution": "bundler" // Añadido para resolver tipos de navegación
+    "moduleResolution": "bundler", // Añadido para resolver tipos de navegación
+    "baseUrl": ".", // O "./" - Directorio base para los paths
+    "paths": {
+      "@/*": ["src/*"] // Define el alias @/ para apuntar a src/
+    }
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Platform, View, ActivityIndicator, StyleProp, ViewStyle, DimensionValue } from 'react-native';
 import { Image, ImageProps as ExpoImageProps, ImageStyle } from 'expo-image';
 import { getCachedImageUri } from '../../lib/imageCache';
@@ -6,14 +6,14 @@ import { getImageUrl } from '../../lib/imageUtils';
 import { useAppTheme } from '../../styles/theme';
 
 export interface AutoImageProps extends Omit<ExpoImageProps, 'source' | 'style'> {
-  source: string | null | undefined; // Espera la URL/path como string
+  source: string | null | undefined;
   maxWidth?: number;
   maxHeight?: number;
   useCache?: boolean;
   placeholder?: ExpoImageProps['placeholder'];
   contentFit?: ExpoImageProps['contentFit'];
   transition?: ExpoImageProps['transition'];
-  style?: StyleProp<ViewStyle>; // Acepta solo ViewStyle para el contenedor
+  style?: StyleProp<ViewStyle>;
 }
 
 // Hook simplificado, ya que expo-image maneja el aspect ratio con contentFit
@@ -31,10 +31,10 @@ export const AutoImage: React.FC<AutoImageProps> = ({
   maxHeight,
   useCache = true,
   style,
-  placeholder, // Usar placeholder de expo-image
-  contentFit = 'cover', // 'cover' es un buen default
-  transition = 300, // Duración de la transición de carga
-  ...restExpoImageProps // Resto de props de expo-image
+  placeholder,
+  contentFit = 'cover',
+  transition = 300,
+  ...restExpoImageProps
 }) => {
   const theme = useAppTheme();
   const [processedUri, setProcessedUri] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export const AutoImage: React.FC<AutoImageProps> = ({
     let isMounted = true;
     setIsLoadingUri(true);
     setIsFromCache(false);
-    setProcessedUri(null); // Reset URI mientras procesa
+    setProcessedUri(null);
 
     if (!originalSourceProp) {
          if (isMounted) {
@@ -57,7 +57,7 @@ export const AutoImage: React.FC<AutoImageProps> = ({
     }
 
     const processSource = async () => {
-        const fullRemoteUrl = getImageUrl(originalSourceProp); // Construir URL completa primero
+        const fullRemoteUrl = getImageUrl(originalSourceProp);
 
         if (!fullRemoteUrl) {
             console.warn(`[AutoImage] No se pudo construir la URL para: ${originalSourceProp}`);
@@ -74,18 +74,17 @@ export const AutoImage: React.FC<AutoImageProps> = ({
             return;
         }
 
-        // Intentar obtener del caché para plataformas nativas
         try {
             const cachedUri = await getCachedImageUri(fullRemoteUrl);
             if (isMounted) {
-                setProcessedUri(cachedUri ?? fullRemoteUrl); // Usa caché si existe, si no, la remota
+                setProcessedUri(cachedUri ?? fullRemoteUrl);
                 setIsFromCache(!!cachedUri);
                 setIsLoadingUri(false);
             }
         } catch (error) {
             console.error(`❌ [AutoImage] Error obteniendo imagen (${originalSourceProp}):`, error);
             if (isMounted) {
-                setProcessedUri(fullRemoteUrl); // Fallback a URL remota en error
+                setProcessedUri(fullRemoteUrl);
                 setIsLoadingUri(false);
             }
         }
@@ -94,34 +93,33 @@ export const AutoImage: React.FC<AutoImageProps> = ({
     processSource();
 
     return () => { isMounted = false; };
-  }, [originalSourceProp, useCache]); // Depende del source original y si se usa caché
+  }, [originalSourceProp, useCache]);
 
   const styles = StyleSheet.create({
     container: {
-      overflow: 'hidden', // Asegurar que la imagen no se salga del contenedor
+      overflow: 'hidden',
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: theme.colors.surfaceVariant, // Fondo mientras carga o si no hay imagen
+      backgroundColor: theme.colors.surfaceVariant,
     },
     loadingIndicator: {
-      position: 'absolute', // Centrado sobre el fondo
+      position: 'absolute',
     },
     image: {
-      width: '100%', // La imagen llenará el contenedor
+      width: '100%',
       height: '100%',
     },
   });
 
   const containerStyle: StyleProp<ViewStyle> = [
       styles.container,
-      { width: width as DimensionValue, height: height as DimensionValue }, // Cast a DimensionValue
-      style // Ahora 'style' es compatible porque es ViewStyle
+      { width: width as DimensionValue, height: height as DimensionValue },
+      style
   ];
 
   return (
     <View style={containerStyle}>
       {(isLoadingUri || !processedUri) && (
-        // Mostrar ActivityIndicator o el placeholder de expo-image si se prefiere
          <ActivityIndicator
              style={styles.loadingIndicator}
              animating={true}
@@ -129,7 +127,6 @@ export const AutoImage: React.FC<AutoImageProps> = ({
              size="small"
          />
       )}
-      {/* Renderizar expo-image solo cuando la URI está lista */}
       {!isLoadingUri && processedUri && (
         <Image
           source={{ uri: processedUri }}
@@ -137,7 +134,7 @@ export const AutoImage: React.FC<AutoImageProps> = ({
           placeholder={placeholder}
           contentFit={contentFit}
           transition={transition}
-          {...restExpoImageProps} // Pasar el resto de props a expo-image
+          {...restExpoImageProps}
         />
       )}
     </View>

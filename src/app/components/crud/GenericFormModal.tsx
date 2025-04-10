@@ -327,9 +327,8 @@ const GenericFormModal = <
         ? formData[imagePickerConfig.imageUriField]
         : null;
 
-      const isNewLocalImage =
-        typeof formImageUri === "string" && formImageUri.startsWith("file://");
-
+            const isNewLocalImage =
+              typeof formImageUri === "string" && formImageUri.startsWith("file://");
       if (isNewLocalImage && localSelectedFile) {
         setIsInternalImageUploading(true);
         try {

@@ -12,7 +12,7 @@ import {
   Divider,
   Switch,
   TouchableRipple,
-  Icon, // Importado Icon
+  Icon,
 } from "react-native-paper";
 import { useThemeStore } from "../../store/themeStore";
 import { THEME_MODE } from "../../types/theme.types";
@@ -73,7 +73,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
         <View style={styles.container}>
           <View style={styles.userInfoSection}>
             <Avatar.Icon
-              size={64} // Aumentado de 52 a 64
+              size={64}
               icon="account-circle"
               style={{ marginRight: theme.spacing.m }}
             />
@@ -83,7 +83,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                 style={{
                   color: theme.colors.onSurface,
                   fontWeight: "bold",
-                  fontSize: 18, // Añadido fontSize
+                  fontSize: 18,
                 }}
               >
                 Usuario Conectado
@@ -92,7 +92,6 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
           </View>
 
           <PaperDrawer.Section style={styles.drawerSection}>
-            {/* Reemplazado PaperDrawer.Item con implementación manual */}
             <TouchableRipple
               onPress={() => {
                 props.navigation.navigate("Menu", {
@@ -100,23 +99,21 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                 });
               }}
               style={{
-                // backgroundColor: props.state.routes[props.state.index]?.name === "Menu" ? theme.colors.secondaryContainer : 'transparent', // Eliminado estilo activo de fondo
-                paddingHorizontal: 16, // Padding horizontal estándar
-                paddingVertical: 12 + theme.spacing.s, // Padding vertical aumentado
+                paddingHorizontal: 16,
+                paddingVertical: 12 + theme.spacing.s,
                 flexDirection: 'row',
                 alignItems: 'center',
-                borderRadius: theme.roundness * 2, // Añadido borde redondeado
-                marginHorizontal: theme.spacing.s, // Añadido margen horizontal
+                borderRadius: theme.roundness * 2,
+                marginHorizontal: theme.spacing.s,
               }}
-              rippleColor={theme.colors.primary + '20'} // Color de ripple
+              rippleColor={theme.colors.primary + '20'}
             >
               <>
-                {/* Envuelto Icon en View para aplicar margen */}
                 <View style={{ marginRight: 32 }}>
                   <Icon
                     source="menu"
-                    size={24} // Tamaño de icono estándar
-                    color={props.state.routes[props.state.index]?.name === "Menu" ? theme.colors.primary : theme.colors.onSurfaceVariant} // Color de icono
+                    size={24}
+                    color={props.state.routes[props.state.index]?.name === "Menu" ? theme.colors.primary : theme.colors.onSurfaceVariant}
                   />
                 </View>
                 <Text style={{ fontSize: 16, fontWeight: '500', color: props.state.routes[props.state.index]?.name === "Menu" ? theme.colors.primary : theme.colors.onSurfaceVariant }}>
@@ -129,29 +126,26 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
       </DrawerContentScrollView>
 
       <PaperDrawer.Section style={styles.bottomDrawerSection}>
-        {/* Reemplazado PaperDrawer.Item con implementación manual */}
         <TouchableRipple
           onPress={() => {
             logout();
           }}
           style={{
-            // backgroundColor: 'transparent', // No necesita estado activo
-            paddingHorizontal: 16, // Padding horizontal estándar
-            paddingVertical: 12 + theme.spacing.s, // Padding vertical aumentado
+            paddingHorizontal: 16,
+            paddingVertical: 12 + theme.spacing.s,
             flexDirection: 'row',
             alignItems: 'center',
-            borderRadius: theme.roundness * 2, // Añadido borde redondeado
-            marginHorizontal: theme.spacing.s, // Añadido margen horizontal
+            borderRadius: theme.roundness * 2,
+            marginHorizontal: theme.spacing.s,
           }}
-          rippleColor={theme.colors.primary + '20'} // Color de ripple
+          rippleColor={theme.colors.primary + '20'}
         >
           <>
-            {/* Envuelto Icon en View para aplicar margen */}
             <View style={{ marginRight: 32 }}>
               <Icon
                 source="logout"
-                size={24} // Tamaño de icono estándar
-                color={theme.colors.onSurfaceVariant} // Color de icono
+                size={24}
+                color={theme.colors.onSurfaceVariant}
               />
             </View>
             <Text style={{ fontSize: 16, fontWeight: '500', color: theme.colors.onSurfaceVariant }}>
@@ -176,12 +170,12 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               style={{
                 color: theme.colors.onSurfaceVariant,
                 fontWeight: "500",
-                fontSize: 16, // Añadido fontSize
+                fontSize: 16,
               }}
             >
               Modo Oscuro
             </Text>
-            <View style={{ transform: [{ scale: 1.1 }] }}> // Envuelto en View para escalar
+            <View style={{ transform: [{ scale: 1.1 }] }}>
               <Switch
                 value={theme.dark}
                 onValueChange={() => {

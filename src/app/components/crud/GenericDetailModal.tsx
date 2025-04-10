@@ -17,7 +17,7 @@ import {
 } from "react-native-paper";
 import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
-import { getImageUrl } from "../../lib/imageUtils"; // Importar getImageUrl
+import { getImageUrl } from "../../lib/imageUtils";
 
 interface DisplayFieldConfig<TItem> {
   field: keyof TItem;
@@ -200,7 +200,6 @@ const GenericDetailModal = <TItem extends { id: string }>({
     let imageSource: string | undefined = undefined;
     if (imageField && item.hasOwnProperty(imageField)) {
       const imageFieldValue = item[imageField];
-      // Verificar si es un objeto con 'path' (como nuestro objeto Photo)
       if (
         typeof imageFieldValue === "object" &&
         imageFieldValue !== null &&
@@ -208,9 +207,8 @@ const GenericDetailModal = <TItem extends { id: string }>({
         typeof imageFieldValue.path === "string"
       ) {
         const url = getImageUrl(imageFieldValue.path);
-        imageSource = url ?? undefined; // Asignar undefined si getImageUrl devuelve null
+        imageSource = url ?? undefined;
       }
-      // Fallback: si es directamente una URL string
       else if (typeof imageFieldValue === "string") {
         imageSource = imageFieldValue;
       }

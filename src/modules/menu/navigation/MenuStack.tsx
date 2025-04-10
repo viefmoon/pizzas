@@ -4,10 +4,11 @@ import { DrawerToggleButton } from "@react-navigation/drawer";
 import { Platform } from "react-native";
 
 import CategoriesScreen from "../screens/CategoriesScreen";
-import SubcategoriesScreen from "../../subcategories/screens/SubcategoriesScreen"; // Importar la nueva pantalla
-
+import SubcategoriesScreen from "../../subcategories/screens/SubcategoriesScreen";
+import ProductsScreen from "../../products/screens/ProductsScreen";
+import ProductFormScreen from "../../products/screens/ProductFormScreen";
 import { useAppTheme } from "../../../app/styles/theme";
-import type { MenuStackParamList } from "./types.ts"; // Añadir extensión .ts
+import type { MenuStackParamList } from "./types.ts";
 
 const Stack = createNativeStackNavigator<MenuStackParamList>();
 
@@ -16,23 +17,20 @@ export const MenuStack: React.FC = () => {
 
   return (
     <Stack.Navigator
-      // Opciones globales sin headerLeft
       screenOptions={{
         headerStyle: {
           backgroundColor: theme.colors.elevation.level2,
         },
         headerTintColor: theme.colors.onSurface,
         headerTitleStyle: {
-          ...theme.fonts.titleLarge, // Reducir tamaño del título
+          ...theme.fonts.titleLarge,
           fontWeight: "bold",
         },
-        // Quitar headerLeft de aquí
       }}
     >
       <Stack.Screen
         name="CategoriesScreen"
         component={CategoriesScreen}
-        // Añadir headerLeft específico para CategoriesScreen
         options={{
           title: "Categorías",
           headerLeft: (props) =>
@@ -47,11 +45,26 @@ export const MenuStack: React.FC = () => {
       <Stack.Screen
         name="SubCategoriesScreen"
         component={SubcategoriesScreen}
-        // Configurar título dinámicamente usando los parámetros de ruta
         options={({ route }) => ({
           title: route.params?.categoryName
             ? `Subcategorías de ${route.params.categoryName}`
             : "Subcategorías",
+        })}
+      />
+      <Stack.Screen
+        name="Products"
+        component={ProductsScreen}
+        options={({ route }) => ({
+          title: route.params?.subCategoryName
+            ? `Productos de ${route.params.subCategoryName}`
+            : "Productos",
+        })}
+      />
+      <Stack.Screen
+        name="ProductForm"
+        component={ProductFormScreen}
+        options={({ route }) => ({
+          title: route.params?.productId ? "Editar Producto" : "Nuevo Producto",
         })}
       />
     </Stack.Navigator>

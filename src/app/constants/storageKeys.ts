@@ -10,4 +10,4 @@ export const STORAGE_KEYS = {
 
   /** Clave existente para el token de autenticación. */
   AUTH_TOKEN: 'auth_token',
-} as const; // 'as const' para asegurar que los valores sean literales y no strings genéricos
+} as const;

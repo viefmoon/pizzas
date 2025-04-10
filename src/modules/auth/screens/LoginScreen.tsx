@@ -36,7 +36,6 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const { showSnackbar } = useSnackbarStore();
   const { themePreference, setThemePreference } = useThemeStore();
-  // Obtener la nueva función setTokens del store
   const setTokens = useAuthStore((state) => state.setTokens);
 
   const [initialEmailOrUsername, setInitialEmailOrUsername] = useState<string | undefined>(undefined);

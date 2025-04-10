@@ -18,10 +18,7 @@ import { ApiError } from '../../../app/lib/errors';
 import { useSnackbarStore, type SnackbarState } from '../../../app/store/snackbarStore';
 import { getApiErrorMessage } from '../../../app/lib/errorMapping';
 
-// Clave base para las queries de subcategorías
 const SUBCATEGORIES_QUERY_KEY = 'subcategories';
-
-// --- Query Hooks ---
 
 /**
  * Hook para obtener una lista paginada y filtrada de subcategorías.
@@ -53,8 +50,6 @@ export const useFindOneSubcategory = (
   });
 };
 
-// --- Mutation Hooks ---
-
 type SubcategoryMutationContext = {
     previousSubcategories?: PaginatedResponse<SubCategory>;
     previousSubcategory?: SubCategory;
@@ -76,7 +71,6 @@ export const useCreateSubcategory = (): UseMutationResult<
   return useMutation<SubCategory, ApiError, CreateSubCategoryDto, SubcategoryMutationContext>({
     mutationFn: subcategoriesService.createSubcategory,
     onSuccess: (newSubcategory) => {
-      // Invalidar queries de lista para asegurar que se muestre la nueva subcategoría
       queryClient.invalidateQueries({ queryKey: [SUBCATEGORIES_QUERY_KEY, 'list'] });
 
 
@@ -104,7 +98,6 @@ export const useUpdateSubcategory = (): UseMutationResult<
   return useMutation<SubCategory, ApiError, { id: string; data: UpdateSubCategoryDto }, SubcategoryMutationContext>({
     mutationFn: ({ id, data }) => subcategoriesService.updateSubcategory(id, data),
     onSuccess: (updatedSubcategory, variables) => {
-      // Invalidar queries de lista y detalle para reflejar los cambios
       queryClient.invalidateQueries({ queryKey: [SUBCATEGORIES_QUERY_KEY, 'list'] });
       queryClient.invalidateQueries({ queryKey: [SUBCATEGORIES_QUERY_KEY, 'detail', variables.id] });
 
@@ -135,7 +128,6 @@ export const useRemoveSubcategory = (): UseMutationResult<
   return useMutation<void, ApiError, string, SubcategoryMutationContext>({
     mutationFn: subcategoriesService.removeSubcategory,
     onSuccess: (_, id) => {
-      // Invalidar queries de lista y detalle para reflejar la eliminación
       queryClient.invalidateQueries({ queryKey: [SUBCATEGORIES_QUERY_KEY, 'list'] });
       queryClient.invalidateQueries({ queryKey: [SUBCATEGORIES_QUERY_KEY, 'detail', id] });
 

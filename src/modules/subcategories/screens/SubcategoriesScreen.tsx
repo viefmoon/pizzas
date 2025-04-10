@@ -1,14 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, ActivityIndicator, FlatList, RefreshControl } from 'react-native';
-import { FAB, Portal, Text } from 'react-native-paper';
+import { View, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { Portal, Text, IconButton } from 'react-native-paper';
 import { useFocusEffect, useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppTheme, AppTheme } from '../../../app/styles/theme';
 import GenericList from '../../../app/components/crud/GenericList';
 import GenericDetailModal from '../../../app/components/crud/GenericDetailModal';
 import GenericFormModal, { FormFieldConfig, ImagePickerConfig } from '../../../app/components/crud/GenericFormModal';
-import GenericFilters, { FilterOption } from '../../../app/components/crud/GenericFilters';
-
+import { FilterOption } from '../../../app/components/crud/GenericList';
 
 import { ImageUploadService, FileObject } from '../../../app/lib/imageUploadService';
 import {
@@ -27,20 +26,18 @@ import {
 } from '../types/subcategories.types';
 import { PaginatedResponse } from '../../../app/types/api.types';
 import { getImageUrl } from '../../../app/lib/imageUtils';
+import { MenuStackParamList } from '@/modules/menu/navigation/types';
 
-// Reemplaza 'RootStackParamList' con el nombre real de tu tipo de lista de parámetros si es diferente
-type RootStackParamList = {
-  Subcategories: { categoryId: string; categoryName?: string };
-  // TODO: Añadir otras rutas si existen
-};
-type SubcategoriesScreenRouteProp = RouteProp<RootStackParamList, 'Subcategories'>;
+// Tipos de Navegación y Ruta usando MenuStackParamList
+type SubcategoriesScreenRouteProp = RouteProp<MenuStackParamList, 'SubCategoriesScreen'>;
+type SubcategoriesScreenNavigationProp = NativeStackNavigationProp<MenuStackParamList, 'SubCategoriesScreen'>;
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
 const SubcategoriesScreen: React.FC = () => {
   const theme = useAppTheme();
   const route = useRoute<SubcategoriesScreenRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<SubcategoriesScreenNavigationProp>();
   const { categoryId, categoryName } = route.params;
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -53,14 +50,11 @@ const SubcategoriesScreen: React.FC = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState<SubCategory | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // --- React Query Hooks ---
   const queryParams = useMemo((): FindAllSubCategoriesDto => {
     let isActive: boolean | undefined;
     if (statusFilter === 'active') isActive = true;
     if (statusFilter === 'inactive') isActive = false;
 
-    // Construir el objeto solo con las claves definidas
-    // Omitimos page y limit para usar los defaults del hook/servicio
     const params: FindAllSubCategoriesDto = { categoryId };
     if (isActive !== undefined) {
         params.isActive = isActive;
@@ -80,12 +74,10 @@ const SubcategoriesScreen: React.FC = () => {
   const updateMutation = useUpdateSubcategory();
   const removeMutation = useRemoveSubcategory();
 
-  // --- Handlers ---
   const handleRefresh = useCallback(() => {
     refetchList();
   }, [refetchList]);
 
-  // Refrescar al enfocar la pantalla
   useFocusEffect(
     useCallback(() => {
       refetchList();
@@ -125,20 +117,15 @@ const SubcategoriesScreen: React.FC = () => {
     formData: SubCategoryFormInputs | UpdateSubCategoryFormInputs,
     photoId: string | null | undefined
   ) => {
-    // Limpiar imageUri temporal antes de enviar (no es parte del DTO)
     const { imageUri, ...dataToSubmit } = formData;
-
-    // Asignar el photoId determinado por GenericFormModal si no es undefined
     const finalData = {
       ...dataToSubmit,
       ...(photoId !== undefined && { photoId }),
     };
 
-    // Limpiar photoId si es undefined en creación (no es parte del DTO de creación)
     if (finalData.photoId === undefined && !isEditing) {
         delete (finalData as any).photoId;
     }
-
 
     try {
       if (isEditing && selectedSubcategory) {
@@ -151,9 +138,7 @@ const SubcategoriesScreen: React.FC = () => {
       }
       handleCloseFormModal();
     } catch (error) {
-      // El hook de mutación ya muestra el snackbar
       console.error("Error submitting form:", error);
-      // No es necesario re-lanzar, el hook ya maneja el estado de error
     }
   };
 
@@ -162,12 +147,10 @@ const SubcategoriesScreen: React.FC = () => {
       await removeMutation.mutateAsync(id);
       handleCloseDetailModal();
     } catch (error) {
-      // El hook de mutación ya muestra el snackbar
       console.error("Error deleting subcategory:", error);
     }
   };
 
-  // --- Configuraciones para componentes genéricos ---
   const listRenderConfig = {
     titleField: 'name' as keyof SubCategory,
     descriptionField: 'description' as keyof SubCategory,
@@ -180,10 +163,7 @@ const SubcategoriesScreen: React.FC = () => {
     },
   };
 
-
-
-  const detailFieldsToDisplay: Array<{ field: keyof SubCategory; label: string }> = [
-  ];
+  const detailFieldsToDisplay: Array<{ field: keyof SubCategory; label: string }> = [];
 
   const filterOptions: FilterOption<StatusFilter>[] = [
     { value: 'all', label: 'Todas' },
@@ -191,31 +171,33 @@ const SubcategoriesScreen: React.FC = () => {
     { value: 'inactive', label: 'Inactivas' },
   ];
 
-  // --- Configuraciones para GenericFormModal ---
   const formFields: FormFieldConfig<SubCategoryFormInputs | UpdateSubCategoryFormInputs>[] = [
     { name: 'name', label: 'Nombre *', type: 'text', required: true },
     { name: 'description', label: 'Descripción', type: 'textarea', numberOfLines: 3 },
     { name: 'isActive', label: 'Activo', type: 'switch', switchLabel: 'Activo', defaultValue: true },
-
-
   ];
 
   const imagePickerConfig: ImagePickerConfig<SubCategoryFormInputs | UpdateSubCategoryFormInputs, SubCategory> = {
     imageUriField: 'imageUri',
     onImageUpload: async (file: FileObject) => {
-      // Llama al servicio de subida
       const result = await ImageUploadService.uploadImage(file);
       if (result.success && result.photoId) {
         return { id: result.photoId };
       }
       throw new Error(result.error || 'Error desconocido al subir imagen');
     },
-    // Usa la lógica de ImageUploadService para determinar el photoId final
     determineFinalPhotoId: ImageUploadService.determinePhotoId,
     imagePickerSize: 150,
   };
 
-  // --- Renderizado ---
+  const renderSubcategoryActions = (item: SubCategory) => (
+    <IconButton
+      icon="chevron-right"
+      size={24}
+      onPress={() => navigation.navigate('Products', { subCategoryId: item.id, subCategoryName: item.name })}
+    />
+  );
+
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
       {isLoadingList ? (
@@ -232,19 +214,16 @@ const SubcategoriesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* El Appbar.Header se puede añadir en las opciones del Stack Navigator si es necesario */}
-
-      <GenericFilters<StatusFilter>
+      {/* GenericList ahora maneja filtros y FAB */}
+      <GenericList<SubCategory>
+        items={subcategoriesData?.data ?? []}
+        enableSort={true}
+        enableSearch={true}
+        searchPlaceholder="Buscar subcategorías..."
+        // Props de filtro
         filterValue={statusFilter}
         onFilterChange={setStatusFilter}
         filterOptions={filterOptions}
-      />
-
-      <GenericList<SubCategory>
-        items={subcategoriesData?.data ?? []}
-        enableSort={true} // Habilitar ordenación alfabética
-        enableSearch={true} // Habilitar búsqueda
-        searchPlaceholder="Buscar subcategorías..." // Placeholder opcional
         renderConfig={listRenderConfig}
         onItemPress={handleItemPress}
         onRefresh={handleRefresh}
@@ -253,9 +232,14 @@ const SubcategoriesScreen: React.FC = () => {
         isLoading={isLoadingList}
         contentContainerStyle={styles.listContentContainer}
         listStyle={styles.listStyle}
+        renderItemActions={renderSubcategoryActions}
+        // Props para FAB integrado
+        showFab={true}
+        onFabPress={handleOpenCreateModal}
+        fabVisible={!detailModalVisible && !formModalVisible} // Controlar visibilidad
       />
 
-
+      {/* Portal para Modales */}
       <Portal>
         {/* Modal de Detalles */}
         <GenericDetailModal<SubCategory>
@@ -287,9 +271,7 @@ const SubcategoriesScreen: React.FC = () => {
                   description: selectedSubcategory.description ?? '',
                   isActive: selectedSubcategory.isActive,
                   categoryId: selectedSubcategory.categoryId,
-                  // Pasar la URL completa de la imagen inicial para la vista previa
                   imageUri: selectedSubcategory.photo?.path ? getImageUrl(selectedSubcategory.photo.path) : null,
-                  // photoId no se pasa, se maneja internamente por determineFinalPhotoId
                 }
               : {
                   name: '',
@@ -302,17 +284,6 @@ const SubcategoriesScreen: React.FC = () => {
           editingItem={selectedSubcategory}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
           modalTitle={(editing) => editing ? 'Editar Subcategoría' : 'Crear Subcategoría'}
-          // submitButtonLabel={(editing) => editing ? 'Actualizar' : 'Crear'}
-        />
-
-
-        {/* Botón Flotante para Crear */}
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={handleOpenCreateModal}
-          visible={!detailModalVisible && !formModalVisible}
-          color={theme.colors.onPrimary}
         />
       </Portal>
     </View>
@@ -325,13 +296,7 @@ const createStyles = (theme: AppTheme) =>
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-    fab: {
-      position: 'absolute',
-      margin: 16,
-      right: 0,
-      bottom: 0,
-      backgroundColor: theme.colors.primary,
-    },
+    // fab style eliminado
     emptyContainer: {
       flex: 1,
       justifyContent: 'center',

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { ActivityIndicator, Avatar, IconButton, Surface, Text, useTheme } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
-import { Image } from 'expo-image'; // Importar Image directamente
+import { Image } from 'expo-image';
 import { AppTheme } from '../../styles/theme';
 
 export interface FileObject {
@@ -12,9 +12,9 @@ export interface FileObject {
 }
 
 interface CustomImagePickerProps {
-  value?: string | null; // La URI de la imagen (local o remota)
-  onImageSelected?: (imageUri: string, file: FileObject) => void; // Devuelve URI y objeto FileObject
-  onImageRemoved?: () => void; // Se llama cuando se quita la imagen
+  value?: string | null;
+  onImageSelected?: (imageUri: string, file: FileObject) => void;
+  onImageRemoved?: () => void;
   style?: object;
   size?: number;
   placeholderIcon?: string;
@@ -49,7 +49,6 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
     })();
   }, []);
 
-  // Función para solicitar permisos si no se tienen
   const requestPermission = async (): Promise<boolean> => {
     if (hasPermission) return true;
     try {
@@ -69,7 +68,6 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
     }
   };
 
-  // Manejador para abrir la galería
   const handlePickImage = async () => {
     if (isLoading || disabled) return;
 
@@ -78,17 +76,16 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: 'images', // Usar el valor literal de cadena según el tipo MediaType
+        mediaTypes: 'images',
         allowsEditing: true,
-        aspect: [1, 1], // Forzar cuadrado
-        quality: 0.8, // Reducir calidad para optimizar tamaño
+        aspect: [1, 1],
+        quality: 0.8,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedAsset = result.assets[0];
         const selectedUri = selectedAsset.uri;
         const fileName = selectedUri.split('/').pop() || 'image.jpg';
-        // Determinar mimeType de forma más robusta si es posible
         const fileType = selectedAsset.mimeType || (fileName.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg');
 
         const fileObject: FileObject = {
@@ -96,32 +93,30 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
           name: fileName,
           type: fileType,
         };
-        setImageUri(selectedUri); // Actualizar UI localmente
-        onImageSelected?.(selectedUri, fileObject); // Notificar al padre
+        setImageUri(selectedUri);
+        onImageSelected?.(selectedUri, fileObject);
       }
     } catch (error) {
       Alert.alert("Error", `No se pudo abrir la galería: ${error instanceof Error ? error.message : 'Inténtalo de nuevo.'}`);
     }
   };
 
-  // Manejador para quitar la imagen seleccionada
   const handleRemoveImage = () => {
     if (isLoading || disabled) return;
     setImageUri(null);
-    onImageRemoved?.(); // Notificar al padre
+    onImageRemoved?.();
   };
 
-  // Estilos dinámicos basados en el tema
   const styles = StyleSheet.create({
     container: {
       width: size,
       height: size,
-      borderRadius: theme.roundness * 1.5, // Más redondeado
+      borderRadius: theme.roundness * 1.5,
       justifyContent: 'center',
       alignItems: 'center',
       overflow: 'hidden',
-      position: 'relative', // Para el botón de borrar
-      backgroundColor: theme.colors.surfaceVariant, // Color de fondo placeholder
+      position: 'relative',
+      backgroundColor: theme.colors.surfaceVariant,
     },
     touchable: {
         width: '100%',
@@ -154,7 +149,7 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
       position: 'absolute',
       top: 4,
       right: 4,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)', // Fondo semitransparente
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
     }
   });
 
@@ -166,16 +161,13 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
         disabled={isLoading || disabled}
       >
         {imageUri ? (
-          // Usar Image de expo-image directamente para depurar
           <Image
-            source={{ uri: imageUri }} // Asegurar que imageUri es string aquí
+            source={{ uri: imageUri }}
             style={styles.image}
             contentFit="cover"
-            // Placeholder básico mientras carga (opcional para expo-image)
-            placeholder={require('../../../../assets/icon.png')} // Re-añadir placeholder básico si se desea
+            placeholder={require('../../../../assets/icon.png')}
           />
         ) : (
-          // Mostrar placeholder si no hay imagen
           <View style={styles.placeholderContainer}>
             <Avatar.Icon
               size={size * 0.4}
@@ -187,22 +179,20 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
           </View>
         )}
 
-        {/* Overlay de carga */}
         {isLoading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         )}
 
-         {/* Botón para remover la imagen (solo si hay imagen y no está cargando/deshabilitado) */}
          {imageUri && !isLoading && !disabled && (
             <IconButton
-                icon="close-circle" // Icono de 'x' en círculo
+                icon="close-circle"
                 size={24}
-                iconColor={theme.colors.onErrorContainer} // Color rojo claro para el icono
+                iconColor={theme.colors.onErrorContainer}
                 style={styles.removeButton}
                 onPress={handleRemoveImage}
-                rippleColor="rgba(255, 255, 255, 0.32)" // Efecto ripple blanco
+                rippleColor="rgba(255, 255, 255, 0.32)"
                 />
          )}
       </TouchableOpacity>
