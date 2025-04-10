@@ -1,4 +1,3 @@
-// src/app/lib/errors.ts
 import { ERROR_CODES, ApiErrorCode } from '../constants/apiErrorCodes';
 import { BackendErrorResponse } from '../types/api.types';
 

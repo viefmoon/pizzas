@@ -1,9 +1,8 @@
-// Store para manejar el estado del tema de la aplicación
 import React from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useColorScheme, Appearance } from "react-native"; // Restaurar Appearance
+import { useColorScheme, Appearance } from "react-native";
 
 import {
   ThemePreference,
@@ -15,28 +14,24 @@ import { lightTheme, darkTheme } from "../styles/theme";
 interface ThemeState {
   themePreference: ThemePreference;
   activeTheme: typeof lightTheme | typeof darkTheme;
-  isSystemDarkMode: boolean | null; // Restaurado
+  isSystemDarkMode: boolean | null;
   setThemePreference: (preference: ThemePreference) => void;
-  setSystemDarkMode: (isDark: boolean | null) => void; // Restaurado
+  setSystemDarkMode: (isDark: boolean | null) => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
   persist(
-    // 1. Función de definición del estado (set, get)
     (set, get) => ({
-      // Estado inicial
-      themePreference: THEME_MODE.SYSTEM, // Default: seguir al sistema
-      activeTheme: lightTheme, // Default temporal seguro, se corregirá
-      isSystemDarkMode: null, // Se establecerá por useSystemThemeDetector
+      themePreference: THEME_MODE.SYSTEM,
+      activeTheme: lightTheme,
+      isSystemDarkMode: null,
 
-      // Acción para cambiar la preferencia del usuario
       setThemePreference: (preference: ThemePreference) => {
         const { isSystemDarkMode } = get();
-        set({ themePreference: preference }); // Guardar preferencia
+        set({ themePreference: preference });
 
-        // Calcular y guardar el tema activo correspondiente
         if (preference === THEME_MODE.SYSTEM) {
-          if (isSystemDarkMode !== null) { // Solo si sabemos el estado del sistema
+          if (isSystemDarkMode !== null) {
             set({ activeTheme: isSystemDarkMode ? darkTheme : lightTheme });
           }
         } else {
@@ -44,25 +39,20 @@ export const useThemeStore = create<ThemeState>()(
         }
       },
 
-      // Acción para actualizar el estado del tema del sistema (llamado por useSystemThemeDetector)
       setSystemDarkMode: (isDark: boolean | null) => {
         const { themePreference } = get();
-        set({ isSystemDarkMode: isDark }); // Actualizar estado interno
+        set({ isSystemDarkMode: isDark });
 
-        // Si la preferencia es 'system', ajustar el tema activo
         if (themePreference === THEME_MODE.SYSTEM && isDark !== null) {
           set({ activeTheme: isDark ? darkTheme : lightTheme });
         }
       },
-    }), // Fin de la función de definición del estado
+    }),
 
-    // 2. Objeto de configuración para persist
     {
-      name: THEME_PREFERENCE_STORAGE_KEY, // Nombre de la clave en AsyncStorage
-      storage: createJSONStorage(() => AsyncStorage), // Usar AsyncStorage
-      partialize: (state) => ({ themePreference: state.themePreference }), // Solo guardar 'themePreference'
-      // onRehydrateStorage: Se ejecuta DESPUÉS de que el estado se ha rehidratado.
-      // Aquí calculamos el estado inicial de activeTheme y isSystemDarkMode basado en la preferencia cargada.
+      name: THEME_PREFERENCE_STORAGE_KEY,
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({ themePreference: state.themePreference }),
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {
@@ -74,46 +64,34 @@ export const useThemeStore = create<ThemeState>()(
             return;
           }
 
-          const preference = state.themePreference; // Ya tiene el valor cargado o inicial
-          // console.log(`Theme store rehydrated. Initial preference: ${preference}`); // Log eliminado
+          const preference = state.themePreference;
 
           if (preference === THEME_MODE.LIGHT) {
             state.activeTheme = lightTheme;
-            state.isSystemDarkMode = Appearance.getColorScheme() === 'dark'; // Actualizar por si acaso
-            // console.log("Rehydrated with LIGHT theme."); // Log eliminado
+            state.isSystemDarkMode = Appearance.getColorScheme() === 'dark';
           } else if (preference === THEME_MODE.DARK) {
             state.activeTheme = darkTheme;
-            state.isSystemDarkMode = Appearance.getColorScheme() === 'dark'; // Actualizar por si acaso
-            // console.log("Rehydrated with DARK theme."); // Log eliminado
-          } else { // preference === THEME_MODE.SYSTEM
-            const systemScheme = Appearance.getColorScheme(); // Intentar obtener síncronamente
+            state.isSystemDarkMode = Appearance.getColorScheme() === 'dark';
+          } else {
+            const systemScheme = Appearance.getColorScheme();
             const isSystemDark = systemScheme === 'dark';
             state.isSystemDarkMode = isSystemDark;
             state.activeTheme = isSystemDark ? darkTheme : lightTheme;
-            // console.log(`Rehydrated with SYSTEM theme. Detected system scheme: ${systemScheme ?? 'unknown'}. Active theme set.`); // Log eliminado
-            // useSystemThemeDetector refinará esto si cambia dinámicamente
           }
         };
       },
-    } // Fin del objeto de configuración
-  ) // Fin de persist
-); // Fin de create
+    }
+  )
+);
 
-// Hook personalizado para detectar cambios en el tema del sistema y actualizarlo en el store
-// Restaurar useSystemThemeDetector
 export function useSystemThemeDetector() {
-  const systemColorScheme = useColorScheme(); // Hook de React Native
+  const systemColorScheme = useColorScheme();
   const setSystemDarkMode = useThemeStore((state) => state.setSystemDarkMode);
 
-  // Usamos useRef para saber si es la primera ejecución del efecto
   const isInitialMount = React.useRef(true);
 
-  // Simplificamos useEffect: Solo llama a setSystemDarkMode cuando el esquema del sistema cambia.
-  // La lógica en setSystemDarkMode (líneas 48-56) ya se encarga de actualizar activeTheme si es necesario.
   React.useEffect(() => {
     const isDarkMode = systemColorScheme === "dark";
-    // Log eliminado
-    // Comprobar si el valor realmente cambió antes de llamar a set para evitar posibles bucles sutiles
     if (useThemeStore.getState().isSystemDarkMode !== isDarkMode) {
         setSystemDarkMode(isDarkMode);
     }

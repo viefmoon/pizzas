@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import * as Crypto from 'expo-crypto';
-import { API_URL } from '@env'; // Importación adaptada
+import { API_URL } from '@env';
 
 const CACHE_DIR = `${FileSystem.cacheDirectory}image-cache/`;
 const MAX_CACHE_SIZE_MB = 100; // Límite de tamaño del caché en MB
@@ -149,15 +149,11 @@ export async function getCachedImageUri(remoteUrl: string): Promise<string | nul
     const fileInfo = await FileSystem.getInfoAsync(localUri);
 
     if (fileInfo.exists) {
-        // console.log(`📊 [CACHÉ] Imagen encontrada en caché: ${filename}`);
         // Opcional: Actualizar tiempo de modificación para LRU (Least Recently Used)
-        // await FileSystem.moveAsync({ from: localUri, to: localUri }); // Mover a sí mismo actualiza mtime
         return localUri;
     } else {
-        // console.log(`📊 [CACHÉ] Imagen no encontrada, descargando: ${remoteUrl}`);
         try {
             const { uri: downloadedUri } = await FileSystem.downloadAsync(remoteUrl, localUri);
-            // console.log(`📊 [CACHÉ] Imagen descargada y guardada en: ${downloadedUri}`);
             return downloadedUri;
         } catch (error) {
             console.error(`❌ [CACHÉ] Error descargando imagen ${remoteUrl}:`, error);

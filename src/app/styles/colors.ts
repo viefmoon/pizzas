@@ -1,27 +1,20 @@
-// Define las paletas de colores para temas claro y oscuro
-// Estos colores son referenciales, deben ajustarse según la identidad de marca específica
 
-// Paleta de colores para modo claro
 export const lightColors = {
-  // Colores principales
-  primary: "#FF5722", // Rojo-naranja, color principal para la app de pizza
+  primary: "#FF5722",
   primaryContainer: "#FFDACF",
   onPrimary: "#FFFFFF",
   onPrimaryContainer: "#401400",
 
-  // Colores secundarios
   secondary: "#775652",
-  secondaryContainer: "#B0E0E6", // Azul más claro
+  secondaryContainer: "#B0E0E6",
   onSecondary: "#FFFFFF",
   onSecondaryContainer: "#2C1512",
 
-  // Colores de acento/terciarios
   tertiary: "#705C2E",
   tertiaryContainer: "#FBDFA6",
   onTertiary: "#FFFFFF",
   onTertiaryContainer: "#261A00",
 
-  // Colores de fondo y superficie
   background: "#FFFBFF",
   onBackground: "#201A19",
   surface: "#FFFBFF",
@@ -29,80 +22,69 @@ export const lightColors = {
   surfaceVariant: "#F5DDD8",
   onSurfaceVariant: "#534341",
 
-  // Colores de estado/feedback
   error: "#BA1A1A",
   errorContainer: "#FFDAD6",
   onError: "#FFFFFF",
   onErrorContainer: "#410002",
 
-  // Elementos de UI
   outline: "#857371",
   outlineVariant: "#D8C2BE",
   inverseSurface: "#362F2E",
   inverseOnSurface: "#FBEEE9",
   inversePrimary: "#FFB59E",
 
-  // Otros colores semánticos
   success: "#4CAF50",
   successContainer: "#CCFFE3",
-  onSuccessContainer: "#00381A", // Verde oscuro para contraste en claro
+  onSuccessContainer: "#00381A",
   warning: "#FB8C00",
   warningContainer: "#FFEACF",
-  onWarningContainer: "#3D2100", // Naranja oscuro para contraste en claro
+  onWarningContainer: "#3D2100",
   info: "#2196F3",
   infoContainer: "#D4E8FF",
-  onInfoContainer: "#002E60", // Azul oscuro para contraste en claro
+  onInfoContainer: "#002E60",
 };
 
-// Paleta de colores para modo oscuro
 export const darkColors = {
-  // Colores principales
-  primary: "#FF7043", // Naranja más vibrante
+  primary: "#FF7043",
   primaryContainer: "#662E1A",
   onPrimary: "#FFFFFF",
   onPrimaryContainer: "#FFDACF",
 
-  // Colores secundarios
-  secondary: "#FFB74D", // Naranja más claro para contraste
+  secondary: "#FFB74D",
   secondaryContainer: "#774B1F",
   onSecondary: "#000000",
   onSecondaryContainer: "#FFE0B2",
 
-  // Colores de acento/terciarios
-  tertiary: "#FFD54F", // Amarillo cálido
+  tertiary: "#FFD54F",
   tertiaryContainer: "#775B25",
   onTertiary: "#000000",
   onTertiaryContainer: "#FFF3C4",
 
-  // Colores de fondo y superficie
-  background: "#121212", // Fondo más oscuro para mejor contraste
+  background: "#121212",
   onBackground: "#FFFFFF",
-  surface: "#1E1E1E", // Superficie ligeramente más clara que el fondo
+  surface: "#1E1E1E",
   onSurface: "#FFFFFF",
   surfaceVariant: "#2C2C2C",
   onSurfaceVariant: "#9E9E9E",
 
-  // Colores de estado/feedback
   error: "#FF6B6B",
   errorContainer: "#4D2626",
   onError: "#FFFFFF",
   onErrorContainer: "#FFE5E5",
 
-  // Elementos de UI
   outline: "#4F4F4F",
   outlineVariant: "#3D3D3D",
   inverseSurface: "#FFFFFF",
   inverseOnSurface: "#121212",
   inversePrimary: "#FF5722",
 
-  // Otros colores semánticos
   success: "#69F0AE",
   successContainer: "#1B5E20",
-  onSuccessContainer: "#B3FFD1", // Verde claro para contraste en oscuro
+  onSuccessContainer: "#B3FFD1",
   warning: "#FFC107",
   warningContainer: "#795548",
-  onWarningContainer: "#FFE0B2", // Naranja claro para contraste en oscuro
+  onWarningContainer: "#FFE0B2",
   info: "#64B5F6",
   infoContainer: "#1565C0",
-  onInfoContainer: "#B3E5FC", // Azul claro para contraste en oscuro
+  onInfoContainer: "#B3E5FC",
 };

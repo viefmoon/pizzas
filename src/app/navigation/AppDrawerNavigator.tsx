@@ -1,7 +1,6 @@
-// src/app/navigation/AppDrawerNavigator.tsx
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { MenuStack } from '../../modules/menu/navigation/MenuStack'; // Importar el nuevo Stack
+import { MenuStack } from '../../modules/menu/navigation/MenuStack';
 import { CustomDrawerContent } from './components/CustomDrawerContent';
 import { useAppTheme } from '../styles/theme';
 import type { AppDrawerParamList } from './types';
@@ -13,46 +12,34 @@ export function AppDrawerNavigator() {
 
   return (
     <Drawer.Navigator
-      // Pasa el componente de contenido personalizado
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
-        // Estilos generales para las pantallas dentro del Drawer
         headerStyle: {
-          backgroundColor: theme.colors.primary, // Color de fondo del header
+          backgroundColor: theme.colors.primary,
         },
-        headerTintColor: theme.colors.onPrimary, // Color del título y botones del header
+        headerTintColor: theme.colors.onPrimary,
         headerTitleStyle: {
-          ...theme.fonts.titleLarge, // Estilo del título del header
+          ...theme.fonts.titleLarge,
         },
-        // Estilos para el Drawer en sí (puedes ajustar más en CustomDrawerContent)
         drawerStyle: {
-          backgroundColor: theme.colors.surface, // Fondo del drawer
-          width: 260, // Ancho del drawer
+          backgroundColor: theme.colors.surface,
+          width: 260,
         },
-        drawerActiveTintColor: theme.colors.primary, // Color del texto/icono del item activo
-        drawerInactiveTintColor: theme.colors.onSurfaceVariant, // Color del texto/icono inactivo
+        drawerActiveTintColor: theme.colors.primary,
+        drawerInactiveTintColor: theme.colors.onSurfaceVariant,
         drawerLabelStyle: {
-          // marginLeft: -20, // Ajusta si usas iconos
-          ...theme.fonts.labelLarge, // Estilo de la etiqueta del drawer item
+          ...theme.fonts.labelLarge,
         },
-        // Ocultar el header por defecto si la pantalla tiene el suyo propio (como WelcomeScreen)
         headerShown: false,
       }}
     >
-      {/* Define las pantallas del Drawer */}
-      {/* Pantalla para el Módulo de Menú (Categorías, etc.) */}
       <Drawer.Screen
         name="Menu"
         component={MenuStack}
         options={{
-          title: 'Menú', // Título para el Drawer Item (usado en CustomDrawerContent)
-          // drawerIcon: ({ color, size }) => ( // Icono (manejado en CustomDrawerContent)
-          //   <MaterialCommunityIcons name="food-fork-drink" color={color} size={size} />
-          // ),
+          title: 'Menú',
         }}
       />
-      {/* Añade más pantallas aquí en el futuro */}
-      {/* <Drawer.Screen name="Settings" component={SettingsScreen} /> */}
     </Drawer.Navigator>
   );
 }

@@ -1,11 +1,9 @@
-// src/app/components/common/CustomImagePicker.tsx (Adaptado con Paper)
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, TouchableOpacity, Image } from 'react-native'; // Importar Image
+import { View, StyleSheet, Alert, TouchableOpacity, Image } from 'react-native';
 import { ActivityIndicator, Button, Surface, Text, Avatar, IconButton, useTheme } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
-import { AppTheme } from '../../styles/theme'; // Ajusta la ruta si es necesario
+import { AppTheme } from '../../styles/theme';
 
-// Interfaz para el objeto de archivo que se pasa al padre
 export interface FileObject {
   uri: string;
   name: string;
@@ -13,15 +11,15 @@ export interface FileObject {
 }
 
 interface CustomImagePickerProps {
-  value?: string | null; // URI de la imagen actual o null
-  onImageSelected?: (imageUri: string, file: FileObject) => void; // Pasa URI y FileObject
-  onImageRemoved?: () => void; // Callback para cuando se quita la imagen
+  value?: string | null;
+  onImageSelected?: (imageUri: string, file: FileObject) => void;
+  onImageRemoved?: () => void;
   style?: object;
   size?: number;
   placeholderIcon?: string;
   placeholderText?: string;
-  isLoading?: boolean; // Para mostrar indicador de carga externo (ej. subiendo)
-  disabled?: boolean; // Para deshabilitar la interacción
+  isLoading?: boolean;
+  disabled?: boolean;
 }
 
 export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
@@ -40,13 +38,12 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setImageUri(value); // Actualizar cuando el valor externo cambie
+    setImageUri(value);
   }, [value]);
 
   useEffect(() => {
     (async () => {
       try {
-        // Verificar permisos existentes sin preguntar
         const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
         setHasPermission(status === 'granted');
       } catch {
@@ -75,7 +72,7 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
   };
 
   const handlePickImage = async () => {
-    if (isLoading || disabled) return; // No hacer nada si está cargando o deshabilitado
+    if (isLoading || disabled) return;
 
     const permissionGranted = await requestPermission();
     if (!permissionGranted) return;
@@ -84,8 +81,8 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1], // Mantener cuadrado, ajustar si es necesario
-        quality: 0.8, // Calidad de compresión
+        aspect: [1, 1],
+        quality: 0.8,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -99,8 +96,8 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
           name: fileName,
           type: fileType,
         };
-        setImageUri(selectedUri); // Actualiza preview local
-        onImageSelected?.(selectedUri, fileObject); // Notifica al padre con URI y FileObject
+        setImageUri(selectedUri);
+        onImageSelected?.(selectedUri, fileObject);
       }
     } catch (error) {
       Alert.alert("Error", `No se pudo abrir la galería: ${error instanceof Error ? error.message : 'Inténtalo de nuevo.'}`);
@@ -108,21 +105,21 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
   };
 
   const handleRemoveImage = () => {
-    if (isLoading || disabled) return; // No hacer nada si está cargando o deshabilitado
+    if (isLoading || disabled) return;
     setImageUri(null);
-    onImageRemoved?.(); // Notifica al padre que se quitó
+    onImageRemoved?.();
   };
 
   const styles = StyleSheet.create({
     container: {
       width: size,
       height: size,
-      borderRadius: 0, // Hacer cuadrado
+      borderRadius: 0,
       justifyContent: 'center',
       alignItems: 'center',
       overflow: 'hidden',
-      position: 'relative', // Para posicionar el botón de eliminar
-      backgroundColor: theme.colors.surfaceVariant, // Fondo placeholder
+      position: 'relative',
+      backgroundColor: theme.colors.surfaceVariant,
     },
     touchable: {
         width: '100%',
@@ -137,7 +134,7 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
     placeholderContainer: {
       justifyContent: 'center',
       alignItems: 'center',
-      padding: theme.spacing.s, // Añadir padding interno
+      padding: theme.spacing.s,
     },
     placeholderText: {
       marginTop: theme.spacing.xs,
@@ -149,13 +146,13 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
       backgroundColor: 'rgba(0,0,0,0.4)',
       justifyContent: 'center',
       alignItems: 'center',
-      borderRadius: 0, // Coincidir con el contenedor cuadrado
+      borderRadius: 0,
     },
     removeButton: {
       position: 'absolute',
       top: 4,
       right: 4,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)', // Fondo semitransparente para contraste
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
     }
   });
 
@@ -185,10 +182,10 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
             <IconButton
                 icon="close-circle"
                 size={24}
-                iconColor={theme.colors.onErrorContainer} // Color que contraste bien
+                iconColor={theme.colors.onErrorContainer}
                 style={styles.removeButton}
                 onPress={handleRemoveImage}
-                rippleColor="rgba(255, 255, 255, 0.32)" // Efecto ripple claro
+                rippleColor="rgba(255, 255, 255, 0.32)"
                 />
          )}
       </TouchableOpacity>
@@ -196,4 +193,4 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
   );
 };
 
-export default CustomImagePicker; // Exportar por defecto
+export default CustomImagePicker;

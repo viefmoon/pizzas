@@ -1,4 +1,3 @@
-// Store para manejar el estado del Snackbar global
 import { create } from "zustand";
 
 export type SnackbarType = "info" | "success" | "error" | "warning";

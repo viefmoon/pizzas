@@ -8,42 +8,38 @@ import {
   View,
 } from "react-native";
 import { List, Chip, Text, Surface } from "react-native-paper";
-import AutoImage from "../common/AutoImage"; // Ajustar ruta si es necesario
-import { useAppTheme, AppTheme } from "../../styles/theme"; // Ajustar ruta
+import AutoImage from "../common/AutoImage";
+import { useAppTheme, AppTheme } from "../../styles/theme";
 
-// Interfaz para la configuración del estado visual (chip)
 interface StatusConfig<TItem> {
-  field: keyof TItem; // Campo del item que determina el estado (e.g., 'isActive')
-  activeValue: any; // Valor que representa el estado activo
-  activeLabel: string; // Etiqueta para el estado activo (e.g., 'Activa')
-  inactiveLabel: string; // Etiqueta para el estado inactivo (e.g., 'Inactiva')
+  field: keyof TItem;
+  activeValue: any;
+  activeLabel: string;
+  inactiveLabel: string;
 }
 
-// Interfaz para la configuración de cómo renderizar un item
 interface RenderItemConfig<TItem> {
-  titleField: keyof TItem; // Campo para el título principal
-  descriptionField?: keyof TItem; // Campo opcional para la descripción
-  descriptionMaxLength?: number; // Longitud máxima de la descripción
-  imageField?: keyof TItem; // Campo opcional para la imagen (debe contener el path o URI)
-  statusConfig?: StatusConfig<TItem>; // Configuración opcional para el chip de estado
+  titleField: keyof TItem;
+  descriptionField?: keyof TItem;
+  descriptionMaxLength?: number;
+  imageField?: keyof TItem;
+  statusConfig?: StatusConfig<TItem>;
 }
 
 interface GenericListProps<TItem extends { id: string }> {
   items: TItem[];
-  renderConfig: RenderItemConfig<TItem>; // Configuración para renderizar cada item
+  renderConfig: RenderItemConfig<TItem>;
   onItemPress: (item: TItem) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
   ListEmptyComponent: React.ComponentType<any> | React.ReactElement | null;
-  isLoading?: boolean; // Opcional para mostrar indicador
-  // Estilos opcionales para personalizar
+  isLoading?: boolean;
   listStyle?: StyleProp<ViewStyle>;
   listItemStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
-  imageStyle?: StyleProp<any>; // Para AutoImage
+  imageStyle?: StyleProp<any>;
 }
 
-// Función para generar estilos
 const getStyles = (theme: AppTheme) =>
   StyleSheet.create({
     listContainer: {
@@ -69,8 +65,8 @@ const getStyles = (theme: AppTheme) =>
     },
     statusChip: {
       borderRadius: theme.roundness * 1.5,
-      height: 40, // Aumentado
-      alignSelf: "center", // Centrado verticalmente
+      height: 40,
+      alignSelf: "center",
     },
     title: {
       fontWeight: "600",
@@ -86,12 +82,11 @@ const getStyles = (theme: AppTheme) =>
       padding: theme.spacing.l,
     },
     defaultContentContainer: {
-      paddingBottom: 80, // Padding por defecto para FAB u otros elementos flotantes
+      paddingBottom: 80,
       paddingTop: theme.spacing.xs,
     },
   });
 
-// Componente genérico
 const GenericList = <TItem extends { id: string }>({
   items,
   renderConfig,
@@ -99,7 +94,7 @@ const GenericList = <TItem extends { id: string }>({
   onRefresh,
   isRefreshing,
   ListEmptyComponent,
-  isLoading = false, // Valor por defecto
+  isLoading = false,
   listStyle,
   listItemStyle,
   contentContainerStyle,
@@ -110,10 +105,8 @@ const GenericList = <TItem extends { id: string }>({
 
   const renderGenericItem = useCallback(
     ({ item }: { item: TItem }) => {
-      // --- Título ---
       const title = String(item[renderConfig.titleField] ?? "");
 
-      // --- Descripción ---
       let description = "";
       if (
         renderConfig.descriptionField &&
@@ -131,13 +124,11 @@ const GenericList = <TItem extends { id: string }>({
         }
       }
 
-      // --- Imagen ---
       const imageSource =
         renderConfig.imageField && item.hasOwnProperty(renderConfig.imageField)
           ? (item[renderConfig.imageField] as string | undefined)
           : undefined;
 
-      // --- Estado (Chip) ---
       let statusChip = null;
       if (
         renderConfig.statusConfig &&
@@ -152,20 +143,18 @@ const GenericList = <TItem extends { id: string }>({
         statusChip = (props: any) => (
           <Chip
             {...props}
-            // icon={isActive ? "check" : "close"} // Icono eliminado según solicitud
-            mode="flat" // Cambiado de outlined a flat
+            mode="flat"
             selectedColor={
               isActive ? theme.colors.success : theme.colors.onSurfaceVariant
-            } // Usar color success para activo
+            }
             style={[
               styles.statusChip,
               {
                 backgroundColor: isActive
-                  ? theme.colors.successContainer // Usar successContainer para fondo activo
+                  ? theme.colors.successContainer
                   : theme.colors.surfaceVariant,
               },
             ]}
-            // elevated // Eliminado para un look más plano
           >
             {chipLabel}
           </Chip>
@@ -212,7 +201,6 @@ const GenericList = <TItem extends { id: string }>({
     [theme, renderConfig, onItemPress, styles, listItemStyle, imageStyle]
   );
 
-  // Determinar el estilo del contenedor de contenido
   const finalContentContainerStyle = useMemo(() => {
     const baseStyle =
       items.length === 0

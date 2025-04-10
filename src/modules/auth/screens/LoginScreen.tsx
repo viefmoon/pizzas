@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Añadir useState y useEffect
+import React, { useState, useEffect } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -6,7 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
-  ActivityIndicator, // Añadir ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -17,8 +17,8 @@ import {
   Button,
 } from "react-native-paper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import EncryptedStorage from 'react-native-encrypted-storage'; // Importar EncryptedStorage
-import { STORAGE_KEYS } from "../../../app/constants/storageKeys"; // Importar las claves
+import EncryptedStorage from 'react-native-encrypted-storage';
+import { STORAGE_KEYS } from "../../../app/constants/storageKeys";
 import { useNavigation } from "@react-navigation/native";
 import { useAppTheme } from "../../../app/styles/theme";
 import { useSnackbarStore } from "../../../app/store/snackbarStore";
@@ -26,7 +26,7 @@ import { getApiErrorMessage } from "../../../app/lib/errorMapping";
 import { ApiError } from "../../../app/lib/errors";
 import { useThemeStore } from "../../../app/store/themeStore";
 import { useAuthStore } from "../../../app/store/authStore";
-import { LoginFormInputs, LoginResponseDto } from "../types/auth.types"; // Corregido: Quitado LoginRequestDto
+import { LoginFormInputs, LoginResponseDto } from "../types/auth.types";
 import { authService } from "../services/authService";
 import LoginForm from "../components/LoginForm";
 
@@ -38,26 +38,22 @@ const LoginScreen = () => {
   const { themePreference, setThemePreference } = useThemeStore();
   const setToken = useAuthStore((state) => state.setToken);
 
-  // Estados para credenciales iniciales y carga
   const [initialEmailOrUsername, setInitialEmailOrUsername] = useState<string | undefined>(undefined);
-  const [initialPassword, setInitialPassword] = useState<string | undefined>(undefined); // Estado para la contraseña inicial
+  const [initialPassword, setInitialPassword] = useState<string | undefined>(undefined);
   const [initialRememberMe, setInitialRememberMe] = useState(false);
-  const [isLoadingCredentials, setIsLoadingCredentials] = useState(true); // Estado de carga
+  const [isLoadingCredentials, setIsLoadingCredentials] = useState(true);
 
-  // Definir un tipo que incluya rememberMe para las variables de la mutación
   type LoginMutationVariables = LoginFormInputs & { rememberMe: boolean };
 
-  // Mutación de login - Actualizar tipo de variables
   const loginMutation = useMutation<LoginResponseDto, Error, LoginMutationVariables>({
-    // La función de mutación solo necesita los datos de login, no rememberMe
     mutationFn: (variables) => authService.login({
         emailOrUsername: variables.emailOrUsername,
         password: variables.password
     }),
-    onSuccess: async (data, variables) => { // Recibir 'variables' aquí
+    onSuccess: async (data, variables) => {
       try {
-        await setToken(data.token); // Guardar token primero
-        const { emailOrUsername, password, rememberMe } = variables; // Obtener datos de las variables
+        await setToken(data.token);
+        const { emailOrUsername, password, rememberMe } = variables;
 
         if (rememberMe) {
           const credentialsToSave = JSON.stringify({ emailOrUsername, password });
@@ -65,7 +61,6 @@ const LoginScreen = () => {
           await EncryptedStorage.setItem(STORAGE_KEYS.REMEMBER_ME_ENABLED, 'true');
           console.log("Credenciales guardadas.");
         } else {
-          // Si no se marca "Recordarme", eliminar credenciales previas si existen
           await EncryptedStorage.removeItem(STORAGE_KEYS.REMEMBERED_CREDENTIALS);
           await EncryptedStorage.removeItem(STORAGE_KEYS.REMEMBER_ME_ENABLED);
           console.log("Preferencia 'Recordarme' desactivada, credenciales eliminadas.");
@@ -79,7 +74,6 @@ const LoginScreen = () => {
 
       } catch (error) {
         console.error("Error al procesar post-login o guardar credenciales:", error);
-        // Asegurarse de limpiar credenciales si algo falla después de setToken
         try {
             await EncryptedStorage.removeItem(STORAGE_KEYS.REMEMBERED_CREDENTIALS);
             await EncryptedStorage.removeItem(STORAGE_KEYS.REMEMBER_ME_ENABLED);
@@ -103,23 +97,16 @@ const LoginScreen = () => {
       if (error instanceof ApiError) {
          console.error("API Error Details:", { code: error.code, status: error.status, details: error.details });
       }
-      // Podríamos considerar limpiar credenciales aquí también si el login falla,
-      // aunque si falla el login, onSuccess no se ejecuta.
-      // Depende de si queremos limpiar explícitamente en caso de fallo de login.
-      // Por ahora, lo dejamos así, se limpian si onSuccess falla o en logout.
     },
   });
 
-  // Actualizar para aceptar rememberMe, aunque aún no lo usemos en la mutación hasta Fase 2
   const handleLoginSubmit = (data: LoginFormInputs, rememberMe: boolean) => {
-    // Pasar tanto los datos del formulario como rememberMe a la mutación
     loginMutation.mutate({ ...data, rememberMe });
   };
 
-  // useEffect para cargar credenciales al montar
   useEffect(() => {
     const loadCredentials = async () => {
-      setIsLoadingCredentials(true); // Iniciar carga
+      setIsLoadingCredentials(true);
       try {
         const rememberEnabled = await EncryptedStorage.getItem(STORAGE_KEYS.REMEMBER_ME_ENABLED);
         if (rememberEnabled === 'true') {
@@ -127,29 +114,24 @@ const LoginScreen = () => {
           if (storedCredentialsJson) {
             const storedCredentials = JSON.parse(storedCredentialsJson);
             setInitialEmailOrUsername(storedCredentials.emailOrUsername);
-            setInitialPassword(storedCredentials.password); // Asegurarse de cargar la contraseña
-            setInitialRememberMe(true); // Marcar el checkbox si se encontraron credenciales
+            setInitialPassword(storedCredentials.password);
+            setInitialRememberMe(true);
           } else {
-            // Si remember está habilitado pero no hay credenciales (caso raro), limpiar
             setInitialRememberMe(false);
             setInitialEmailOrUsername('');
-            setInitialPassword(''); // Limpiar contraseña si no hay credenciales
-            await EncryptedStorage.removeItem(STORAGE_KEYS.REMEMBER_ME_ENABLED); // Limpiar preferencia inconsistente
+            setInitialPassword('');
+            await EncryptedStorage.removeItem(STORAGE_KEYS.REMEMBER_ME_ENABLED);
           }
         } else {
-           // Si no está habilitado, asegurarse de que todo esté limpio
            setInitialRememberMe(false);
            setInitialEmailOrUsername('');
-           setInitialPassword(''); // Limpiar contraseña si no está habilitado
-           // No es necesario remover aquí, ya se hace en login/logout si no está marcado
+           setInitialPassword('');
         }
       } catch (error) {
         console.error("Error al cargar credenciales recordadas:", error);
-        // Resetear en caso de error para evitar estado inconsistente
         setInitialRememberMe(false);
         setInitialEmailOrUsername('');
-        setInitialPassword(''); // Limpiar contraseña en caso de error
-        // Considerar limpiar storage si hay error de parseo, etc.
+        setInitialPassword('');
         try {
             await EncryptedStorage.removeItem(STORAGE_KEYS.REMEMBERED_CREDENTIALS);
             await EncryptedStorage.removeItem(STORAGE_KEYS.REMEMBER_ME_ENABLED);
@@ -157,18 +139,17 @@ const LoginScreen = () => {
              console.error("Error al limpiar credenciales durante manejo de error de carga:", cleanupError);
         }
       } finally {
-         setIsLoadingCredentials(false); // Terminar carga
+         setIsLoadingCredentials(false);
       }
     };
 
     loadCredentials();
-  }, []); // Ejecutar solo al montar
+  }, []);
 
   const toggleTheme = () => {
     setThemePreference(theme.dark ? "light" : "dark");
   };
 
-  // Estilos memoizados que dependen del tema
   const styles = React.useMemo(
     () =>
       StyleSheet.create({
@@ -241,10 +222,9 @@ const LoginScreen = () => {
           marginBottom: 16,
         },
       }),
-    [theme]
+    [theme],
   );
 
-  // Mostrar indicador de carga mientras se obtienen las credenciales
   if (isLoadingCredentials) {
      return (
        <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -264,7 +244,6 @@ const LoginScreen = () => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.container}>
-            {/* Sección Superior (Logo, Títulos) */}
             <View>
               <View style={styles.logoContainer}>
                 <Image
@@ -280,11 +259,10 @@ const LoginScreen = () => {
 
               <Surface style={styles.formContainer}>
                 <LoginForm
-                  onSubmit={handleLoginSubmit} // Ya tiene la nueva firma
+                  onSubmit={handleLoginSubmit}
                   isLoading={loginMutation.isPending}
-                  // Pasar los valores iniciales cargados al formulario
                   initialEmailOrUsername={initialEmailOrUsername}
-                  initialPassword={initialPassword} // Pasar contraseña inicial
+                  initialPassword={initialPassword}
                   initialRememberMe={initialRememberMe}
                 />
               </Surface>
@@ -298,7 +276,6 @@ const LoginScreen = () => {
               </TouchableRipple>
             </View>
 
-            {/* Sección Inferior (Registro, Cambio de Tema) */}
             <View>
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>¿No tienes una cuenta?</Text>

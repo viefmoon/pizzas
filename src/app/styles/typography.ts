@@ -1,11 +1,7 @@
-// Define los estilos tipográficos según Material Design 3
-// Estos valores se pueden ajustar según las necesidades específicas del diseño
 
 import { Platform } from "react-native";
 
-// Configuración de tipografía siguiendo Material Design 3
 export const typography = {
-  // Fuentes base para Android e iOS
   fonts: {
     regular: Platform.select({
       ios: "SF Pro Text",
@@ -29,7 +25,6 @@ export const typography = {
     }),
   },
 
-  // Estilos de texto según MD3
   displayLarge: {
     fontFamily: Platform.select({
       ios: "SF Pro Display",
@@ -182,7 +177,6 @@ export const typography = {
   },
 };
 
-// Si necesitas adaptar para Android vs iOS, puedes exportar variantes específicas:
 export const iosFontFamily = {
   regular: "System",
   medium: "System",

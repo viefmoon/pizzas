@@ -42,7 +42,6 @@ export function RegisterForm() {
       navigation.goBack();
     },
     onError: (error: unknown) => {
-      // Tipar error como unknown
       const userMessage = getApiErrorMessage(error); // Obtener mensaje mapeado
       showSnackbar({
         message: userMessage,

@@ -3,20 +3,18 @@ import { View, StyleSheet, StyleProp, ViewStyle } from "react-native";
 import { SegmentedButtons, Surface, Text } from "react-native-paper";
 import { useAppTheme, AppTheme } from "../../styles/theme";
 
-// Tipo para las opciones de filtro
 export interface FilterOption<TValue> {
   value: TValue;
   label: string;
-  icon?: string; // Opcional
-  disabled?: boolean; // Opcional
-  // Otras props de SegmentedButtons.Button si son necesarias
+  icon?: string;
+  disabled?: boolean;
 }
 
 interface GenericFiltersProps<TValue> {
   filterValue: TValue;
   onFilterChange: (value: TValue) => void;
-  filterOptions: FilterOption<TValue>[]; // Array de opciones de filtro
-  containerStyle?: StyleProp<ViewStyle>; // Estilo opcional para el contenedor
+  filterOptions: FilterOption<TValue>[];
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 const getStyles = (theme: AppTheme) =>
@@ -45,7 +43,6 @@ const getStyles = (theme: AppTheme) =>
     },
   });
 
-// Restringir TValue a tipos válidos para el 'value' de SegmentedButtons (string o number)
 const GenericFilters = <TValue extends string | number>({
   filterValue,
   onFilterChange,
@@ -55,9 +52,8 @@ const GenericFilters = <TValue extends string | number>({
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
 
-  // Mapear filterOptions al formato esperado por SegmentedButtons
   const buttons = filterOptions.map((option) => ({
-    value: String(option.value), // Convertir a string
+    value: String(option.value),
     label: option.label,
     icon: option.icon,
     disabled: option.disabled,

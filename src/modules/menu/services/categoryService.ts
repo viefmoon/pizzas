@@ -1,5 +1,5 @@
-import apiClient from "../../../app/services/apiClient"; // Ajusta la ruta según tu estructura
-import { ApiError } from "../../../app/lib/errors"; // Ajusta la ruta
+import apiClient from "../../../app/services/apiClient";
+import { ApiError } from "../../../app/lib/errors";
 import type {
   Category,
   CreateCategoryDto,
@@ -7,7 +7,6 @@ import type {
   PaginatedResponse,
 } from "../types/category.types";
 
-// Asume que la API tiene endpoints como /categories
 const BASE_URL = "/api/v1/categories";
 
 /**
@@ -21,7 +20,6 @@ export const getCategories = async (params?: {
   page?: number;
   limit?: number;
 }): Promise<PaginatedResponse<Category>> => {
-  // La API devuelve [Category[], number] en lugar de PaginatedResponse
   const response = await apiClient.get<[Category[], number]>(BASE_URL, params);
 
   if (
@@ -30,15 +28,11 @@ export const getCategories = async (params?: {
     !Array.isArray(response.data) ||
     response.data.length !== 2
   ) {
-    // Si la respuesta no es ok, o no tiene datos, o no es un array de 2 elementos
-    // El mensaje se generará a partir de response.data o será genérico
     throw ApiError.fromApiResponse(response.data, response.status ?? 500);
   }
 
-  // Transformar la respuesta [Category[], number] a PaginatedResponse<Category>
   const [categoriesData, totalCount] = response.data;
   const page = params?.page ?? 1;
-  // Si no hay límite en params, usar la longitud de los datos recibidos o un default (ej. 10)
   const limit = params?.limit ?? (categoriesData.length > 0 ? categoriesData.length : 10);
 
   const paginatedResponse: PaginatedResponse<Category> = {
@@ -47,7 +41,6 @@ export const getCategories = async (params?: {
       total: totalCount,
       page: page,
       limit: limit,
-      // Calcular totalPages correctamente, asegurando que no sea 0 si totalCount es 0
       totalPages: limit > 0 ? Math.ceil(totalCount / limit) : (totalCount > 0 ? 1 : 0),
     },
   };
@@ -98,7 +91,6 @@ export const updateCategory = async (
   id: string,
   data: UpdateCategoryDto
 ): Promise<Category> => {
-  // Usamos PATCH para actualizaciones parciales, ajusta a PUT si tu API lo requiere
   const response = await apiClient.patch<Category>(`${BASE_URL}/${id}`, data);
 
   if (!response.ok || !response.data) {
@@ -116,15 +108,11 @@ export const updateCategory = async (
 export const deleteCategory = async (id: string): Promise<void> => {
   const response = await apiClient.delete(`${BASE_URL}/${id}`);
 
-  // Para DELETE, a menudo no hay cuerpo de respuesta en éxito (204 No Content)
-  // Solo verificamos si la respuesta fue 'ok' (status 2xx)
   if (!response.ok) {
     throw ApiError.fromApiResponse(response.data, response.status ?? 500);
   }
-  // No se devuelve nada en caso de éxito (void)
 };
 
-// Exportar un objeto con todos los métodos también es una opción común
 const categoryService = {
   getCategories,
   getCategory,

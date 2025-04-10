@@ -1,8 +1,6 @@
-// src/app/lib/imageUploadService.ts (Adaptado)
-import fileService, { FileUploadResponse } from '../../modules/menu/services/fileService'; // Ajusta ruta si es necesario
-import { ApiError } from './errors'; // Ajusta ruta si es necesario
-// import { getApiErrorMessage } from './getApiErrorMessage'; // Descomentar si existe esta utilidad
-import { API_URL } from '@env'; // Importar API_URL
+import fileService, { FileUploadResponse } from '../../modules/menu/services/fileService';
+import { ApiError } from './errors';
+import { API_URL } from '@env';
 
 export interface ImageUploadResult {
     success: boolean;
@@ -10,7 +8,6 @@ export interface ImageUploadResult {
     error?: string; // Mensaje de error si falla
 }
 
-// Podríamos mover esta interfaz a un archivo de tipos común (e.g., src/app/types/common.types.ts)
 interface FileObject {
     uri: string;
     name: string;
@@ -18,8 +15,7 @@ interface FileObject {
 }
 
 // Interfaz para la entidad existente que podría tener una foto
-// Adaptar según la estructura real de tus entidades (Category, Product, etc.)
-export interface EntityWithOptionalPhoto { // <--- Añadido export
+export interface EntityWithOptionalPhoto {
     photo?: {
         id: string;
         path: string; // Necesitamos el path para comparar con la imageUri del formulario
@@ -58,7 +54,6 @@ export class ImageUploadService {
              console.error("Error en ImageUploadService.uploadImage:", error);
              let errorMessage = "Error desconocido al subir la imagen.";
              if (error instanceof ApiError) {
-                // errorMessage = getApiErrorMessage(error) || `Error ${error.code}: ${error.originalMessage}`; // Usar si existe getApiErrorMessage
                 errorMessage = `Error al subir: ${error.originalMessage || error.code}`;
              } else if (error instanceof Error) {
                 errorMessage = error.message;
@@ -91,17 +86,14 @@ export class ImageUploadService {
          // La subida se maneja por separado. Aquí indicamos que no hay acción *sobre el ID existente*.
          // El DTO no incluirá `photoId`, y el backend usará el ID de la nueva imagen subida.
          if (formImageUri && formImageUri.startsWith('file://')) {
-             // console.log("[determinePhotoId] Acción: Nueva imagen seleccionada (undefined).");
              return undefined;
          }
          // Caso 2: Se eliminó la imagen (formImageUri es null) Y había una foto antes.
          else if (formImageUri === null && existingEntity?.photo) {
-             // console.log("[determinePhotoId] Acción: Eliminar foto existente (null).");
              return null; // Indica que se debe eliminar la foto existente (photoId: null en el DTO)
          }
          // Caso 3: La imagen en el form es la misma URL remota que la existente.
          else if (formImageUri && !formImageUri.startsWith('file://') && formImageUri === existingPhotoFullUrl) {
-             // console.log("[determinePhotoId] Acción: Mantener foto existente (misma URL) (undefined).");
              return undefined; // No hay cambios, no incluir photoId en el DTO.
          }
          // Caso 4: La imagen en el form es una URL remota, pero NO coincide con la existente (o no había).
@@ -109,17 +101,14 @@ export class ImageUploadService {
          // significa que no hay cambios respecto al ID (undefined). Si el backend necesita manejar
          // la asignación directa de URLs remotas, requeriría lógica adicional.
          else if (formImageUri && !formImageUri.startsWith('file://') && formImageUri !== existingPhotoFullUrl) {
-             // console.log("[determinePhotoId] Acción: Mantener foto (URL remota en form diferente a existente) (undefined).");
              return undefined; // No hay cambios en el ID.
          }
          // Caso 5: No hay imagen en el form (null) y tampoco había antes.
          else if (formImageUri === null && !existingEntity?.photo) {
-             // console.log("[determinePhotoId] Acción: Sin cambios (no había ni hay foto) (undefined).");
              return undefined; // No hay cambios
          }
 
          // Caso por defecto: No hay cambios definidos.
-         // console.log("[determinePhotoId] Acción: Sin cambios (caso por defecto) (undefined).");
          return undefined;
      }
 }

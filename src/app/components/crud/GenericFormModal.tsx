@@ -38,14 +38,12 @@ import {
   EntityWithOptionalPhoto,
 } from "../../lib/imageUploadService";
 
-// Interfaz para el objeto FileObject
 interface FileObject {
   uri: string;
   name: string;
   type: string;
 }
 
-// Tipos de campo soportados
 type FieldType =
   | "text"
   | "textarea"
@@ -54,7 +52,6 @@ type FieldType =
   | "email"
   | "password";
 
-// Configuración para cada campo del formulario
 export interface FormFieldConfig<TFormData extends FieldValues> {
   name: Path<TFormData>;
   label: string;
@@ -68,7 +65,6 @@ export interface FormFieldConfig<TFormData extends FieldValues> {
   switchLabel?: string;
 }
 
-// Configuración para el Image Picker (opcional)
 export interface ImagePickerConfig<TFormData extends FieldValues, TItem> {
   imageUriField: Path<TFormData>;
   onImageUpload: (file: FileObject) => Promise<{ id: string } | null>;
@@ -102,7 +98,6 @@ interface GenericFormModalProps<
   formContainerStyle?: StyleProp<ViewStyle>;
 }
 
-// Función helper para obtener valor por defecto según tipo
 const getDefaultValueForType = (type: FieldType): any => {
   switch (type) {
     case "text":
@@ -119,7 +114,6 @@ const getDefaultValueForType = (type: FieldType): any => {
   }
 };
 
-// Estilos
 const getStyles = (theme: AppTheme) =>
   StyleSheet.create({
     modalSurface: {
@@ -153,22 +147,18 @@ const getStyles = (theme: AppTheme) =>
       backgroundColor: theme.colors.surfaceVariant,
       borderRadius: theme.roundness,
     },
-    // Eliminado switchContainer
     switchLabel: {
-      // Estilo para la etiqueta del switch (ahora al lado)
       color: theme.colors.onSurfaceVariant,
-      marginRight: theme.spacing.m, // Espacio entre etiqueta y switch
-      fontSize: 16, // Aumentar tamaño de fuente
-      flexShrink: 1, // Permitir que la etiqueta se encoja si es necesario
+      marginRight: theme.spacing.m,
+      fontSize: 16,
+      flexShrink: 1,
     },
     switchComponentContainer: {
-      // Contenedor para etiqueta y switch en la misma fila
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "flex-start", // Alinear ambos elementos a la izquierda
-      marginBottom: theme.spacing.m, // Mantener margen inferior
-      paddingVertical: theme.spacing.s, // Añadir padding vertical para mejor toque
-      // Quitar fondo y borde si no se desea un contenedor visual
+      justifyContent: "flex-start",
+      marginBottom: theme.spacing.m,
+      paddingVertical: theme.spacing.s,
     },
     imagePickerContainer: {
       alignItems: "center",
@@ -176,7 +166,7 @@ const getStyles = (theme: AppTheme) =>
     },
     modalActions: {
       flexDirection: "row",
-      justifyContent: "flex-end", // Alinear botones a la derecha
+      justifyContent: "flex-end",
       paddingVertical: theme.spacing.m,
       paddingHorizontal: theme.spacing.l,
       borderTopWidth: 1,
@@ -185,8 +175,7 @@ const getStyles = (theme: AppTheme) =>
     },
     formButton: {
       borderRadius: theme.roundness,
-      paddingHorizontal: theme.spacing.m, // Aumentar padding horizontal para más espacio
-      // flex: 1, // Quitar flex para que el ancho se ajuste al contenido
+      paddingHorizontal: theme.spacing.m,
     },
     cancelButton: {
       marginRight: theme.spacing.m,
@@ -235,7 +224,6 @@ const GenericFormModal = <
   const isEditing = !!editingItem;
   const isActuallySubmitting = isParentSubmitting || isInternalImageUploading;
 
-  // Configuración de react-hook-form
   const {
     control,
     handleSubmit,
@@ -255,14 +243,12 @@ const GenericFormModal = <
     }, [formFields, initialValues]),
   });
 
-  // Observar el campo de URI de imagen si está configurado
   const watchedImageUri = imagePickerConfig
     ? watch(imagePickerConfig.imageUriField)
     : undefined;
   const currentImageUri =
     typeof watchedImageUri === "string" ? watchedImageUri : null;
 
-  // Resetear formulario
   useEffect(() => {
     if (visible) {
       const defaults = formFields.reduce((acc, field) => {
@@ -276,7 +262,6 @@ const GenericFormModal = <
     }
   }, [visible, initialValues, reset, formFields]);
 
-  // Callbacks para CustomImagePicker
   const handleImageSelected = useCallback(
     (uri: string, file: FileObject) => {
       if (imagePickerConfig) {
@@ -298,17 +283,14 @@ const GenericFormModal = <
     }
   }, [setValue, imagePickerConfig]);
 
-  // Lógica de submit
   const processSubmit: SubmitHandler<TFormData> = async (formData) => {
     if (isActuallySubmitting) return;
 
     let finalPhotoId: string | null | undefined = undefined;
 
-    // --- Manejo de Imagen (si está configurado) ---
     if (imagePickerConfig) {
       const currentUriForLogic = currentImageUri;
 
-      // 1. Determinar acción sobre la foto
       const determineFn =
         imagePickerConfig.determineFinalPhotoId ??
         ImageUploadService.determinePhotoId;
@@ -323,7 +305,6 @@ const GenericFormModal = <
         photoAction = determineFn(currentUriForLogic, editingItem ?? undefined);
       }
 
-      // 2. Subir si es una nueva imagen local
       if (typeof currentUriForLogic === "string") {
         if ((currentUriForLogic as string).startsWith("file://")) {
           if (!selectedFileObject) {
@@ -357,11 +338,9 @@ const GenericFormModal = <
       }
     }
 
-    // 3. Llamar al onSubmit principal
     await onSubmit(formData, finalPhotoId);
   };
 
-  // Renderizar campo individual
   const renderFormField = (fieldConfig: FormFieldConfig<TFormData>) => {
     const fieldName = fieldConfig.name;
     const errorMessage = (errors[fieldName] as any)?.message;
@@ -419,7 +398,6 @@ const GenericFormModal = <
       case "switch":
         return (
           <View key={String(fieldName)} style={styles.switchComponentContainer}>
-            {/* Etiqueta y Switch en la misma fila */}
             <Text variant="bodyLarge" style={styles.switchLabel}>
               {fieldConfig.switchLabel ?? fieldConfig.label}
             </Text>
@@ -431,7 +409,7 @@ const GenericFormModal = <
                   value={value}
                   onValueChange={onChange}
                   disabled={isActuallySubmitting}
-                  style={{ transform: [{ scaleX: 1.5 }, { scaleY: 1.5 }] }} // Aumentar la escala
+                  style={{ transform: [{ scaleX: 1.5 }, { scaleY: 1.5 }] }}
                   {...fieldConfig.switchProps}
                 />
               )}
@@ -462,21 +440,18 @@ const GenericFormModal = <
         dismissable={!isActuallySubmitting}
       >
         <View style={styles.formContainer}>
-          {/* Cabecera del modal */}
           <View style={styles.modalHeader}>
             <Text variant="titleLarge" style={styles.modalTitle}>
               {modalTitle(isEditing)}
             </Text>
           </View>
 
-          {/* Contenido del formulario */}
           <ScrollView
             contentContainerStyle={[
               styles.scrollViewContent,
               formContainerStyle,
             ]}
           >
-            {/* Image Picker */}
             {imagePickerConfig && (
               <View style={styles.imagePickerContainer}>
                 <CustomImagePicker
@@ -502,7 +477,6 @@ const GenericFormModal = <
             {formFields.map(renderFormField)}
           </ScrollView>
 
-          {/* Overlay de carga */}
           {isActuallySubmitting && (
             <View style={styles.loadingOverlay}>
               <ActivityIndicator
@@ -513,7 +487,6 @@ const GenericFormModal = <
             </View>
           )}
 
-          {/* Acciones */}
           <View style={styles.modalActions}>
             <Button
               mode="outlined"

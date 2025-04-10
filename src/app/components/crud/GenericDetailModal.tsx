@@ -15,17 +15,15 @@ import {
   Chip,
   ActivityIndicator,
 } from "react-native-paper";
-import AutoImage from "../common/AutoImage"; // Ajustar ruta
-import { useAppTheme, AppTheme } from "../../styles/theme"; // Ajustar ruta
+import AutoImage from "../common/AutoImage";
+import { useAppTheme, AppTheme } from "../../styles/theme";
 
-// Configuración para mostrar un campo específico
 interface DisplayFieldConfig<TItem> {
   field: keyof TItem;
   label: string;
-  render?: (value: TItem[keyof TItem], item: TItem) => React.ReactNode; // Función de renderizado personalizada
+  render?: (value: TItem[keyof TItem], item: TItem) => React.ReactNode;
 }
 
-// Configuración para el chip de estado (reutilizada)
 interface StatusConfig<TItem> {
   field: keyof TItem;
   activeValue: any;
@@ -37,18 +35,17 @@ interface GenericDetailModalProps<TItem extends { id: string }> {
   visible: boolean;
   onDismiss: () => void;
   item: TItem | null;
-  titleField: keyof TItem; // Campo para el título principal
-  imageField?: keyof TItem; // Campo opcional para la imagen
-  descriptionField?: keyof TItem; // Campo opcional para la descripción principal
-  statusConfig?: StatusConfig<TItem>; // Configuración opcional para el chip de estado
-  fieldsToDisplay?: DisplayFieldConfig<TItem>[]; // Campos adicionales a mostrar
-  onEdit?: (item: TItem) => void; // Hacer opcional si no siempre se edita
-  onDelete?: (id: string) => void; // Hacer opcional si no siempre se elimina
+  titleField: keyof TItem;
+  imageField?: keyof TItem;
+  descriptionField?: keyof TItem;
+  statusConfig?: StatusConfig<TItem>;
+  fieldsToDisplay?: DisplayFieldConfig<TItem>[];
+  onEdit?: (item: TItem) => void;
+  onDelete?: (id: string) => void;
   isDeleting?: boolean;
   editButtonLabel?: string;
   deleteButtonLabel?: string;
   closeButtonLabel?: string;
-  // Estilos opcionales
   modalStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
   imageStyle?: StyleProp<any>;
@@ -56,7 +53,7 @@ interface GenericDetailModalProps<TItem extends { id: string }> {
   fieldLabelStyle?: StyleProp<TextStyle>;
   fieldValueStyle?: StyleProp<TextStyle>;
   actionsContainerStyle?: StyleProp<ViewStyle>;
-  children?: React.ReactNode; // Para contenido adicional
+  children?: React.ReactNode;
 }
 
 const getStyles = (theme: AppTheme) =>
@@ -189,7 +186,6 @@ const GenericDetailModal = <TItem extends { id: string }>({
     }
   };
 
-  // Contenido del modal
   const renderContent = () => {
     if (!item) {
       return (
@@ -209,7 +205,6 @@ const GenericDetailModal = <TItem extends { id: string }>({
         ? String(item[descriptionField] ?? "")
         : null;
 
-    // Renderizar Chip de Estado mejorado
     let statusChip = null;
     if (statusConfig && item.hasOwnProperty(statusConfig.field)) {
       const { field, activeValue, activeLabel, inactiveLabel } = statusConfig;
@@ -217,21 +212,18 @@ const GenericDetailModal = <TItem extends { id: string }>({
       statusChip = (
         <View style={styles.statusChipContainer}>
           <Chip
-            // icon={isActive ? "check-circle" : "close-circle"} // Eliminado para evitar duplicado
-            mode="flat" // Cambiado de outlined a flat
-            // icon={isActive ? "check" : "close"} // Icono eliminado según solicitud
+            mode="flat"
             selectedColor={
               isActive ? theme.colors.success : theme.colors.onSurfaceVariant
-            } // Usar color success para activo
+            }
             style={[
               styles.statusChip,
               {
                 backgroundColor: isActive
-                  ? theme.colors.successContainer // Usar successContainer para fondo activo
+                  ? theme.colors.successContainer
                   : theme.colors.surfaceVariant,
               },
             ]}
-            // elevated // Eliminado para un look más plano
           >
             {isActive ? activeLabel : inactiveLabel}
           </Chip>

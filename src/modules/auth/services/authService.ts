@@ -9,7 +9,6 @@ import {
 
 class AuthService {
   async login(loginData: LoginFormInputs): Promise<LoginResponseDto> {
-    // Determinar si es email o username
     const isEmail = loginData.emailOrUsername.includes("@");
     const payload: AuthEmailLoginDto = {
       password: loginData.password,
@@ -18,15 +17,12 @@ class AuthService {
         : { username: loginData.emailOrUsername }),
     };
 
-    // Realizar la petición POST al endpoint de login
     const response = await apiClient.post<LoginResponseDto>(
       "/api/v1/auth/email/login",
       payload
     );
 
-    // Apisauce envuelve la respuesta. Verificamos si fue exitosa.
     if (!response.ok || !response.data) {
-      // Lanzar un ApiError estructurado
       throw ApiError.fromApiResponse(response.data, response.status);
     }
     return response.data;
@@ -39,13 +35,10 @@ class AuthService {
     );
 
     if (!response.ok) {
-      // Lanzar un ApiError estructurado
       throw ApiError.fromApiResponse(response.data, response.status);
     }
   }
 
-  // Aquí podrían ir otros métodos relacionados con la autenticación
-  // como logout, refreshToken, resetPassword, etc.
 }
 
 export const authService = new AuthService();

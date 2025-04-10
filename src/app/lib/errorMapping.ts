@@ -1,8 +1,7 @@
-// src/app/lib/errorMapping.ts
 import { ApiError } from './errors';
 import { ERROR_CODES, ApiErrorCode } from '../constants/apiErrorCodes';
-import { AxiosError } from 'axios'; // Importar AxiosError si se usa directamente
-import { ApiResponse } from 'apisauce'; // Importar ApiResponse para referencia si es necesario, ProblemKind no se exporta así
+import { AxiosError } from 'axios';
+import { ApiResponse } from 'apisauce';
 
 // Mapeo directo de códigos a mensajes en español (¡Actualiza según tus necesidades!)
 const errorCodeMessages: { [key in ApiErrorCode | string]?: string } = {

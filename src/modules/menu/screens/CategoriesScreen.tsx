@@ -8,8 +8,6 @@ import {
   Text,
 } from "react-native-paper";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// Quitar Image de expo-image si no se usa directamente
-// import { Image } from "expo-image";
 import { useAppTheme } from "../../../app/styles/theme";
 import { useSnackbarStore } from "../../../app/store/snackbarStore";
 import { getApiErrorMessage } from "../../../app/lib/errorMapping";
@@ -22,8 +20,8 @@ import GenericDetailModal from "../../../app/components/crud/GenericDetailModal"
 import GenericFormModal, {
   FormFieldConfig,
   ImagePickerConfig,
-} from "../../../app/components/crud/GenericFormModal"; // Cambiado a import default
-import { ImageUploadService } from "../../../app/lib/imageUploadService"; // Para config por defecto
+} from "../../../app/components/crud/GenericFormModal";
+import { ImageUploadService } from "../../../app/lib/imageUploadService";
 import categoryService from "../services/categoryService";
 import fileService from "../services/fileService";
 import {
@@ -31,8 +29,8 @@ import {
   CategoryFormData,
   CreateCategoryDto,
   UpdateCategoryDto,
-  categoryFormSchema, // Importar schema
-  ActiveFilter, // Mover import de ActiveFilter aquí
+  categoryFormSchema,
+  ActiveFilter,
 } from "../types/category.types";
 
 const CategoriesScreen: React.FC = () => {
@@ -64,11 +62,9 @@ const CategoriesScreen: React.FC = () => {
       }),
   });
 
-  // Mapear categorías para incluir la URL completa en 'photoUrl' para GenericList/GenericDetailModal
   const categories = useMemo(() => {
     return (categoriesResponse?.data ?? []).map((cat) => ({
       ...cat,
-      // Añadir un campo con la URL completa para los componentes genéricos
       photoUrl: getImageUrl(cat.photo?.path),
     }));
   }, [categoriesResponse?.data]);
@@ -123,11 +119,9 @@ const CategoriesScreen: React.FC = () => {
     setModalVisible(true);
   };
 
-  // Ajustar para recibir el item mapeado si es necesario, o mapear aquí
   const openDetailModal = (
     category: Category & { photoUrl?: string | null }
   ) => {
-    // El item ya viene mapeado desde GenericList
     setSelectedCategory(category);
     setDetailModalVisible(true);
   };
@@ -139,7 +133,6 @@ const CategoriesScreen: React.FC = () => {
     setSelectedCategory(null);
   };
 
-  // Importar FileObject si está definido en otro lugar, o definirlo aquí/inline
   interface FileObject {
     uri: string;
     name: string;
@@ -147,16 +140,14 @@ const CategoriesScreen: React.FC = () => {
   }
 
   const handleImageUpload = async (
-    file: FileObject // Aceptar el objeto FileObject completo
+    file: FileObject
   ): Promise<{ id: string } | null> => {
     if (!file || !file.uri) {
       console.error("handleImageUpload: No se proporcionó archivo válido.");
       return null;
     }
     try {
-      // Usar uploadFile (o uploadImage si se mantuvo el alias) y pasar el objeto file
       const uploadResponse = await fileService.uploadFile(file);
-      // Extraer el id del objeto anidado 'file'
       if (uploadResponse && uploadResponse.file && uploadResponse.file.id) {
         return { id: uploadResponse.file.id };
       } else {
@@ -167,7 +158,6 @@ const CategoriesScreen: React.FC = () => {
         return null;
       }
     } catch (error) {
-      // El fileService ya debería loguear el error
       console.error("handleImageUpload: Error durante la subida:", error);
       return null;
     }
@@ -310,7 +300,6 @@ const CategoriesScreen: React.FC = () => {
     );
   }
 
-  // --- Configuraciones para Componentes Genéricos ---
 
   const filterOptions: FilterOption<ActiveFilter>[] = [
     { value: "all", label: "Todas" },
@@ -322,7 +311,7 @@ const CategoriesScreen: React.FC = () => {
     titleField: "name" as keyof Category,
     descriptionField: "description" as keyof Category,
     descriptionMaxLength: 50,
-    imageField: "photoUrl" as keyof (Category & { photoUrl?: string | null }), // Usar el campo mapeado
+    imageField: "photoUrl" as keyof (Category & { photoUrl?: string | null }),
     statusConfig: {
       field: "isActive" as keyof Category,
       activeValue: true,
@@ -346,17 +335,14 @@ const CategoriesScreen: React.FC = () => {
       switchLabel: "Activa",
       defaultValue: true,
     },
-    // imageUri se maneja con imagePickerConfig
   ];
 
   const imagePickerConfig: ImagePickerConfig<CategoryFormData, Category> = {
     imageUriField: "imageUri",
-    onImageUpload: handleImageUpload, // Usar la función existente
-    // determineFinalPhotoId: ImageUploadService.determinePhotoId, // Usar el por defecto
+    onImageUpload: handleImageUpload,
     imagePickerSize: 150,
   };
 
-  // Mapear selectedCategory para GenericDetailModal
   const selectedCategoryMapped = useMemo(() => {
     if (!selectedCategory) return null;
     return {
@@ -376,7 +362,7 @@ const CategoriesScreen: React.FC = () => {
       </View>
 
       <GenericList
-        items={categories} // Ya están mapeadas con photoUrl
+        items={categories}
         renderConfig={listRenderConfig}
         onItemPress={openDetailModal}
         onRefresh={refetchCategories}
@@ -402,7 +388,6 @@ const CategoriesScreen: React.FC = () => {
       />
 
       <Portal>
-        {/* Usar GenericFormModal */}
         <GenericFormModal
           visible={modalVisible}
           onDismiss={closeModals}
@@ -415,7 +400,6 @@ const CategoriesScreen: React.FC = () => {
           isSubmitting={
             createCategoryMutation.isPending || updateCategoryMutation.isPending
           }
-          // Añadir tipo explícito a isEditing
           modalTitle={(isEditing: boolean) =>
             isEditing ? "Editar Categoría" : "Nueva Categoría"
           }
@@ -424,17 +408,15 @@ const CategoriesScreen: React.FC = () => {
           }
         />
 
-        {/* Usar GenericDetailModal */}
         <GenericDetailModal
           visible={detailModalVisible}
           onDismiss={closeModals}
-          item={selectedCategoryMapped} // Usar el item mapeado
+          item={selectedCategoryMapped}
           titleField="name"
-          imageField="photoUrl" // Usar el campo mapeado
+          imageField="photoUrl"
           descriptionField="description"
-          statusConfig={listRenderConfig.statusConfig} // Reutilizar config
-          // fieldsToDisplay={[{ field: 'id', label: 'ID' }]} // Ejemplo campos adicionales
-          onEdit={openEditModal as (item: any) => void} // Cast si es necesario por el mapeo
+          statusConfig={listRenderConfig.statusConfig}
+          onEdit={openEditModal as (item: any) => void}
           onDelete={handleDelete}
           isDeleting={deleteCategoryMutation.isPending}
         />
