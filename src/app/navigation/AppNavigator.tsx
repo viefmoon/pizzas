@@ -1,5 +1,5 @@
 // src/app/navigation/AppNavigator.tsx
-import React from "react";
+import React, { useEffect } from "react"; // Importar useEffect
 import {
   NavigationContainer,
   Theme as NavigationTheme,
@@ -8,10 +8,17 @@ import { useAuthStore } from "../store/authStore";
 import { AuthStack } from "./AuthStack"; // Renombraremos/crearemos este
 import { AppDrawerNavigator } from "./AppDrawerNavigator";
 import { useAppTheme } from "../styles/theme"; // Para el tema de Paper
+import { initImageCache } from '../lib/imageCache'; // Importar initImageCache
 
 export function AppNavigator() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const paperTheme = useAppTheme(); // Obtener el tema de Paper
+
+  // Inicializar caché de imágenes al montar
+  useEffect(() => {
+    initImageCache();
+    // Aquí podrías añadir otras inicializaciones globales si las necesitas
+  }, []); // Array vacío para que se ejecute solo una vez
 
   // Crear un tema compatible con @react-navigation/native mapeando colores y añadiendo fuentes
   const navigationTheme: NavigationTheme = {
