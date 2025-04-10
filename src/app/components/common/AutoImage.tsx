@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Platform, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, Platform, View, ActivityIndicator, StyleProp, ViewStyle, DimensionValue } from 'react-native';
 import { Image, ImageProps as ExpoImageProps, ImageStyle } from 'expo-image';
 import { getCachedImageUri } from '../../lib/imageCache';
 import { getImageUrl } from '../../lib/imageUtils';
-import { StyleProp, ViewStyle } from 'react-native';
 import { useAppTheme } from '../../styles/theme';
 
-export interface AutoImageProps extends Omit<ExpoImageProps, 'source'> {
-  source: string | null | undefined;
+export interface AutoImageProps extends Omit<ExpoImageProps, 'source' | 'style'> {
+  source: string | null | undefined; // Espera la URL/path como string
   maxWidth?: number;
   maxHeight?: number;
   useCache?: boolean;
   placeholder?: ExpoImageProps['placeholder'];
   contentFit?: ExpoImageProps['contentFit'];
   transition?: ExpoImageProps['transition'];
+  style?: StyleProp<ViewStyle>; // Acepta solo ViewStyle para el contenedor
 }
 
-function useAutoImageSize(uri?: string, maxWidth?: number, maxHeight?: number): { width?: number, height?: number } {
-    return { width: maxWidth, height: maxHeight };
+// Hook simplificado, ya que expo-image maneja el aspect ratio con contentFit
+function useAutoImageSize(uri?: string, maxWidth?: number, maxHeight?: number): { width?: number | string, height?: number | string } {
+    // Si no se especifica tamaño, devolver '100%' para que ocupe el contenedor
+    return {
+        width: maxWidth ?? '100%',
+        height: maxHeight ?? '100%'
+    };
 }
 
 export const AutoImage: React.FC<AutoImageProps> = ({
@@ -26,161 +31,117 @@ export const AutoImage: React.FC<AutoImageProps> = ({
   maxHeight,
   useCache = true,
   style,
-  placeholder,
-  contentFit = 'cover',
-  transition = 300,
-  ...restExpoImageProps
+  placeholder, // Usar placeholder de expo-image
+  contentFit = 'cover', // 'cover' es un buen default
+  transition = 300, // Duración de la transición de carga
+  ...restExpoImageProps // Resto de props de expo-image
 }) => {
   const theme = useAppTheme();
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [processedUri, setProcessedUri] = useState<string | null>(null);
   const [isLoadingUri, setIsLoadingUri] = useState(true);
   const [isFromCache, setIsFromCache] = useState(false);
 
-  const { width, height } = useAutoImageSize(imageUri ?? undefined, maxWidth, maxHeight);
+  const { width, height } = useAutoImageSize(processedUri ?? undefined, maxWidth, maxHeight);
 
   useEffect(() => {
     let isMounted = true;
     setIsLoadingUri(true);
     setIsFromCache(false);
+    setProcessedUri(null); // Reset URI mientras procesa
 
     if (!originalSourceProp) {
-         setImageUri(null);
-         setIsLoadingUri(false);
+         if (isMounted) {
+             setIsLoadingUri(false);
+         }
          return;
     }
 
-    const fullRemoteUrl = getImageUrl(originalSourceProp);
+    const processSource = async () => {
+        const fullRemoteUrl = getImageUrl(originalSourceProp); // Construir URL completa primero
 
-    if (!fullRemoteUrl) {
-        console.warn(`[AutoImage] No se pudo construir la URL para: ${originalSourceProp}`);
-        if (isMounted) {
-            setImageUri(null);
-            setIsLoadingUri(false);
+        if (!fullRemoteUrl) {
+            console.warn(`[AutoImage] No se pudo construir la URL para: ${originalSourceProp}`);
+            if (isMounted) setIsLoadingUri(false);
+            return;
         }
-        return;
-    }
 
-    const attemptCache = async () => {
-      if (useCache && Platform.OS !== 'web') {
-        try {
-          const cachedUri = await getCachedImageUri(fullRemoteUrl);
-          if (isMounted) {
-            if (cachedUri && cachedUri.startsWith('file://')) {
-              setImageUri(cachedUri);
-              setIsFromCache(true);
-            } else {
-              setImageUri(fullRemoteUrl);
-               setIsFromCache(false);
+        // Si NO se usa caché, o es web, o es una URI local, usar la URL construida directamente
+        if (!useCache || Platform.OS === 'web' || fullRemoteUrl.startsWith('file://')) {
+            if (isMounted) {
+                setProcessedUri(fullRemoteUrl);
+                setIsLoadingUri(false);
             }
-            setIsLoadingUri(false);
-          }
-        } catch (error) {
-          console.error(`❌ [CACHE] Error obteniendo imagen (${originalSourceProp}):`, error);
-          if (isMounted) {
-            setImageUri(fullRemoteUrl);
-            setIsLoadingUri(false);
-             setIsFromCache(false);
-          }
+            return;
         }
-      } else {
-         if (isMounted) {
-            setImageUri(fullRemoteUrl);
-            setIsLoadingUri(false);
-            setIsFromCache(false);
-         }
-      }
+
+        // Intentar obtener del caché para plataformas nativas
+        try {
+            const cachedUri = await getCachedImageUri(fullRemoteUrl);
+            if (isMounted) {
+                setProcessedUri(cachedUri ?? fullRemoteUrl); // Usa caché si existe, si no, la remota
+                setIsFromCache(!!cachedUri);
+                setIsLoadingUri(false);
+            }
+        } catch (error) {
+            console.error(`❌ [AutoImage] Error obteniendo imagen (${originalSourceProp}):`, error);
+            if (isMounted) {
+                setProcessedUri(fullRemoteUrl); // Fallback a URL remota en error
+                setIsLoadingUri(false);
+            }
+        }
     };
 
-    attemptCache();
+    processSource();
 
-    return () => {
-      isMounted = false;
-    };
-  }, [originalSourceProp, useCache]);
+    return () => { isMounted = false; };
+  }, [originalSourceProp, useCache]); // Depende del source original y si se usa caché
 
-  const baseStyle: ViewStyle & ImageStyle = {
-      backgroundColor: theme.colors.surfaceVariant,
-      overflow: 'hidden',
-  };
+  const styles = StyleSheet.create({
+    container: {
+      overflow: 'hidden', // Asegurar que la imagen no se salga del contenedor
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surfaceVariant, // Fondo mientras carga o si no hay imagen
+    },
+    loadingIndicator: {
+      position: 'absolute', // Centrado sobre el fondo
+    },
+    image: {
+      width: '100%', // La imagen llenará el contenedor
+      height: '100%',
+    },
+  });
 
-  const dimensionStyle: ViewStyle = { width: width, height: height };
-
-  const imageFillStyle: ImageStyle = { width: '100%', height: '100%' };
-
-  if (isLoadingUri) {
-      const loadingViewStyle: StyleProp<ViewStyle> = [
-          dimensionStyle,
-          baseStyle,
-          styles.loadingContainer,
-          style as ViewStyle
-      ];
-      return (
-          <View style={loadingViewStyle}>
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-          </View>
-      );
-  }
-
-   if (!imageUri) {
-       const placeholderViewStyle: StyleProp<ViewStyle> = [
-           dimensionStyle,
-           baseStyle,
-           styles.placeholderContainer,
-           style as ViewStyle
-       ];
-       return (
-           <View style={placeholderViewStyle}>
-               <Image
-                   style={imageFillStyle}
-                   placeholder={placeholder}
-                   contentFit={contentFit}
-                   transition={transition}
-                   {...restExpoImageProps}
-               />
-           </View>
-       );
-   }
-
-
-
-  const finalWrapperStyle: StyleProp<ViewStyle> = [
-      dimensionStyle,
-      baseStyle,
-      style as ViewStyle
+  const containerStyle: StyleProp<ViewStyle> = [
+      styles.container,
+      { width: width as DimensionValue, height: height as DimensionValue }, // Cast a DimensionValue
+      style // Ahora 'style' es compatible porque es ViewStyle
   ];
-
-  const finalImageStyle: StyleProp<ImageStyle> = [
-      imageFillStyle,
-      style as ImageStyle
-  ];
-
 
   return (
-    <View style={finalWrapperStyle}>
+    <View style={containerStyle}>
+      {(isLoadingUri || !processedUri) && (
+        // Mostrar ActivityIndicator o el placeholder de expo-image si se prefiere
+         <ActivityIndicator
+             style={styles.loadingIndicator}
+             animating={true}
+             color={theme.colors.primary}
+             size="small"
+         />
+      )}
+      {/* Renderizar expo-image solo cuando la URI está lista */}
+      {!isLoadingUri && processedUri && (
         <Image
-          source={imageUri}
-          style={finalImageStyle}
+          source={{ uri: processedUri }}
+          style={styles.image}
           placeholder={placeholder}
           contentFit={contentFit}
           transition={transition}
-          {...restExpoImageProps}
-          onLoad={(e) => { restExpoImageProps.onLoad?.(e); }}
-          onError={(e) => { restExpoImageProps.onError?.(e); }}
+          {...restExpoImageProps} // Pasar el resto de props a expo-image
         />
+      )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-    loadingContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    placeholderContainer: {
-         justifyContent: 'center',
-         alignItems: 'center',
-     },
-});
-
 
 export default AutoImage;

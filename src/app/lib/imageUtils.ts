@@ -2,8 +2,7 @@ import { API_URL } from "@env";
 
 /**
  * Construye la URL completa de una imagen a partir de su ruta relativa o absoluta.
- * Si la ruta ya es una URL completa (http/https), la devuelve tal cual.
- * Si es una URI local (file://), la devuelve tal cual.
+ * Si la ruta ya es una URL completa (http/https) o URI local (file://), la devuelve tal cual.
  * Si es una ruta relativa, la prefija con la API_URL del entorno.
  * @param imagePath - La ruta relativa (ej. 'uploads/imagen.jpg') o URL completa de la imagen.
  * @returns La URL completa y lista para usar, o null si la entrada es inválida.
@@ -24,7 +23,6 @@ export const getImageUrl = (
 
     return `${apiUrl}${pathPart}`;
   }
-
   const formattedPath = normalizedPath.startsWith("/")
     ? normalizedPath
     : `/${normalizedPath}`;

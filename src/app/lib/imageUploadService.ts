@@ -1,6 +1,7 @@
-import fileService, { FileUploadResponse } from '../../modules/menu/services/fileService';
-import { ApiError } from './errors';
-import { API_URL } from '@env';
+import { uploadFile, FileUploadResponse } from '../../modules/menu/services/fileService'; // Ajusta ruta
+import { ApiError } from './errors'; // Ajusta ruta
+import { getImageUrl } from './imageUtils'; // Importar getImageUrl
+import { API_URL } from '@env'; // Importar API_URL
 
 export interface ImageUploadResult {
     success: boolean;
@@ -8,7 +9,8 @@ export interface ImageUploadResult {
     error?: string; // Mensaje de error si falla
 }
 
-interface FileObject {
+// Interfaz para el objeto archivo esperado por el servicio
+export interface FileObject {
     uri: string;
     name: string;
     type: string;
@@ -21,7 +23,6 @@ export interface EntityWithOptionalPhoto {
         path: string; // Necesitamos el path para comparar con la imageUri del formulario
     } | null;
 }
-
 
 export class ImageUploadService {
     /**
@@ -38,7 +39,8 @@ export class ImageUploadService {
         }
 
         try {
-            const uploadResult: FileUploadResponse = await fileService.uploadFile(imageFile);
+            // Usar la función importada directamente
+            const uploadResult: FileUploadResponse = await uploadFile(imageFile);
 
             if (!uploadResult || !uploadResult.file || !uploadResult.file.id) {
                  console.error("[ImageUploadService] Respuesta inválida del fileService:", uploadResult);
@@ -70,26 +72,26 @@ export class ImageUploadService {
       * @param formImageUri La URI de la imagen actual en el formulario (puede ser 'file://...', una URL remota, o null).
       * @param existingEntity La entidad actual (ej. Category) que podría tener una propiedad 'photo' con 'id' y 'path'.
       * @returns
-      *   - `undefined`: No hay cambios en la foto O se va a subir una nueva (el ID vendrá de la subida). Indica al DTO que no incluya la propiedad `photoId`.
-      *   - `null`: Se debe eliminar la foto existente en el backend. Indica al DTO que envíe `photoId: null`.
+      *   - `undefined`: No hay cambios en la foto O se va a subir una nueva. El DTO NO debe incluir `photoId`.
+      *   - `null`: Se debe eliminar la foto existente en el backend. El DTO DEBE incluir `photoId: null`.
       */
      static determinePhotoId(
-         formImageUri: string | null,
+         formImageUri: string | null | undefined,
          existingEntity?: EntityWithOptionalPhoto,
      ): undefined | null {
 
          const existingPhotoPath = existingEntity?.photo?.path;
          // Construir la URL completa de la foto existente para comparar
-         const existingPhotoFullUrl = existingPhotoPath ? getImageUrlHelper(existingPhotoPath) : null;
+         const existingPhotoFullUrl = existingPhotoPath ? getImageUrl(existingPhotoPath) : null;
 
          // Caso 1: Hay una nueva imagen seleccionada (URI local 'file://')
          // La subida se maneja por separado. Aquí indicamos que no hay acción *sobre el ID existente*.
-         // El DTO no incluirá `photoId`, y el backend usará el ID de la nueva imagen subida.
+         // El DTO no incluirá `photoId`. El backend usará el ID de la nueva imagen subida.
          if (formImageUri && formImageUri.startsWith('file://')) {
              return undefined;
          }
          // Caso 2: Se eliminó la imagen (formImageUri es null) Y había una foto antes.
-         else if (formImageUri === null && existingEntity?.photo) {
+         else if ((formImageUri === null || formImageUri === undefined) && existingEntity?.photo) {
              return null; // Indica que se debe eliminar la foto existente (photoId: null en el DTO)
          }
          // Caso 3: La imagen en el form es la misma URL remota que la existente.
@@ -97,14 +99,13 @@ export class ImageUploadService {
              return undefined; // No hay cambios, no incluir photoId en el DTO.
          }
          // Caso 4: La imagen en el form es una URL remota, pero NO coincide con la existente (o no había).
-         // Este caso es ambiguo en el flujo descrito. Asumimos que mantener una URL remota diferente
-         // significa que no hay cambios respecto al ID (undefined). Si el backend necesita manejar
-         // la asignación directa de URLs remotas, requeriría lógica adicional.
+         // Este caso usualmente significa que no se quiere cambiar la foto existente por una URL externa,
+         // así que no enviamos nada referente a photoId.
          else if (formImageUri && !formImageUri.startsWith('file://') && formImageUri !== existingPhotoFullUrl) {
              return undefined; // No hay cambios en el ID.
          }
-         // Caso 5: No hay imagen en el form (null) y tampoco había antes.
-         else if (formImageUri === null && !existingEntity?.photo) {
+         // Caso 5: No hay imagen en el form (null/undefined) y tampoco había antes.
+         else if ((formImageUri === null || formImageUri === undefined) && !existingEntity?.photo) {
              return undefined; // No hay cambios
          }
 
@@ -112,20 +113,3 @@ export class ImageUploadService {
          return undefined;
      }
 }
-
-// Helper interno para construir URL completa (evita dependencia cíclica o importación compleja aquí)
-// Es mejor importar desde imageUtils.ts si es posible reestructurar.
-const getImageUrlHelper = (imagePath: string | null | undefined): string | null => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('file://')) {
-        return imagePath;
-    }
-    // Usa la API_URL importada
-    if (!API_URL) {
-        console.error("❌ [ImageUploadService Helper] API_URL no está definida. No se puede construir la URL de la imagen.");
-        return null;
-    }
-    const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
-    const relativePath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
-    return `${baseUrl}/${relativePath}`;
-};

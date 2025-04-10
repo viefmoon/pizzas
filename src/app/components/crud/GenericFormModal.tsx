@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -32,17 +38,11 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodSchema } from "zod";
 import { useAppTheme, AppTheme } from "../../styles/theme";
-import CustomImagePicker from "../common/CustomImagePicker";
+import CustomImagePicker, { FileObject } from "../common/CustomImagePicker";
 import {
   ImageUploadService,
   EntityWithOptionalPhoto,
 } from "../../lib/imageUploadService";
-
-interface FileObject {
-  uri: string;
-  name: string;
-  type: string;
-}
 
 type FieldType =
   | "text"
@@ -70,7 +70,7 @@ export interface ImagePickerConfig<TFormData extends FieldValues, TItem> {
   onImageUpload: (file: FileObject) => Promise<{ id: string } | null>;
   determineFinalPhotoId?: (
     currentImageUri: string | null,
-    editingItem: TItem | null | undefined
+    editingItem: EntityWithOptionalPhoto | undefined
   ) => string | null | undefined;
   imagePickerSize?: number;
 }
@@ -89,13 +89,14 @@ interface GenericFormModalProps<
   formFields: FormFieldConfig<TFormData>[];
   imagePickerConfig?: ImagePickerConfig<TFormData, TItem>;
   initialValues?: DeepPartial<TFormData>;
-  editingItem: TItem | null;
+  editingItem: (TItem & Partial<EntityWithOptionalPhoto>) | null;
   isSubmitting: boolean;
   modalTitle: (isEditing: boolean) => string;
   submitButtonLabel?: (isEditing: boolean) => string;
   cancelButtonLabel?: string;
   modalStyle?: StyleProp<ViewStyle>;
   formContainerStyle?: StyleProp<ViewStyle>;
+  onFileSelected?: (file: FileObject | null) => void;
 }
 
 const getDefaultValueForType = (type: FieldType): any => {
@@ -213,13 +214,17 @@ const GenericFormModal = <
   cancelButtonLabel = "Cancelar",
   modalStyle,
   formContainerStyle,
+  onFileSelected,
 }: GenericFormModalProps<TFormData, TItem>) => {
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
   const [isInternalImageUploading, setIsInternalImageUploading] =
     useState(false);
-  const [selectedFileObject, setSelectedFileObject] =
-    useState<FileObject | null>(null);
+  const [localSelectedFile, setLocalSelectedFile] = useState<FileObject | null>(
+    null
+  );
+  const prevVisibleRef = useRef(visible);
+  const prevEditingItemIdRef = useRef(editingItem?.id);
 
   const isEditing = !!editingItem;
   const isActuallySubmitting = isParentSubmitting || isInternalImageUploading;
@@ -230,6 +235,7 @@ const GenericFormModal = <
     reset,
     setValue,
     watch,
+    getValues,
     formState: { errors },
   }: UseFormReturn<TFormData> = useForm<TFormData>({
     resolver: zodResolver(formSchema),
@@ -250,28 +256,55 @@ const GenericFormModal = <
     typeof watchedImageUri === "string" ? watchedImageUri : null;
 
   useEffect(() => {
+    const justOpened = visible && !prevVisibleRef.current;
+    const itemChanged =
+      visible && editingItem?.id !== prevEditingItemIdRef.current;
+
     if (visible) {
-      const defaults = formFields.reduce((acc, field) => {
+      const defaultFormValues = formFields.reduce((acc, field) => {
         (acc as any)[field.name] =
           field.defaultValue ?? getDefaultValueForType(field.type);
         return acc;
       }, {} as DefaultValues<TFormData>);
-      reset({ ...defaults, ...(initialValues as DefaultValues<TFormData>) });
-      setSelectedFileObject(null);
-      setIsInternalImageUploading(false);
+      const resetValues = {
+        ...defaultFormValues,
+        ...(initialValues as DefaultValues<TFormData>),
+      };
+
+      reset(resetValues, { keepDirtyValues: !justOpened && !itemChanged });
+
+      if (justOpened || itemChanged) {
+        setLocalSelectedFile(null);
+        onFileSelected?.(null);
+        setIsInternalImageUploading(false);
+      }
     }
-  }, [visible, initialValues, reset, formFields]);
+
+    prevVisibleRef.current = visible;
+    prevEditingItemIdRef.current = editingItem?.id;
+  }, [
+    visible,
+    editingItem?.id,
+    reset,
+    formFields,
+    initialValues,
+    onFileSelected,
+  ]);
 
   const handleImageSelected = useCallback(
     (uri: string, file: FileObject) => {
       if (imagePickerConfig) {
-        setValue(imagePickerConfig.imageUriField, uri as any, {
+        const fieldName = imagePickerConfig.imageUriField;
+        setValue(fieldName, uri as any, {
           shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
         });
-        setSelectedFileObject(file);
+        setLocalSelectedFile(file);
+        onFileSelected?.(file);
       }
     },
-    [setValue, imagePickerConfig]
+    [setValue, getValues, imagePickerConfig, onFileSelected]
   );
 
   const handleImageRemoved = useCallback(() => {
@@ -279,9 +312,10 @@ const GenericFormModal = <
       setValue(imagePickerConfig.imageUriField, null as any, {
         shouldValidate: true,
       });
-      setSelectedFileObject(null);
+      setLocalSelectedFile(null);
+      onFileSelected?.(null);
     }
-  }, [setValue, imagePickerConfig]);
+  }, [setValue, imagePickerConfig, onFileSelected]);
 
   const processSubmit: SubmitHandler<TFormData> = async (formData) => {
     if (isActuallySubmitting) return;
@@ -289,52 +323,41 @@ const GenericFormModal = <
     let finalPhotoId: string | null | undefined = undefined;
 
     if (imagePickerConfig) {
-      const currentUriForLogic = currentImageUri;
+      const formImageUri = imagePickerConfig.imageUriField
+        ? formData[imagePickerConfig.imageUriField]
+        : null;
 
-      const determineFn =
-        imagePickerConfig.determineFinalPhotoId ??
-        ImageUploadService.determinePhotoId;
+      const isNewLocalImage =
+        typeof formImageUri === "string" && formImageUri.startsWith("file://");
 
-      let photoAction: string | null | undefined;
-      if (determineFn === ImageUploadService.determinePhotoId) {
-        photoAction = ImageUploadService.determinePhotoId(
-          currentUriForLogic,
-          editingItem as EntityWithOptionalPhoto | undefined
-        );
-      } else {
-        photoAction = determineFn(currentUriForLogic, editingItem ?? undefined);
-      }
-
-      if (typeof currentUriForLogic === "string") {
-        if ((currentUriForLogic as string).startsWith("file://")) {
-          if (!selectedFileObject) {
-            Alert.alert(
-              "Error",
-              "Faltan datos del archivo de imagen seleccionado."
-            );
-            return;
+      if (isNewLocalImage && localSelectedFile) {
+        setIsInternalImageUploading(true);
+        try {
+          const uploadResult =
+            await imagePickerConfig.onImageUpload(localSelectedFile);
+          if (uploadResult?.id) {
+            finalPhotoId = uploadResult.id;
+          } else {
+            throw new Error("La subida de la imagen no devolvió un ID.");
           }
-          setIsInternalImageUploading(true);
-          try {
-            const uploadResult =
-              await imagePickerConfig.onImageUpload(selectedFileObject);
-            if (uploadResult?.id) {
-              finalPhotoId = uploadResult.id;
-            } else {
-              setIsInternalImageUploading(false);
-              return;
-            }
-          } catch (error) {
-            console.error("Error subiendo imagen:", error);
-            Alert.alert("Error", "No se pudo subir la imagen.");
-            setIsInternalImageUploading(false);
-            return;
-          } finally {
-            setIsInternalImageUploading(false);
-          }
+        } catch (error) {
+          console.error("Error subiendo imagen:", error);
+          console.error("[GenericFormModal] Error subiendo imagen:", error);
+          Alert.alert(
+            "Error",
+            `No se pudo subir la imagen: ${error instanceof Error ? error.message : "Error desconocido"}`
+          );
+          setIsInternalImageUploading(false);
+          return;
+        } finally {
+          setIsInternalImageUploading(false);
         }
       } else {
-        finalPhotoId = photoAction;
+        const determineFn =
+          imagePickerConfig.determineFinalPhotoId ??
+          ImageUploadService.determinePhotoId;
+        const entityForPhotoCheck = editingItem ?? undefined;
+        finalPhotoId = determineFn(formImageUri, entityForPhotoCheck);
       }
     }
 
@@ -498,7 +521,9 @@ const GenericFormModal = <
             </Button>
             <Button
               mode="contained"
-              onPress={handleSubmit(processSubmit)}
+              onPress={() => {
+                handleSubmit(processSubmit)();
+              }}
               loading={isActuallySubmitting}
               disabled={isActuallySubmitting}
               style={styles.formButton}

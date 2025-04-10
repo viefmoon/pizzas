@@ -1,12 +1,14 @@
+// src/modules/menu/types/category.types.ts
 import { z } from 'zod';
 
+// --- Interfaces ---
 
 /**
  * Representa la estructura de una foto asociada a una categoría.
  */
 export interface CategoryPhoto {
   id: string;
-  path: string;
+  path: string; // URL o path relativo a la imagen
 }
 
 /**
@@ -18,6 +20,8 @@ export interface Category {
   description: string | null;
   isActive: boolean;
   photo: CategoryPhoto | null;
+  // createdAt?: string; // Opcional, si la API lo devuelve
+  // updatedAt?: string; // Opcional, si la API lo devuelve
 }
 
 /**
@@ -34,16 +38,19 @@ export interface PaginatedResponse<T> {
 }
 
 
+// --- Tipos Específicos ---
 
+// Tipo para el filtro de estado activo/inactivo
 export type ActiveFilter = "all" | "active" | "inactive";
 
+// --- Esquemas Zod ---
 
 /**
  * Esquema Zod para validar la estructura de una foto de categoría.
  */
 export const categoryPhotoSchema = z.object({
   id: z.string(),
-  path: z.string().url().or(z.string().startsWith('/')),
+  path: z.string(), // Acepta URL completa o path relativo (la validación estricta de URL se hace en el display)
 });
 
 /**
@@ -55,6 +62,8 @@ export const categorySchema = z.object({
   description: z.string().nullable().optional(),
   isActive: z.boolean(),
   photo: categoryPhotoSchema.nullable().optional(),
+  // createdAt: z.string().datetime().optional(),
+  // updatedAt: z.string().datetime().optional(),
 });
 
 /**
@@ -63,9 +72,9 @@ export const categorySchema = z.object({
  */
 export const createCategoryDtoSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
-  description: z.string().optional().nullable(),
+  description: z.string().nullable().optional(), // Permitir null explícito
   isActive: z.boolean().optional().default(true),
-  photoId: z.string().uuid().optional().nullable(),
+  photoId: z.string().uuid().optional().nullable(), // ID de la foto pre-subida o null
 });
 
 /**
@@ -76,24 +85,25 @@ export const updateCategoryDtoSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').optional(),
   description: z.string().optional().nullable(),
   isActive: z.boolean().optional(),
-  photoId: z.string().uuid().optional().nullable(),
+  photoId: z.string().uuid().optional().nullable(), // ID de la foto pre-subida o null para quitarla
 });
 
 
 /**
  * Esquema Zod para los datos del formulario de Añadir/Editar Categoría.
- * El campo 'image' manejará la URI de la imagen seleccionada o existente.
+ * El campo 'imageUri' manejará la URI de la imagen seleccionada o existente.
  * Podría ser null si no hay imagen, o una string (URI) si hay una.
  */
 export const categoryFormSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
-  description: z.string().optional().nullable(),
-  isActive: z.boolean(),
-  imageUri: z.string().url().or(z.string().startsWith('file://')).nullable().optional(),
+  description: z.string().nullable().optional(), // Permitir null explícito
+  isActive: z.boolean(), // Simplificado: react-hook-form maneja el valor por defecto inicial
+  imageUri: z.string().url().or(z.string().startsWith('file://')).nullable().optional(), // URI local (file://) o remota (http/https)
 });
 
 
+// --- Tipos Inferidos ---
 
 export type CreateCategoryDto = z.infer<typeof createCategoryDtoSchema>;
 export type UpdateCategoryDto = z.infer<typeof updateCategoryDtoSchema>;
-export type CategoryFormData = z.infer<typeof categoryFormSchema>;
+export type CategoryFormData = z.infer<typeof categoryFormSchema>; // Tipo para el formulario
