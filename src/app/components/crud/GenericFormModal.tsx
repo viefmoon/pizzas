@@ -375,36 +375,98 @@ const GenericFormModal = <
       case "password":
         return (
           <View key={String(fieldName)}>
+            {/* Controller para campos numéricos con manejo de string local y decimales */}
             <Controller
               name={fieldName}
               control={control as Control<FieldValues>}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  label={fieldConfig.label}
-                  value={value === null || value === undefined ? '' : String(value)}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  mode="outlined"
-                  style={styles.input}
-                  placeholder={fieldConfig.placeholder}
-                  secureTextEntry={fieldConfig.type === "password"}
-                  keyboardType={
-                    fieldConfig.type === "number"
-                      ? "numeric"
-                      : fieldConfig.type === "email"
-                        ? "email-address"
-                        : "default"
-                  }
-                  multiline={fieldConfig.type === "textarea"}
-                  numberOfLines={
-                    fieldConfig.numberOfLines ??
-                    (fieldConfig.type === "textarea" ? 3 : 1)
-                  }
-                  error={!!errorMessage}
-                  disabled={isActuallySubmitting}
-                  {...fieldConfig.inputProps}
-                />
-              )}
+              render={({ field: { onChange, onBlur, value } }) => {
+                // --- Condicional basado en el tipo de campo ---
+                if (fieldConfig.type === 'number') {
+                  // --- Lógica específica para campos numéricos ---
+                  const [inputValue, setInputValue] = useState<string>(
+                    value === null || value === undefined ? '' : String(value)
+                  );
+
+                  useEffect(() => {
+                    const stringValue = value === null || value === undefined ? '' : String(value);
+                    // Solo actualizar si es diferente para evitar bucles y si el input no está activo (evita saltos al escribir decimales)
+                    if (stringValue !== inputValue) {
+                       const numericValueFromInput = parseFloat(inputValue);
+                       if (!(inputValue.endsWith('.') && numericValueFromInput === value) &&
+                           !(inputValue === '.' && value === null)) {
+                           setInputValue(stringValue);
+                       }
+                    }
+                  }, [value, inputValue]); // Añadir inputValue a dependencias
+
+                  return (
+                    <TextInput
+                      label={fieldConfig.label}
+                      value={inputValue}
+                      onChangeText={(text) => {
+                        const formattedText = text.replace(/,/g, '.');
+                        // Permitir solo números, un punto decimal, y vacío
+                        if (/^(\d*\.?\d*)$/.test(formattedText)) {
+                          setInputValue(formattedText); // Actualizar estado local string SIEMPRE que el formato sea válido
+
+                          // Actualizar valor del formulario (number | null)
+                          if (formattedText === '' || formattedText === '.') {
+                             // Solo llamar a onChange si el valor actual no es ya null
+                             if (value !== null) onChange(null);
+                          } else {
+                             const numericValue = parseFloat(formattedText);
+                             // Solo llamar a onChange si es un número válido y diferente al valor actual
+                             if (!isNaN(numericValue) && numericValue !== value) {
+                                 onChange(numericValue);
+                             } else if (isNaN(numericValue) && value !== null) {
+                                // Si el texto no es parseable (ej. solo '-') y el valor no es null, ponerlo a null
+                                onChange(null);
+                             }
+                          }
+                        }
+                      }}
+                      onBlur={onBlur}
+                      mode="outlined"
+                      style={styles.input}
+                      placeholder={fieldConfig.placeholder}
+                      keyboardType={fieldConfig.inputProps?.keyboardType ?? "decimal-pad"}
+                      error={!!errorMessage} // errorMessage viene del scope exterior (renderFormField)
+                      disabled={isActuallySubmitting} // isActuallySubmitting viene del scope exterior
+                      {...fieldConfig.inputProps} // Aplicar otras props, keyboardType aquí puede ser sobrescrito si existe en inputProps
+                    />
+                  );
+                  // --- Fin lógica numérica ---
+
+                } else {
+                  // --- Lógica para otros tipos de input (text, textarea, email, password) ---
+                  return (
+                    <TextInput
+                      label={fieldConfig.label}
+                      value={value ?? ''} // Usar directamente el valor (string)
+                      onChangeText={onChange} // Usar directamente onChange
+                      onBlur={onBlur}
+                      mode="outlined"
+                      style={styles.input}
+                      placeholder={fieldConfig.placeholder}
+                      secureTextEntry={fieldConfig.type === "password"}
+                      keyboardType={ // Asignar keyboardType adecuado
+                        fieldConfig.type === "email"
+                          ? "email-address"
+                          : "default" // Para text, textarea, password
+                      }
+                      multiline={fieldConfig.type === "textarea"}
+                      numberOfLines={
+                        fieldConfig.numberOfLines ??
+                        (fieldConfig.type === "textarea" ? 3 : 1)
+                      }
+                      error={!!errorMessage} // errorMessage viene del scope exterior
+                      disabled={isActuallySubmitting} // isActuallySubmitting viene del scope exterior
+                      {...fieldConfig.inputProps} // Aplicar otras props
+                    />
+                  );
+                  // --- Fin lógica de texto ---
+                }
+              }}
             />
             {errorMessage && (
               <HelperText
