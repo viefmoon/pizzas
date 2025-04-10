@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export type SnackbarType = "info" | "success" | "error" | "warning";
 
-interface SnackbarState {
+export interface SnackbarState {
   visible: boolean;
   message: string;
   type: SnackbarType;
