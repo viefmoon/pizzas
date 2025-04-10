@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
 import {
   FlatList,
   StyleSheet,
@@ -7,7 +8,16 @@ import {
   StyleProp,
   View,
 } from "react-native";
-import { List, Chip, Text, Surface, Searchbar, SegmentedButtons, FAB, Portal } from "react-native-paper";
+import {
+  List,
+  Chip,
+  Text,
+  Surface,
+  Searchbar,
+  SegmentedButtons,
+  FAB,
+  Portal,
+} from "react-native-paper";
 import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
 import { getImageUrl } from "../../lib/imageUtils";
@@ -25,7 +35,7 @@ interface StatusConfig<TItem> {
   inactiveLabel: string;
 }
 
-interface RenderItemConfig<TItem> {
+export interface RenderItemConfig<TItem> {
   titleField: keyof TItem;
   descriptionField?: keyof TItem;
   descriptionMaxLength?: number;
@@ -60,6 +70,8 @@ interface GenericListProps<TItem extends { id: string }> {
   fabIcon?: string;
   fabLabel?: string;
   fabVisible?: boolean;
+  showImagePlaceholder?: boolean;
+  isModalOpen?: boolean;
 }
 
 const getStyles = (theme: AppTheme) => {
@@ -143,7 +155,7 @@ const getStyles = (theme: AppTheme) => {
       paddingVertical: theme.spacing.xs,
     },
     fab: {
-      position: 'absolute',
+      position: "absolute",
       margin: 16,
       right: 0,
       bottom: 0,
@@ -178,12 +190,18 @@ const GenericList = <TItem extends { id: string }>({
   fabIcon = "plus",
   fabLabel,
   fabVisible = true,
+  showImagePlaceholder = true,
+  isModalOpen = false,
 }: GenericListProps<TItem>) => {
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
   const [internalSearchTerm, setInternalSearchTerm] = useState("");
-  const isSearchControlled = externalSearchQuery !== undefined && onSearchChange !== undefined;
-  const currentSearchTerm = isSearchControlled ? externalSearchQuery : internalSearchTerm;
+  const isSearchControlled =
+    externalSearchQuery !== undefined && onSearchChange !== undefined;
+  const currentSearchTerm = isSearchControlled
+    ? externalSearchQuery
+    : internalSearchTerm;
+  const isFocused = useIsFocused();
 
   const processedItems = useMemo(() => {
     let processed = [...items];
@@ -197,26 +215,33 @@ const GenericList = <TItem extends { id: string }>({
     }
 
     if (enableSearch && !isSearchControlled && currentSearchTerm.trim()) {
-        const lowerCaseSearchTerm = currentSearchTerm.toLowerCase();
-        processed = processed.filter((item) => {
-            const title = String(item[renderConfig.titleField] ?? "").toLowerCase();
-            if (title.includes(lowerCaseSearchTerm)) {
+      const lowerCaseSearchTerm = currentSearchTerm.toLowerCase();
+      processed = processed.filter((item) => {
+        const title = String(item[renderConfig.titleField] ?? "").toLowerCase();
+        if (title.includes(lowerCaseSearchTerm)) {
+          return true;
+        }
+        if (renderConfig.descriptionField) {
+          const description = String(
+            item[renderConfig.descriptionField] ?? ""
+          ).toLowerCase();
+          if (description.includes(lowerCaseSearchTerm)) {
             return true;
-            }
-            if (renderConfig.descriptionField) {
-            const description = String(
-                item[renderConfig.descriptionField] ?? ""
-            ).toLowerCase();
-            if (description.includes(lowerCaseSearchTerm)) {
-                return true;
-            }
-            }
-            return false;
-        });
+          }
+        }
+        return false;
+      });
     }
 
     return processed;
-  }, [items, enableSort, enableSearch, isSearchControlled, currentSearchTerm, renderConfig]);
+  }, [
+    items,
+    enableSort,
+    enableSearch,
+    isSearchControlled,
+    currentSearchTerm,
+    renderConfig,
+  ]);
   const renderGenericItem = useCallback(
     ({ item }: { item: TItem }) => {
       const title = String(item[renderConfig.titleField] ?? "");
@@ -252,8 +277,7 @@ const GenericList = <TItem extends { id: string }>({
         ) {
           const url = getImageUrl(imageFieldValue.path);
           imageSource = url ?? undefined;
-        }
-        else if (typeof imageFieldValue === "string") {
+        } else if (typeof imageFieldValue === "string") {
           imageSource = imageFieldValue;
         }
       }
@@ -307,19 +331,23 @@ const GenericList = <TItem extends { id: string }>({
                   )
                 : undefined
             }
-            left={(props) =>
-              imageSource ? (
-                <AutoImage
-                  source={imageSource}
-                  placeholder={require("../../../../assets/icon.png")}
-                  style={[styles.listItemImage, imageStyle]}
-                  contentFit="cover"
-                  transition={300}
-                />
-              ) : (
-                <View style={[styles.listItemImage, imageStyle]} />
-              )
-            }
+            left={(props) => {
+              if (imageSource) {
+                return (
+                  <AutoImage
+                    source={imageSource}
+                    placeholder={require("../../../../assets/icon.png")}
+                    style={[styles.listItemImage, imageStyle]}
+                    contentFit="cover"
+                    transition={300}
+                  />
+                );
+              } else if (showImagePlaceholder) {
+                return <View style={[styles.listItemImage, imageStyle]} />;
+              } else {
+                return null;
+              }
+            }}
             right={(props) => (
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 {statusChip && statusChip(props)}
@@ -394,7 +422,9 @@ const GenericList = <TItem extends { id: string }>({
         <View style={styles.searchbarContainer}>
           <Searchbar
             placeholder={searchPlaceholder}
-            onChangeText={isSearchControlled ? onSearchChange : setInternalSearchTerm}
+            onChangeText={
+              isSearchControlled ? onSearchChange : setInternalSearchTerm
+            }
             value={currentSearchTerm}
             style={styles.searchbar}
             inputStyle={{ color: theme.colors.onSurface }}
@@ -405,7 +435,11 @@ const GenericList = <TItem extends { id: string }>({
                 ? (props) => <List.Icon {...props} icon="close-circle" />
                 : undefined
             }
-            onClearIconPress={() => isSearchControlled ? onSearchChange("") : setInternalSearchTerm("")}
+            onClearIconPress={() =>
+              isSearchControlled
+                ? onSearchChange("")
+                : setInternalSearchTerm("")
+            }
           />
         </View>
       )}
@@ -442,7 +476,7 @@ const GenericList = <TItem extends { id: string }>({
             icon={fabIcon}
             style={styles.fab}
             onPress={onFabPress}
-            visible={fabVisible}
+            visible={isFocused && showFab && fabVisible && !isModalOpen}
             label={fabLabel}
             color={theme.colors.onPrimary}
             theme={{ colors: { primaryContainer: theme.colors.primary } }}

@@ -19,7 +19,7 @@ import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
 import { getImageUrl } from "../../lib/imageUtils";
 
-interface DisplayFieldConfig<TItem> {
+export interface DisplayFieldConfig<TItem> { 
   field: keyof TItem;
   label: string;
   render?: (value: TItem[keyof TItem], item: TItem) => React.ReactNode;
