@@ -36,7 +36,8 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const { showSnackbar } = useSnackbarStore();
   const { themePreference, setThemePreference } = useThemeStore();
-  const setToken = useAuthStore((state) => state.setToken);
+  // Obtener la nueva función setTokens del store
+  const setTokens = useAuthStore((state) => state.setTokens);
 
   const [initialEmailOrUsername, setInitialEmailOrUsername] = useState<string | undefined>(undefined);
   const [initialPassword, setInitialPassword] = useState<string | undefined>(undefined);
@@ -52,7 +53,8 @@ const LoginScreen = () => {
     }),
     onSuccess: async (data, variables) => {
       try {
-        await setToken(data.token);
+        // Usar setTokens y pasar ambos tokens recibidos de la API
+        await setTokens(data.token, data.refreshToken);
         const { emailOrUsername, password, rememberMe } = variables;
 
         if (rememberMe) {
