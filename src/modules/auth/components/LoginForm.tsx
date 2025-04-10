@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { TextInput, Button, HelperText, Checkbox } from "react-native-paper"; // Corregido: Quitado View as PaperView
+import { TextInput, Button, HelperText, Checkbox, TouchableRipple } from "react-native-paper"; // Añadir TouchableRipple
 import { useAppTheme } from "../../../app/styles/theme";
 
 // Esquema de validación con Zod
@@ -85,22 +85,23 @@ const LoginForm: React.FC<LoginFormProps> = ({
     checkboxContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      // Añadir padding si es necesario para el toque
+      // paddingVertical: 4,
       // Ajusta el margen según sea necesario, por ejemplo, si quieres espacio antes del botón
       marginTop: 8,
       marginBottom: 8,
       // Quitar padding horizontal si Checkbox.Item ya lo maneja bien
       // paddingHorizontal: -8, // Puede ser necesario ajustar para alinear con inputs
     },
-    checkboxItem: {
-      // Puedes ajustar padding aquí si es necesario, por ejemplo, para reducir espacio
-      paddingHorizontal: 0,
-      paddingVertical: 0,
+    // Estilo para el componente Checkbox en sí (si es necesario)
+    checkbox: {
+      // marginRight: 8, // Espacio entre checkbox y texto
     },
     checkboxLabel: {
       // Estilo para el texto "Recordarme"
       color: theme.colors.onSurface, // Usar color del tema
-      // Quitar margen si Checkbox.Item lo maneja
-      // marginLeft: -8, // Puede ser necesario ajustar
+      marginLeft: 8, // Espacio entre checkbox y texto
+      // Asegurar que el texto sea presionable si está dentro de TouchableRipple
     },
   }), [theme]); // Dependencia del tema
 
@@ -130,7 +131,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 visible={!!errors.emailOrUsername}
                 style={styles.helperText}
               >
-                {errors.emailOrUsername?.message}
+                <Text>{errors.emailOrUsername?.message}</Text>
               </HelperText>
             )}
           </View>
@@ -168,7 +169,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 visible={!!errors.password}
                 style={styles.helperText}
               >
-                {errors.password?.message}
+                <Text>{errors.password?.message}</Text>
               </HelperText>
             )}
           </View>
@@ -176,20 +177,26 @@ const LoginForm: React.FC<LoginFormProps> = ({
       />
 
       {/* Checkbox "Recordarme" añadido aquí */}
-      <View style={styles.checkboxContainer}> {/* Corregido: Usar View de react-native */}
-        <Checkbox.Item
-            label="Recordarme"
+      {/* Reemplazar Checkbox.Item con Checkbox y Text dentro de TouchableRipple */}
+      <TouchableRipple
+        onPress={() => !isLoading && setRememberMe(!rememberMe)} // Hacer toda la fila presionable
+        style={styles.checkboxContainer}
+        disabled={isLoading}
+      >
+        <>
+          <Checkbox
             status={rememberMe ? 'checked' : 'unchecked'}
-            onPress={() => setRememberMe(!rememberMe)}
-            position="leading" // Icono a la izquierda del texto
-            labelStyle={styles.checkboxLabel}
-            style={styles.checkboxItem}
+            onPress={() => setRememberMe(!rememberMe)} // onPress en Checkbox también por accesibilidad
             disabled={isLoading}
-            // Ajusta el color del checkbox si es necesario
+            // style={styles.checkbox} // Checkbox no acepta style directamente
             // color={theme.colors.primary} // Color cuando está marcado
             // uncheckedColor={theme.colors.onSurfaceVariant} // Color cuando está desmarcado
-        />
-      </View> {/* Corregido: Etiqueta de cierre */}
+          />
+          <Text style={styles.checkboxLabel} disabled={isLoading}>
+            Recordarme
+          </Text>
+        </>
+      </TouchableRipple>
 
       <Button
         mode="contained"
@@ -199,7 +206,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         disabled={isLoading}
         style={styles.button}
       >
-        {isLoading ? "Ingresando..." : "Ingresar"}
+        <Text>{isLoading ? "Ingresando..." : "Ingresar"}</Text>
       </Button>
     </View>
   );

@@ -153,19 +153,22 @@ const getStyles = (theme: AppTheme) =>
       backgroundColor: theme.colors.surfaceVariant,
       borderRadius: theme.roundness,
     },
-    switchContainer: {
+    // Eliminado switchContainer
+    switchLabel: {
+      // Estilo para la etiqueta del switch (ahora al lado)
+      color: theme.colors.onSurfaceVariant,
+      marginRight: theme.spacing.m, // Espacio entre etiqueta y switch
+      fontSize: 16, // Aumentar tamaño de fuente
+      flexShrink: 1, // Permitir que la etiqueta se encoja si es necesario
+    },
+    switchComponentContainer: {
+      // Contenedor para etiqueta y switch en la misma fila
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: theme.spacing.m,
-      paddingVertical: theme.spacing.s,
-      backgroundColor: theme.colors.surfaceVariant,
-      borderRadius: theme.roundness,
-      paddingHorizontal: theme.spacing.m,
-    },
-    switchLabel: {
-      color: theme.colors.onSurfaceVariant,
-      fontWeight: "500",
+      justifyContent: "flex-start", // Alinear ambos elementos a la izquierda
+      marginBottom: theme.spacing.m, // Mantener margen inferior
+      paddingVertical: theme.spacing.s, // Añadir padding vertical para mejor toque
+      // Quitar fondo y borde si no se desea un contenedor visual
     },
     imagePickerContainer: {
       alignItems: "center",
@@ -173,7 +176,7 @@ const getStyles = (theme: AppTheme) =>
     },
     modalActions: {
       flexDirection: "row",
-      justifyContent: "flex-end",
+      justifyContent: "flex-end", // Alinear botones a la derecha
       paddingVertical: theme.spacing.m,
       paddingHorizontal: theme.spacing.l,
       borderTopWidth: 1,
@@ -182,7 +185,8 @@ const getStyles = (theme: AppTheme) =>
     },
     formButton: {
       borderRadius: theme.roundness,
-      paddingHorizontal: theme.spacing.s,
+      paddingHorizontal: theme.spacing.m, // Aumentar padding horizontal para más espacio
+      // flex: 1, // Quitar flex para que el ancho se ajuste al contenido
     },
     cancelButton: {
       marginRight: theme.spacing.m,
@@ -414,24 +418,24 @@ const GenericFormModal = <
         );
       case "switch":
         return (
-          <View key={String(fieldName)}>
-            <View style={styles.switchContainer}>
-              <Text variant="bodyLarge" style={styles.switchLabel}>
-                {fieldConfig.switchLabel ?? fieldConfig.label}
-              </Text>
-              <Controller
-                name={fieldName}
-                control={control as Control<FieldValues>}
-                render={({ field: { onChange, value } }) => (
-                  <Switch
-                    value={value}
-                    onValueChange={onChange}
-                    disabled={isActuallySubmitting}
-                    {...fieldConfig.switchProps}
-                  />
-                )}
-              />
-            </View>
+          <View key={String(fieldName)} style={styles.switchComponentContainer}>
+            {/* Etiqueta y Switch en la misma fila */}
+            <Text variant="bodyLarge" style={styles.switchLabel}>
+              {fieldConfig.switchLabel ?? fieldConfig.label}
+            </Text>
+            <Controller
+              name={fieldName}
+              control={control as Control<FieldValues>}
+              render={({ field: { onChange, value } }) => (
+                <Switch
+                  value={value}
+                  onValueChange={onChange}
+                  disabled={isActuallySubmitting}
+                  style={{ transform: [{ scaleX: 1.5 }, { scaleY: 1.5 }] }} // Aumentar la escala
+                  {...fieldConfig.switchProps}
+                />
+              )}
+            />
             {errorMessage && (
               <HelperText
                 type="error"

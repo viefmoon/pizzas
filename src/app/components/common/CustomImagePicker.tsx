@@ -1,6 +1,6 @@
 // src/app/components/common/CustomImagePicker.tsx (Adaptado con Paper)
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Alert, TouchableOpacity, Image } from 'react-native'; // Importar Image
 import { ActivityIndicator, Button, Surface, Text, Avatar, IconButton, useTheme } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { AppTheme } from '../../styles/theme'; // Ajusta la ruta si es necesario
@@ -117,7 +117,7 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
     container: {
       width: size,
       height: size,
-      borderRadius: theme.roundness, // Usar roundness del tema
+      borderRadius: 0, // Hacer cuadrado
       justifyContent: 'center',
       alignItems: 'center',
       overflow: 'hidden',
@@ -131,7 +131,8 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
         alignItems: 'center',
     },
     image: {
-      // Avatar.Image maneja su propio tamaño, no necesita width/height aquí
+      width: '100%',
+      height: '100%',
     },
     placeholderContainer: {
       justifyContent: 'center',
@@ -148,7 +149,7 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
       backgroundColor: 'rgba(0,0,0,0.4)',
       justifyContent: 'center',
       alignItems: 'center',
-      borderRadius: theme.roundness, // Coincidir con el contenedor
+      borderRadius: 0, // Coincidir con el contenedor cuadrado
     },
     removeButton: {
       position: 'absolute',
@@ -166,7 +167,7 @@ export const CustomImagePicker: React.FC<CustomImagePickerProps> = ({
         disabled={isLoading || disabled}
       >
         {imageUri ? (
-          <Avatar.Image size={size} source={{ uri: imageUri }} style={styles.image} />
+          <Image source={{ uri: imageUri }} style={styles.image} />
         ) : (
           <View style={styles.placeholderContainer}>
             <Avatar.Icon size={size * 0.4} icon={placeholderIcon} style={{backgroundColor: 'transparent'}} color={theme.colors.onSurfaceVariant} />
