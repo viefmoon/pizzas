@@ -89,20 +89,6 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
 
           <PaperDrawer.Section style={styles.drawerSection}>
             <PaperDrawer.Item
-              label="Bienvenida"
-              icon="home-outline"
-              active={props.state.routes[props.state.index]?.name === "Welcome"}
-              onPress={() => {
-                props.navigation.navigate("Welcome");
-              }}
-              style={
-                props.state.routes[props.state.index]?.name === "Welcome"
-                  ? { backgroundColor: "transparent" }
-                  : {}
-              }
-              theme={theme}
-            />
-            <PaperDrawer.Item
               label="Menú"
               icon="menu"
               active={props.state.routes[props.state.index]?.name === "Menu"}

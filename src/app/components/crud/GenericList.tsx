@@ -178,18 +178,19 @@ const GenericList = <TItem extends { id: string }>({
                   )
                 : undefined
             }
-            left={
-              imageSource
-                ? (props) => (
-                    <AutoImage
-                      source={imageSource}
-                      placeholder={require("../../../../assets/icon.png")}
-                      style={[styles.listItemImage, imageStyle]}
-                      contentFit="cover"
-                      transition={300}
-                    />
-                  )
-                : undefined
+            left={(props) =>
+              imageSource ? (
+                <AutoImage
+                  source={imageSource}
+                  placeholder={require("../../../../assets/icon.png")}
+                  style={[styles.listItemImage, imageStyle]}
+                  contentFit="cover"
+                  transition={300}
+                />
+              ) : (
+                // Renderiza un View vacío con el mismo estilo para reservar el espacio
+                <View style={[styles.listItemImage, imageStyle]} />
+              )
             }
             right={statusChip ? (props) => statusChip(props) : undefined}
             onPress={() => onItemPress(item)}
