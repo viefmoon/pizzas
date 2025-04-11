@@ -1,7 +1,7 @@
 import apiClient from '../../../app/services/apiClient';
 import { ApiError } from '../../../app/lib/errors';
 import { BackendErrorResponse } from '../../../app/types/api.types';
-import { BaseListQuery } from '../../../app/types/query.types'; // Corregido: Usar BaseListQuery
+import { BaseListQuery } from '../../../app/types/query.types';
 import {
   Table,
   CreateTableDto,
@@ -13,7 +13,7 @@ const TABLE_ENDPOINT = '/api/v1/tables';
 
 export const getTables = async (
   filterOptions: FindAllTablesDto = {},
-  paginationOptions: BaseListQuery = { page: 1, limit: 10 } // Corregido: Usar BaseListQuery
+  paginationOptions: BaseListQuery = { page: 1, limit: 10 }
 ): Promise<Table[]> => {
   const response = await apiClient.get<Table[]>(TABLE_ENDPOINT, {
     ...filterOptions,
@@ -23,7 +23,6 @@ export const getTables = async (
 
   if (!response.ok || !response.data) {
     console.error('[tableService.getTables] Failed to fetch tables:', response);
-    // Corregido: Llamada a ApiError.fromApiResponse con 2 argumentos
     throw ApiError.fromApiResponse(
       response.data as BackendErrorResponse | undefined,
       response.status
@@ -37,7 +36,6 @@ export const getTablesByAreaId = async (areaId: string): Promise<Table[]> => {
 
     if (!response.ok || !response.data) {
         console.error(`[tableService.getTablesByAreaId] Failed to fetch tables for area ${areaId}:`, response);
-        // Corregido: Llamada a ApiError.fromApiResponse con 2 argumentos
         throw ApiError.fromApiResponse(
             response.data as BackendErrorResponse | undefined,
             response.status
@@ -51,7 +49,6 @@ export const getTableById = async (id: string): Promise<Table> => {
 
   if (!response.ok || !response.data) {
     console.error(`[tableService.getTableById] Failed to fetch table ${id}:`, response);
-    // Corregido: Llamada a ApiError.fromApiResponse con 2 argumentos
     throw ApiError.fromApiResponse(
       response.data as BackendErrorResponse | undefined,
       response.status
@@ -65,7 +62,6 @@ export const createTable = async (data: CreateTableDto): Promise<Table> => {
 
   if (!response.ok || !response.data) {
      console.error('[tableService.createTable] Failed to create table:', response);
-    // Corregido: Llamada a ApiError.fromApiResponse con 2 argumentos
     throw ApiError.fromApiResponse(
       response.data as BackendErrorResponse | undefined,
       response.status
@@ -82,7 +78,6 @@ export const updateTable = async (
 
   if (!response.ok || !response.data) {
     console.error(`[tableService.updateTable] Failed to update table ${id}:`, response);
-    // Corregido: Llamada a ApiError.fromApiResponse con 2 argumentos
     throw ApiError.fromApiResponse(
       response.data as BackendErrorResponse | undefined,
       response.status
@@ -96,7 +91,6 @@ export const deleteTable = async (id: string): Promise<void> => {
 
   if (!response.ok) {
     console.error(`[tableService.deleteTable] Failed to delete table ${id}:`, response);
-    // Corregido: Llamada a ApiError.fromApiResponse con 2 argumentos
     throw ApiError.fromApiResponse(
       response.data as BackendErrorResponse | undefined,
       response.status

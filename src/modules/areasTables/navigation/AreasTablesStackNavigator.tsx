@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { DrawerToggleButton } from '@react-navigation/drawer'; // Importar el botón del drawer
-import { Platform } from 'react-native'; // Para condicional OS
+import { DrawerToggleButton } from '@react-navigation/drawer';
+import { Platform } from 'react-native';
 import { AreasTablesStackParamList } from './types';
 import AreasScreen from '../screens/AreasScreen';
 import TablesScreen from '../screens/TablesScreen';
@@ -15,16 +15,15 @@ const AreasTablesStackNavigator = () => {
   return (
     <Stack.Navigator
       initialRouteName="AreasList"
-      screenOptions={{ // Aplicar estilos consistentes con MenuStack
+      screenOptions={{
         headerStyle: {
-          backgroundColor: theme.colors.elevation.level2, // Coincidir con MenuStack
+          backgroundColor: theme.colors.elevation.level2,
         },
-        headerTintColor: theme.colors.onSurface, // Coincidir con MenuStack
+        headerTintColor: theme.colors.onSurface,
         headerTitleStyle: {
-          ...theme.fonts.titleLarge, // Coincidir con MenuStack
-          fontWeight: 'bold', // Coincidir con MenuStack
+          ...theme.fonts.titleLarge,
+          fontWeight: 'bold',
         },
-        // headerBackTitleVisible: false, // Opción no válida para native-stack
       }}
     >
       <Stack.Screen
@@ -32,12 +31,11 @@ const AreasTablesStackNavigator = () => {
         component={AreasScreen}
         options={{
           title: 'Áreas',
-          // Añadir el botón del Drawer a la izquierda, igual que en MenuStack
           headerLeft: (props) =>
             Platform.OS !== 'web' ? (
               <DrawerToggleButton
                 {...props}
-                tintColor={theme.colors.onSurface} // Coincidir con MenuStack
+                tintColor={theme.colors.onSurface}
               />
             ) : null,
         }}
@@ -46,11 +44,9 @@ const AreasTablesStackNavigator = () => {
         name="TablesList"
         component={TablesScreen}
         options={({ route }) => ({
-          // El título se establece dinámicamente basado en route.params
           title: `Mesas de ${route.params.areaName || 'Área'}`,
         })}
       />
-      {/* Aquí podrías añadir pantallas de detalle si fueran necesarias dentro de este stack */}
     </Stack.Navigator>
   );
 };

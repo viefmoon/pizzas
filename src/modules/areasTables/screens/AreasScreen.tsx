@@ -1,12 +1,11 @@
-import React, { useState, useCallback, useMemo } from 'react'; // Añadir useMemo
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { ActivityIndicator, Text, IconButton } from 'react-native-paper';
-import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook para estado del drawer
+import { useDrawerStatus } from '@react-navigation/drawer';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import GenericList, { RenderItemConfig, FilterOption } from '../../../app/components/crud/GenericList'; // Importar FilterOption
+import GenericList, { RenderItemConfig, FilterOption } from '../../../app/components/crud/GenericList';
 import GenericDetailModal, { DisplayFieldConfig } from '../../../app/components/crud/GenericDetailModal';
 import AreaFormModal from '../components/AreaFormModal';
-// import AreaDetailModal from '../components/AreaDetailModal'; // Eliminar import específico
 import {
   useGetAreas,
   useCreateArea,
@@ -14,32 +13,30 @@ import {
   useDeleteArea,
 } from '../hooks/useAreasQueries';
 import { Area, CreateAreaDto, UpdateAreaDto } from '../types/area.types';
-import { AreasListScreenProps } from '../navigation/types'; // Props de navegación
-import { useAppTheme, AppTheme } from '../../../app/styles/theme'; // Importar AppTheme también
+import { AreasListScreenProps } from '../navigation/types';
+import { useAppTheme, AppTheme } from '../../../app/styles/theme';
 
 const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
   const theme = useAppTheme();
   const styles = getStyles(theme);
-  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
-  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
+  const drawerStatus = useDrawerStatus();
+  const isDrawerOpen = drawerStatus === 'open';
 
-  // State for modals and selected item
   const [formModalVisible, setFormModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedArea, setSelectedArea] = useState<Area | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // Estado para la búsqueda
-  const [filterStatus, setFilterStatus] = useState<string>('all'); // Estado para el filtro ('all', 'true', 'false')
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  // React Query Hooks
   const {
-    data: areasData = [], // Default to empty array
+    data: areasData = [],
     isLoading: isLoadingAreas,
     isError: isErrorAreas,
     refetch: refetchAreas,
     isRefetching,
-  } = useGetAreas( // Pasar filtros al hook
-      { name: searchQuery || undefined, isActive: filterStatus === 'all' ? undefined : filterStatus === 'true' }, // Convertir 'all' a undefined, 'true'/'false' a boolean
+  } = useGetAreas(
+      { name: searchQuery || undefined, isActive: filterStatus === 'all' ? undefined : filterStatus === 'true' },
       { page: 1, limit: 100 }
   );
 
@@ -50,7 +47,6 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
   const isSubmitting = createAreaMutation.isPending || updateAreaMutation.isPending;
   const isDeleting = deleteAreaMutation.isPending;
 
-  // --- Handlers ---
   const handleOpenFormModal = (area: Area | null = null) => {
     setSelectedArea(area);
     setIsEditing(!!area);
@@ -74,7 +70,7 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
 
   const handleFormSubmit = async (
     data: CreateAreaDto | UpdateAreaDto,
-    _photoId: string | null | undefined // Not used for areas
+    _photoId: string | null | undefined
   ) => {
     try {
       if (isEditing && selectedArea) {
@@ -83,9 +79,7 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
         await createAreaMutation.mutateAsync(data as CreateAreaDto);
       }
       handleCloseFormModal();
-      // refetchAreas(); // Invalidation should handle refetching
     } catch (error) {
-      // Error is handled by the mutation's onError
       console.error('Submit failed:', error);
     }
   };
@@ -102,9 +96,8 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
           onPress: async () => {
             try {
               await deleteAreaMutation.mutateAsync(id);
-              handleCloseDetailModal(); // Close detail modal if open
+              handleCloseDetailModal();
             } catch (error) {
-              // Error handled by mutation's onError
             }
           },
         },
@@ -116,8 +109,7 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
     navigation.navigate('TablesList', { areaId: area.id, areaName: area.name });
   };
 
-  // --- Render & Detail Config ---
-  const listRenderConfig: RenderItemConfig<Area> = { // Renombrar para claridad
+  const listRenderConfig: RenderItemConfig<Area> = {
     titleField: 'name',
     descriptionField: 'description',
     statusConfig: {
@@ -128,26 +120,19 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
     },
   };
 
-  // Configuración para GenericDetailModal (movida desde el componente eliminado)
   const areaDetailFields: DisplayFieldConfig<Area>[] = [
     { field: 'description', label: 'Descripción' },
-    // { field: 'createdAt', label: 'Creado', render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A' },
   ];
   const areaDetailStatusConfig = listRenderConfig.statusConfig;
 
-  // --- Filtros ---
-  // Usar strings para los valores, incluyendo 'all'
   const filterOptions: FilterOption<string>[] = useMemo(() => [
       { label: 'Todas', value: 'all' },
-      { label: 'Activas', value: 'true' }, // Icono eliminado
-      { label: 'Inactivas', value: 'false' }, // Icono eliminado
+      { label: 'Activas', value: 'true' },
+      { label: 'Inactivas', value: 'false' },
   ], []);
 
-  // El valor recibido de SegmentedButtons será 'all', 'true', o 'false'
   const handleFilterChange = (value: string) => {
       setFilterStatus(value);
-      // Opcional: Limpiar búsqueda al cambiar filtro
-      // setSearchQuery('');
   };
 
   const handleSearchChange = (query: string) => {
@@ -155,9 +140,8 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
   };
 
   const handleRefresh = useCallback(() => {
-      // Limpiar filtros y búsqueda al hacer refresh manual
       setSearchQuery('');
-      setFilterStatus('all'); // Resetear a 'all'
+      setFilterStatus('all');
       refetchAreas();
   }, [refetchAreas]);
 
@@ -170,7 +154,6 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
     />
   );
 
-  // --- Empty/Loading/Error States ---
   const ListEmptyComponent = (
     <View style={styles.centered}>
       <Text variant="bodyLarge">No hay áreas creadas todavía.</Text>
@@ -193,35 +176,31 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
         <Text style={{ color: theme.colors.error }}>
           Error al cargar las áreas.
         </Text>
-        {/* Consider adding a retry button */}
       </SafeAreaView>
     );
   }
 
-  // --- Main Render ---
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <GenericList<Area>
         items={areasData}
         renderConfig={listRenderConfig}
         onItemPress={handleOpenDetailModal}
-        onRefresh={handleRefresh} // Usar handler personalizado
+        onRefresh={handleRefresh}
         isRefreshing={isRefetching}
         ListEmptyComponent={ListEmptyComponent}
-        // --- Props para búsqueda y filtro ---
         enableSearch={true}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         filterOptions={filterOptions}
-        filterValue={filterStatus} // Ahora es string ('all', 'true', 'false')
-        onFilterChange={handleFilterChange} // Recibe string
-        // --- Fin props búsqueda y filtro ---
+        filterValue={filterStatus}
+        onFilterChange={handleFilterChange}
         showFab={true}
         onFabPress={() => handleOpenFormModal()}
-        // fabLabel="Nueva Área" // <-- Eliminado para quitar el texto
-        renderItemActions={renderItemActions} // Add action button
-        isModalOpen={formModalVisible || detailModalVisible} // Hide FAB when modals are open
-        isDrawerOpen={isDrawerOpen} // Pasar el estado del drawer
+        renderItemActions={renderItemActions}
+        isModalOpen={formModalVisible || detailModalVisible}
+        isDrawerOpen={isDrawerOpen}
+        showImagePlaceholder={false}
       />
 
       <AreaFormModal
@@ -232,14 +211,13 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
         isSubmitting={isSubmitting}
       />
 
-      {/* Usar GenericDetailModal directamente */}
       <GenericDetailModal<Area>
         visible={detailModalVisible}
         onDismiss={handleCloseDetailModal}
         item={selectedArea}
-        titleField="name" // Campo para el título del modal
-        statusConfig={areaDetailStatusConfig} // Configuración de estado
-        fieldsToDisplay={areaDetailFields} // Campos adicionales a mostrar
+        titleField="name"
+        statusConfig={areaDetailStatusConfig}
+        fieldsToDisplay={areaDetailFields}
         onEdit={() => {
           handleCloseDetailModal();
           handleOpenFormModal(selectedArea);

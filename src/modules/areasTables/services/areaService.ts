@@ -76,7 +76,6 @@ export const updateArea = async (
 export const deleteArea = async (id: string): Promise<void> => {
   const response = await apiClient.delete(`${AREA_ENDPOINT}/${id}`);
 
-  // DELETE suele devolver 204 No Content, response.data será null o undefined
   if (!response.ok) {
      console.error(`[areaService.deleteArea] Failed to delete area ${id}:`, response);
     throw ApiError.fromApiResponse(
@@ -84,5 +83,4 @@ export const deleteArea = async (id: string): Promise<void> => {
       response.status
     );
   }
-  // No se retorna nada en caso de éxito (void)
 };

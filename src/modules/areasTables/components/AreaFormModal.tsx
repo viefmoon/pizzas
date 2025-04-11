@@ -11,7 +11,6 @@ import {
 } from '../types/area.types';
 import { z } from 'zod';
 
-// Definir los campos del formulario para Area
 const areaFormFields: FormFieldConfig<CreateAreaDto | UpdateAreaDto>[] = [
   {
     name: 'name',
@@ -31,8 +30,8 @@ const areaFormFields: FormFieldConfig<CreateAreaDto | UpdateAreaDto>[] = [
     name: 'isActive',
     label: '¿Está activa?',
     type: 'switch',
-    switchLabel: 'Activa', // Etiqueta junto al switch
-    defaultValue: true, // Valor por defecto al crear
+    switchLabel: 'Activa',
+    defaultValue: true,
   },
 ];
 
@@ -41,7 +40,7 @@ interface AreaFormModalProps {
   onDismiss: () => void;
   onSubmit: (
     data: CreateAreaDto | UpdateAreaDto,
-    photoId: string | null | undefined // photoId no se usa aquí, pero lo mantenemos por la firma genérica
+    photoId: string | null | undefined
   ) => Promise<void>;
   editingItem: Area | null;
   isSubmitting: boolean;
@@ -56,16 +55,14 @@ const AreaFormModal: React.FC<AreaFormModalProps> = ({
 }) => {
   const isEditing = !!editingItem;
 
-  // Determinar el esquema y valores iniciales según si es edición o creación
   const formSchema = isEditing ? UpdateAreaSchema : CreateAreaSchema;
   const initialValues = isEditing
     ? {
         name: editingItem?.name,
-        description: editingItem?.description ?? undefined, // Asegurar undefined si es null
+        description: editingItem?.description ?? undefined,
         isActive: editingItem?.isActive,
       }
     : {
-        // Valores por defecto para creación (ya definidos en los fields, pero podemos ser explícitos)
         name: '',
         description: undefined,
         isActive: true,
@@ -76,7 +73,7 @@ const AreaFormModal: React.FC<AreaFormModalProps> = ({
       visible={visible}
       onDismiss={onDismiss}
       onSubmit={onSubmit}
-      formSchema={formSchema as z.ZodSchema<CreateAreaDto | UpdateAreaDto>} // Cast necesario por la unión
+      formSchema={formSchema as z.ZodSchema<CreateAreaDto | UpdateAreaDto>}
       formFields={areaFormFields}
       initialValues={initialValues}
       editingItem={editingItem}
@@ -84,7 +81,6 @@ const AreaFormModal: React.FC<AreaFormModalProps> = ({
       modalTitle={(isEditing) =>
         isEditing ? 'Editar Área' : 'Crear Nueva Área'
       }
-      // No necesitamos imagePickerConfig para Areas
     />
   );
 };

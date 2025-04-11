@@ -39,7 +39,6 @@ export const useGetTables = (
   return useQuery<Table[], Error>({
     queryKey,
     queryFn: () => tableService.getTables(filters, pagination),
-    // Consider adding options like staleTime, keepPreviousData
   });
 };
 
@@ -52,7 +51,6 @@ export const useGetTablesByAreaId = (areaId: string | null, options?: { enabled?
         queryKey,
         queryFn: () => tableService.getTablesByAreaId(areaId!),
         enabled: !!areaId && (options?.enabled ?? true),
-        // Consider staleTime
     });
 };
 
@@ -66,7 +64,6 @@ export const useGetTableById = (id: string | null, options?: { enabled?: boolean
     queryKey,
     queryFn: () => tableService.getTableById(id!),
     enabled: !!id && (options?.enabled ?? true),
-    // Consider staleTime
   });
 };
 
@@ -80,10 +77,7 @@ export const useCreateTable = () => {
   return useMutation<Table, Error, CreateTableDto>({
     mutationFn: tableService.createTable,
     onSuccess: (newTable) => {
-      // Invalidate list queries (general and by area)
       queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
-      // Optionally update cache
-      // queryClient.setQueryData(tablesQueryKeys.detail(newTable.id), newTable);
       showSnackbar({ message: 'Mesa creada con éxito', type: 'success' });
     },
     onError: (error) => {
@@ -104,11 +98,8 @@ export const useUpdateTable = () => {
   return useMutation<Table, Error, { id: string; data: UpdateTableDto }>({
     mutationFn: ({ id, data }) => tableService.updateTable(id, data),
     onSuccess: (updatedTable) => {
-      // Invalidate lists and specific detail
       queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(updatedTable.id) });
-      // Optionally update cache
-      // queryClient.setQueryData(tablesQueryKeys.detail(updatedTable.id), updatedTable);
       showSnackbar({ message: 'Mesa actualizada con éxito', type: 'success' });
     },
     onError: (error, variables) => {
@@ -129,9 +120,7 @@ export const useDeleteTable = () => {
   return useMutation<void, Error, string>({
     mutationFn: tableService.deleteTable,
     onSuccess: (_, deletedId) => {
-      // Invalidate lists
       queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
-      // Remove detail from cache
       queryClient.removeQueries({ queryKey: tablesQueryKeys.detail(deletedId) });
       showSnackbar({ message: 'Mesa eliminada con éxito', type: 'success' });
     },

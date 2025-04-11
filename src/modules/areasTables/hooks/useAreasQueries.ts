@@ -38,7 +38,6 @@ export const useGetAreas = (
   return useQuery<Area[], Error>({
     queryKey,
     queryFn: () => areaService.getAreas(filters, pagination),
-    // Consider adding options like staleTime, keepPreviousData based on UX needs
   });
 };
 
@@ -50,8 +49,7 @@ export const useGetAreaById = (id: string | null, options?: { enabled?: boolean 
   return useQuery<Area, Error>({
     queryKey,
     queryFn: () => areaService.getAreaById(id!),
-    enabled: !!id && (options?.enabled ?? true), // Enable only if id is provided and enabled option is true/undefined
-    // Consider adding staleTime if area details don't change often
+    enabled: !!id && (options?.enabled ?? true),
   });
 };
 
@@ -65,10 +63,7 @@ export const useCreateArea = () => {
   return useMutation<Area, Error, CreateAreaDto>({
     mutationFn: areaService.createArea,
     onSuccess: (newArea) => {
-      // Invalidate the list query to refetch areas
       queryClient.invalidateQueries({ queryKey: areasQueryKeys.lists() });
-      // Optionally, update the cache directly for immediate feedback
-      // queryClient.setQueryData(areasQueryKeys.detail(newArea.id), newArea);
       showSnackbar({ message: 'Área creada con éxito', type: 'success' });
     },
     onError: (error) => {
@@ -89,11 +84,8 @@ export const useUpdateArea = () => {
   return useMutation<Area, Error, { id: string; data: UpdateAreaDto }>({
     mutationFn: ({ id, data }) => areaService.updateArea(id, data),
     onSuccess: (updatedArea) => {
-      // Invalidate both the list and the specific detail query
       queryClient.invalidateQueries({ queryKey: areasQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: areasQueryKeys.detail(updatedArea.id) });
-      // Optionally update the cache directly
-      // queryClient.setQueryData(areasQueryKeys.detail(updatedArea.id), updatedArea);
       showSnackbar({ message: 'Área actualizada con éxito', type: 'success' });
     },
     onError: (error, variables) => {
@@ -114,9 +106,7 @@ export const useDeleteArea = () => {
   return useMutation<void, Error, string>({
     mutationFn: areaService.deleteArea,
     onSuccess: (_, deletedId) => {
-      // Invalidate the list query
       queryClient.invalidateQueries({ queryKey: areasQueryKeys.lists() });
-      // Remove the specific detail query from cache if it exists
       queryClient.removeQueries({ queryKey: areasQueryKeys.detail(deletedId) });
       showSnackbar({ message: 'Área eliminada con éxito', type: 'success' });
     },
