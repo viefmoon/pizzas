@@ -10,7 +10,7 @@ import ProductsScreen from "../../products/screens/ProductsScreen";
 
 const Stack = createNativeStackNavigator<MenuStackParamList>();
 
-export const MenuStack: React.FC = () => {
+export const MenuStackNavigator: React.FC = () => {
   const theme = useAppTheme();
   // Eliminamos el hook useNavigation que ya no es necesario
 
