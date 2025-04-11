@@ -319,7 +319,7 @@ const createStyles = (theme: AppTheme) =>
     },
     listContentContainer: {
         paddingBottom: 80,
-        paddingHorizontal: theme.spacing.m,
+        // paddingHorizontal eliminado para usar el ancho completo
    },
  });
 

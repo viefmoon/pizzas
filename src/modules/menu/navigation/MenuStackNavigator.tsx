@@ -5,8 +5,8 @@ import { useAppTheme } from "../../../app/styles/theme";
 import type { MenuStackParamList } from "./types.ts";
 
 import CategoriesScreen from "../screens/CategoriesScreen";
-import SubcategoriesScreen from "../../subcategories/screens/SubcategoriesScreen";
-import ProductsScreen from "../../products/screens/ProductsScreen";
+import SubcategoriesScreen from "../screens/SubcategoriesScreen";
+import ProductsScreen from "../screens/ProductsScreen";
 
 const Stack = createNativeStackNavigator<MenuStackParamList>();
 

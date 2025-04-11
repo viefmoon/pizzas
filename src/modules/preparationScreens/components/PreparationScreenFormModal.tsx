@@ -32,8 +32,8 @@ import {
   useCreatePreparationScreen,
   useUpdatePreparationScreen,
 } from "../hooks/usePreparationScreensQueries";
-import { useProductsQuery } from "../../products/hooks/useProductsQueries";
-import { Product } from "../../products/types/products.types"; // Asegurar que la ruta es correcta
+import { useProductsQuery } from "../../menu/hooks/useProductsQueries";
+import { Product } from "../../menu/types/products.types"; // Ruta actualizada
 
 interface PreparationScreenFormModalProps {
   visible: boolean;
