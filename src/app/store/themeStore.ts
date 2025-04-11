@@ -1,7 +1,7 @@
 import React from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import EncryptedStorage from "react-native-encrypted-storage";
 import { useColorScheme, Appearance } from "react-native";
 
 import {
@@ -51,7 +51,7 @@ export const useThemeStore = create<ThemeState>()(
 
     {
       name: THEME_PREFERENCE_STORAGE_KEY,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => EncryptedStorage),
       partialize: (state) => ({ themePreference: state.themePreference }),
       onRehydrateStorage: () => {
         return (state, error) => {
