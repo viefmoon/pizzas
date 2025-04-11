@@ -617,7 +617,7 @@ function ProductFormModal({
             disabled={isSubmitting || isInternalImageUploading}
             style={styles.formButton}
           >
-            {isEditing ? "Guardar Cambios" : "Crear Producto"}
+            {isEditing ? "Guardar" : "Crear"}
           </Button>
         </View>
       </Modal>

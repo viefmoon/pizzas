@@ -167,19 +167,24 @@ const getStyles = (theme: AppTheme) =>
     },
     modalActions: {
       flexDirection: "row",
-      justifyContent: "flex-end",
+      justifyContent: "center",
       paddingVertical: theme.spacing.m,
       paddingHorizontal: theme.spacing.l,
       borderTopWidth: 1,
       borderTopColor: theme.colors.outlineVariant,
       backgroundColor: theme.colors.surface,
+      gap: theme.spacing.m,
+      minHeight: 60,
     },
     formButton: {
       borderRadius: theme.roundness,
-      paddingHorizontal: theme.spacing.m,
+      paddingHorizontal: theme.spacing.xs,
+      flex: 1,
+      maxWidth: 200,
+      minWidth: 140,
     },
     cancelButton: {
-      marginRight: theme.spacing.m,
+      // Eliminado marginRight ya que ahora usamos gap
     },
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
@@ -209,8 +214,7 @@ const GenericFormModal = <
   editingItem,
   isSubmitting: isParentSubmitting,
   modalTitle,
-  submitButtonLabel = (isEditing: boolean) =>
-    isEditing ? "Guardar Cambios" : "Crear",
+  submitButtonLabel = (isEditing: boolean) => (isEditing ? "Guardar" : "Crear"),
   cancelButtonLabel = "Cancelar",
   modalStyle,
   formContainerStyle,
@@ -327,8 +331,8 @@ const GenericFormModal = <
         ? formData[imagePickerConfig.imageUriField]
         : null;
 
-            const isNewLocalImage =
-              typeof formImageUri === "string" && formImageUri.startsWith("file://");
+      const isNewLocalImage =
+        typeof formImageUri === "string" && formImageUri.startsWith("file://");
       if (isNewLocalImage && localSelectedFile) {
         setIsInternalImageUploading(true);
         try {
@@ -381,21 +385,29 @@ const GenericFormModal = <
               control={control as Control<FieldValues>}
               render={({ field: { onChange, onBlur, value } }) => {
                 // --- Condicional basado en el tipo de campo ---
-                if (fieldConfig.type === 'number') {
+                if (fieldConfig.type === "number") {
                   // --- Lógica específica para campos numéricos ---
                   const [inputValue, setInputValue] = useState<string>(
-                    value === null || value === undefined ? '' : String(value)
+                    value === null || value === undefined ? "" : String(value)
                   );
 
                   useEffect(() => {
-                    const stringValue = value === null || value === undefined ? '' : String(value);
+                    const stringValue =
+                      value === null || value === undefined
+                        ? ""
+                        : String(value);
                     // Solo actualizar si es diferente para evitar bucles y si el input no está activo (evita saltos al escribir decimales)
                     if (stringValue !== inputValue) {
-                       const numericValueFromInput = parseFloat(inputValue);
-                       if (!(inputValue.endsWith('.') && numericValueFromInput === value) &&
-                           !(inputValue === '.' && value === null)) {
-                           setInputValue(stringValue);
-                       }
+                      const numericValueFromInput = parseFloat(inputValue);
+                      if (
+                        !(
+                          inputValue.endsWith(".") &&
+                          numericValueFromInput === value
+                        ) &&
+                        !(inputValue === "." && value === null)
+                      ) {
+                        setInputValue(stringValue);
+                      }
                     }
                   }, [value, inputValue]); // Añadir inputValue a dependencias
 
@@ -404,24 +416,27 @@ const GenericFormModal = <
                       label={fieldConfig.label}
                       value={inputValue}
                       onChangeText={(text) => {
-                        const formattedText = text.replace(/,/g, '.');
+                        const formattedText = text.replace(/,/g, ".");
                         // Permitir solo números, un punto decimal, y vacío
                         if (/^(\d*\.?\d*)$/.test(formattedText)) {
                           setInputValue(formattedText); // Actualizar estado local string SIEMPRE que el formato sea válido
 
                           // Actualizar valor del formulario (number | null)
-                          if (formattedText === '' || formattedText === '.') {
-                             // Solo llamar a onChange si el valor actual no es ya null
-                             if (value !== null) onChange(null);
+                          if (formattedText === "" || formattedText === ".") {
+                            // Solo llamar a onChange si el valor actual no es ya null
+                            if (value !== null) onChange(null);
                           } else {
-                             const numericValue = parseFloat(formattedText);
-                             // Solo llamar a onChange si es un número válido y diferente al valor actual
-                             if (!isNaN(numericValue) && numericValue !== value) {
-                                 onChange(numericValue);
-                             } else if (isNaN(numericValue) && value !== null) {
-                                // Si el texto no es parseable (ej. solo '-') y el valor no es null, ponerlo a null
-                                onChange(null);
-                             }
+                            const numericValue = parseFloat(formattedText);
+                            // Solo llamar a onChange si es un número válido y diferente al valor actual
+                            if (
+                              !isNaN(numericValue) &&
+                              numericValue !== value
+                            ) {
+                              onChange(numericValue);
+                            } else if (isNaN(numericValue) && value !== null) {
+                              // Si el texto no es parseable (ej. solo '-') y el valor no es null, ponerlo a null
+                              onChange(null);
+                            }
                           }
                         }
                       }}
@@ -429,27 +444,29 @@ const GenericFormModal = <
                       mode="outlined"
                       style={styles.input}
                       placeholder={fieldConfig.placeholder}
-                      keyboardType={fieldConfig.inputProps?.keyboardType ?? "decimal-pad"}
+                      keyboardType={
+                        fieldConfig.inputProps?.keyboardType ?? "decimal-pad"
+                      }
                       error={!!errorMessage} // errorMessage viene del scope exterior (renderFormField)
                       disabled={isActuallySubmitting} // isActuallySubmitting viene del scope exterior
                       {...fieldConfig.inputProps} // Aplicar otras props, keyboardType aquí puede ser sobrescrito si existe en inputProps
                     />
                   );
                   // --- Fin lógica numérica ---
-
                 } else {
                   // --- Lógica para otros tipos de input (text, textarea, email, password) ---
                   return (
                     <TextInput
                       label={fieldConfig.label}
-                      value={value ?? ''} // Usar directamente el valor (string)
+                      value={value ?? ""} // Usar directamente el valor (string)
                       onChangeText={onChange} // Usar directamente onChange
                       onBlur={onBlur}
                       mode="outlined"
                       style={styles.input}
                       placeholder={fieldConfig.placeholder}
                       secureTextEntry={fieldConfig.type === "password"}
-                      keyboardType={ // Asignar keyboardType adecuado
+                      keyboardType={
+                        // Asignar keyboardType adecuado
                         fieldConfig.type === "email"
                           ? "email-address"
                           : "default" // Para text, textarea, password

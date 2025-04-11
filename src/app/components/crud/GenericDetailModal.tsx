@@ -9,7 +9,6 @@ import {
 import {
   Modal,
   Portal,
-  Surface,
   Text,
   Button,
   Chip,
@@ -19,7 +18,7 @@ import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
 import { getImageUrl } from "../../lib/imageUtils";
 
-export interface DisplayFieldConfig<TItem> { 
+export interface DisplayFieldConfig<TItem> {
   field: keyof TItem;
   label: string;
   render?: (value: TItem[keyof TItem], item: TItem) => React.ReactNode;
@@ -88,7 +87,7 @@ const getStyles = (theme: AppTheme) =>
       lineHeight: 22,
     },
     statusChipContainer: {
-      marginBottom: theme.spacing.m,
+      marginBottom: theme.spacing.s,
       marginTop: theme.spacing.s,
     },
     statusChip: {
@@ -126,8 +125,10 @@ const getStyles = (theme: AppTheme) =>
     },
     detailActions: {
       flexDirection: "row",
-      justifyContent: "space-around",
-      marginTop: theme.spacing.l,
+      justifyContent: "center",
+      alignItems: "center",
+      gap: theme.spacing.m,
+      marginTop: theme.spacing.xs,
       width: "100%",
     },
     closeButton: {
@@ -145,6 +146,8 @@ const getStyles = (theme: AppTheme) =>
     actionButton: {
       borderRadius: theme.roundness,
       paddingHorizontal: theme.spacing.m,
+      flex: 1,
+      maxWidth: 150,
     },
   });
 
@@ -208,8 +211,7 @@ const GenericDetailModal = <TItem extends { id: string }>({
       ) {
         const url = getImageUrl(imageFieldValue.path);
         imageSource = url ?? undefined;
-      }
-      else if (typeof imageFieldValue === "string") {
+      } else if (typeof imageFieldValue === "string") {
         imageSource = imageFieldValue;
       }
     }
@@ -355,9 +357,8 @@ const GenericDetailModal = <TItem extends { id: string }>({
         contentContainerStyle={[styles.modalSurface, modalStyle]}
         dismissable={!isDeleting}
       >
-        <Surface style={[styles.modalSurface, { padding: 0 }]} elevation={0}>
-          {renderContent()}
-        </Surface>
+        {/* Surface anidado eliminado, el Modal ya provee el contenedor */}
+        {renderContent()}
       </Modal>
     </Portal>
   );

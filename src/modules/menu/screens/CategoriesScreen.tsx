@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { View, Alert, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
+import { useDrawerStatus } from "@react-navigation/drawer"; // Importar hook
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
@@ -52,7 +52,7 @@ const CategoriesScreen: React.FC = () => {
   const navigation = useNavigation<CategoriesScreenNavigationProp>();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
   const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
-  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
+  const isDrawerOpen = drawerStatus === "open"; // Determinar si está abierto
 
   const [modalVisible, setModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -155,7 +155,6 @@ const CategoriesScreen: React.FC = () => {
     setIsUploadingImage(false);
     setLocalSelectedFile(null);
   }, []);
-
 
   const handleFileSelectedForUpload = useCallback((file: FileObject | null) => {
     setLocalSelectedFile(file);
@@ -391,7 +390,7 @@ const CategoriesScreen: React.FC = () => {
         isModalOpen={modalVisible || detailModalVisible}
         showImagePlaceholder={true}
         isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
-    />
+      />
 
       <Portal>
         <GenericFormModal
@@ -409,9 +408,7 @@ const CategoriesScreen: React.FC = () => {
           modalTitle={(isEditing) =>
             isEditing ? "Editar Categoría" : "Nueva Categoría"
           }
-          submitButtonLabel={(isEditing) =>
-            isEditing ? "Guardar Cambios" : "Crear Categoría"
-          }
+          submitButtonLabel={(isEditing) => (isEditing ? "Guardar" : "Crear")}
           onFileSelected={handleFileSelectedForUpload}
         />
 
