@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import EncryptedStorage from "react-native-encrypted-storage";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User } from "../../modules/auth/types/auth.types";
 
 const AUTH_TOKEN_KEY = "auth_token";
@@ -29,9 +28,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       await EncryptedStorage.setItem(AUTH_TOKEN_KEY, accessToken);
       await EncryptedStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
       if (user) {
-          await AsyncStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
+          await EncryptedStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
       } else {
-          await AsyncStorage.removeItem(USER_INFO_KEY);
+          await EncryptedStorage.removeItem(USER_INFO_KEY);
       }
       set({ accessToken, refreshToken, user: user ?? null, isAuthenticated: true });
     } catch (error) {
@@ -52,9 +51,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: async (user: User | null) => {
      try {
          if (user) {
-             await AsyncStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
+             await EncryptedStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
          } else {
-             await AsyncStorage.removeItem(USER_INFO_KEY);
+             await EncryptedStorage.removeItem(USER_INFO_KEY);
          }
          set({ user });
      } catch (error) {
@@ -66,7 +65,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await EncryptedStorage.removeItem(AUTH_TOKEN_KEY);
       await EncryptedStorage.removeItem(REFRESH_TOKEN_KEY);
-      await AsyncStorage.removeItem(USER_INFO_KEY);
+      await EncryptedStorage.removeItem(USER_INFO_KEY);
       set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false });
       console.log("Sesión cerrada.");
     } catch (error) {
@@ -79,14 +78,14 @@ export const initializeAuthStore = async () => {
   try {
     const accessToken = await EncryptedStorage.getItem(AUTH_TOKEN_KEY);
     const refreshToken = await EncryptedStorage.getItem(REFRESH_TOKEN_KEY);
-    const userInfoString = await AsyncStorage.getItem(USER_INFO_KEY);
+    const userInfoString = await EncryptedStorage.getItem(USER_INFO_KEY);
     let user: User | null = null;
     if (userInfoString) {
         try {
             user = JSON.parse(userInfoString);
         } catch (parseError) {
-            console.error("Error parsing user info from AsyncStorage:", parseError);
-            await AsyncStorage.removeItem(USER_INFO_KEY);
+            console.error("Error parsing user info from EncryptedStorage:", parseError);
+            await EncryptedStorage.removeItem(USER_INFO_KEY);
         }
     }
     // console.log("[authStore] initializeAuthStore: User leído:", JSON.stringify(user, null, 2)); // Log opcional
