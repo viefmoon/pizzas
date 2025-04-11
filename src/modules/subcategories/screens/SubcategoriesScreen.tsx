@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { Portal, Text, IconButton } from 'react-native-paper';
 import { useFocusEffect, useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppTheme, AppTheme } from '../../../app/styles/theme';
 import GenericList from '../../../app/components/crud/GenericList';
@@ -40,6 +41,8 @@ const SubcategoriesScreen: React.FC = () => {
   const navigation = useNavigation<SubcategoriesScreenNavigationProp>();
   const { categoryId, categoryName } = route.params;
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
+  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
 
   // Estado para filtros
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -237,7 +240,8 @@ const SubcategoriesScreen: React.FC = () => {
         showFab={true}
         onFabPress={handleOpenCreateModal}
         isModalOpen={detailModalVisible || formModalVisible}
-        showImagePlaceholder={true} 
+        showImagePlaceholder={true}
+        isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
     />
 
       {/* Portal para Modales */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { DrawerActions } from '@react-navigation/native';
-import { IconButton } from 'react-native-paper';
+import { DrawerToggleButton } from '@react-navigation/drawer'; // Importar DrawerToggleButton
+import { Platform } from 'react-native'; // Importar Platform
 import { useAppTheme } from '../../../app/styles/theme';
 import PreparationScreensScreen from '../screens/PreparationScreensScreen';
 
@@ -18,11 +18,12 @@ const PreparationScreensStackNavigator = () => {
   // Definir screenOptions base como un objeto para estilos comunes
   const baseScreenOptions: NativeStackNavigationOptions = {
     headerStyle: {
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.elevation.level2, // Usar elevation.level2 como en otros stacks
     },
-    headerTintColor: theme.colors.onPrimary,
+    headerTintColor: theme.colors.onSurface, // Usar onSurface como en otros stacks
     headerTitleStyle: {
-      // fontWeight: 'bold', // Opcional
+      ...theme.fonts.titleLarge, // Usar titleLarge como en otros stacks
+      fontWeight: 'bold', // Mantener bold
     },
     // headerLeft se definirá por pantalla si necesita acceso a navigation
   };
@@ -36,15 +37,14 @@ const PreparationScreensStackNavigator = () => {
         // Definir options como función para esta pantalla específica
         options={({ navigation }) => ({ // Recibe { navigation, route }
           title: 'Pantallas de Preparación',
-          // Configurar headerLeft aquí para usar navigation
-          headerLeft: () => (
-            <IconButton
-              icon="menu"
-              iconColor={theme.colors.onPrimary} // Usar color del tema
-              size={24}
-              onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())} // Acción para abrir drawer
-            />
-          ),
+          // Usar DrawerToggleButton como en otros stacks
+          headerLeft: (props) =>
+            Platform.OS !== 'web' ? (
+              <DrawerToggleButton
+                {...props}
+                tintColor={theme.colors.onSurface} // Usar onSurface como en otros stacks
+              />
+            ) : null,
         })}
       />
       {/* Otras pantallas del stack irían aquí */}

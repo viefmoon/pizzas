@@ -3,6 +3,7 @@ import { View, StyleSheet, Alert } from "react-native";
 import { ActivityIndicator, Text, Portal } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
+import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
 import { debounce } from "lodash";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -30,6 +31,8 @@ function ProductsScreen(): JSX.Element {
   const route = useRoute<ProductsScreenRouteProp>();
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
+  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
+  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
 
   const { subCategoryId, subCategoryName } = route.params;
 
@@ -294,6 +297,7 @@ function ProductsScreen(): JSX.Element {
         enableSort={false}
         contentContainerStyle={styles.contentContainer}
         showImagePlaceholder={true}
+        isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
       />
 
       <Portal>

@@ -3,6 +3,7 @@ import type { DrawerScreenProps as NavigationDrawerScreenProps } from "@react-na
 import type { NavigatorScreenParams } from "@react-navigation/native";
 import type { MenuStackParamList } from "../../modules/menu/navigation/types";
 import type { PreparationScreensStackParamList } from "../../modules/preparationScreens/navigation/PreparationScreensStackNavigator";
+import type { AreasTablesStackParamList } from "../../modules/areasTables/navigation/types"; // Importar los tipos del nuevo stack
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -24,6 +25,7 @@ export type AppDrawerParamList = {
   Menu: NavigatorScreenParams<MenuStackParamList>;
   Modifiers: NavigatorScreenParams<ModifiersStackParamList>;
   PreparationScreens: NavigatorScreenParams<PreparationScreensStackParamList>;
+  AreasTablesStack: NavigatorScreenParams<AreasTablesStackParamList>; // Añadir el nuevo stack al Drawer
 };
 
 export type DrawerScreenProps<T extends keyof AppDrawerParamList> =
@@ -35,6 +37,7 @@ declare global {
       extends AuthStackParamList,
         AppDrawerParamList,
         ModifiersStackParamList,
-        PreparationScreensStackParamList {}
+        PreparationScreensStackParamList,
+        AreasTablesStackParamList {} // Añadir los parámetros del nuevo stack a RootParamList
   }
 }

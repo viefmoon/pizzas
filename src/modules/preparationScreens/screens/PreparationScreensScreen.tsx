@@ -3,6 +3,7 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
 
 import GenericList, { FilterOption } from '../../../app/components/crud/GenericList';
 import GenericDetailModal, { DisplayFieldConfig } from '../../../app/components/crud/GenericDetailModal';
@@ -42,6 +43,8 @@ const getStyles = (theme: AppTheme) => StyleSheet.create({
 const PreparationScreensScreen = () => {
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
+  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
+  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
 
   const [selectedScreenId, setSelectedScreenId] = useState<string | null>(null);
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
@@ -222,8 +225,9 @@ const PreparationScreensScreen = () => {
         onFilterChange={handleFilterChange}
         showFab={true}
         onFabPress={() => handleOpenFormModal()}
-        fabLabel="Nueva Pantalla"
+        // fabLabel="Nueva Pantalla" // <-- Eliminado para quitar el texto
         isModalOpen={isDetailModalVisible || isFormModalVisible}
+        isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
       />
 
       <GenericDetailModal<PreparationScreen>

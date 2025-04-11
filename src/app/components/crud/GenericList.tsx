@@ -72,6 +72,7 @@ interface GenericListProps<TItem extends { id: string }> {
   fabVisible?: boolean;
   showImagePlaceholder?: boolean;
   isModalOpen?: boolean;
+  isDrawerOpen?: boolean; // Prop para saber si el drawer está abierto
 }
 
 const getStyles = (theme: AppTheme) => {
@@ -192,6 +193,7 @@ const GenericList = <TItem extends { id: string }>({
   fabVisible = true,
   showImagePlaceholder = true,
   isModalOpen = false,
+  isDrawerOpen = false, // Valor por defecto para isDrawerOpen
 }: GenericListProps<TItem>) => {
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -476,7 +478,7 @@ const GenericList = <TItem extends { id: string }>({
             icon={fabIcon}
             style={styles.fab}
             onPress={onFabPress}
-            visible={isFocused && showFab && fabVisible && !isModalOpen}
+            visible={isFocused && showFab && fabVisible && !isModalOpen && !isDrawerOpen} // Ocultar si el drawer está abierto
             label={fabLabel}
             color={theme.colors.onPrimary}
             theme={{ colors: { primaryContainer: theme.colors.primary } }}

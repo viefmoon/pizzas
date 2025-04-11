@@ -4,6 +4,7 @@ import { FAB, ActivityIndicator, Text, Portal, Button } from 'react-native-paper
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
 
 import { modifierService } from '../services/modifierService';
 import { Modifier } from '../types/modifier.types';
@@ -36,6 +37,8 @@ const ModifiersScreen = () => {
   const route = useRoute<ModifiersScreenRouteProp>();
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
+  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
+  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
 
   const { groupId, groupName } = route.params ?? {};
 
@@ -243,8 +246,9 @@ const ModifiersScreen = () => {
          showFab={true}
          onFabPress={handleAdd}
          fabLabel="Añadir Modificador"
-         fabVisible={!isFormModalVisible && !isDetailModalVisible}
+         fabVisible={!isFormModalVisible && !isDetailModalVisible} // fabVisible ya existe, no lo tocamos
          showImagePlaceholder={false}
+         isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
        />
 
       <Portal>

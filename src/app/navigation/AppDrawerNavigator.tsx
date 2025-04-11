@@ -3,6 +3,7 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { MenuStack } from "../../modules/menu/navigation/MenuStack";
 import ModifiersStackNavigator from "../../modules/modifiers/navigation/ModifiersStackNavigator";
 import PreparationScreensStackNavigator from "../../modules/preparationScreens/navigation/PreparationScreensStackNavigator";
+import AreasTablesStackNavigator from "../../modules/areasTables/navigation/AreasTablesStackNavigator"; // Importar el nuevo stack
 import { CustomDrawerContent } from "./components/CustomDrawerContent";
 import { useAppTheme } from "../styles/theme";
 import type { AppDrawerParamList } from "./types";
@@ -59,6 +60,13 @@ export function AppDrawerNavigator() {
         component={PreparationScreensStackNavigator}
         options={{
           title: "Pantallas Preparación",
+        }}
+      />
+      <Drawer.Screen
+        name="AreasTablesStack" // Nombre definido en los tipos globales
+        component={AreasTablesStackNavigator}
+        options={{
+          title: "Áreas y Mesas", // Título que se mostrará en el Drawer
         }}
       />
     </Drawer.Navigator>

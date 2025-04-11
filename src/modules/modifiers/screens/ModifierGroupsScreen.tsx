@@ -4,6 +4,7 @@ import { ActivityIndicator, Text, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
 
 import { modifierGroupService } from '../services/modifierGroupService';
 import { ModifierGroup } from '../types/modifierGroup.types';
@@ -28,6 +29,8 @@ const ModifierGroupsScreen = () => {
   const navigation = useNavigation<NavigationProps>();
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
+  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
+  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
 
   const [isFormModalVisible, setIsFormModalVisible] = useState(false);
   const [selectedGroupForForm, setSelectedGroupForForm] = useState<ModifierGroup | null>(null);
@@ -224,6 +227,7 @@ const ModifierGroupsScreen = () => {
         onFabPress={handleAdd}
         isModalOpen={isFormModalVisible || isDetailModalVisible}
         showImagePlaceholder={false}
+        isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
       />
 
       <ModifierGroupFormModal

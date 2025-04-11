@@ -167,6 +167,21 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                 </Text>
               </>
             </TouchableRipple>
+
+            <TouchableRipple
+              onPress={() => { props.navigation.navigate("AreasTablesStack", { screen: "AreasList" }); }}
+              style={styles.drawerItemContainer}
+              rippleColor={theme.colors.primary + "20"}
+            >
+              <>
+                <View style={styles.drawerItemIconContainer}>
+                  <Icon source="map-marker-radius-outline" size={24} color={getItemColor("AreasTablesStack")} />
+                </View>
+                <Text style={[styles.drawerItemLabel, { color: getItemColor("AreasTablesStack") }]}>
+                  Áreas y Mesas
+                </Text>
+              </>
+            </TouchableRipple>
           </PaperDrawer.Section>
         </View>
       </DrawerContentScrollView>
