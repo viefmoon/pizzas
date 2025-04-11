@@ -1,11 +1,13 @@
 import React from "react";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { MenuStack } from "../../modules/menu/navigation/MenuStack";
 import ModifiersStackNavigator from "../../modules/modifiers/navigation/ModifiersStackNavigator";
 import PreparationScreensStackNavigator from "../../modules/preparationScreens/navigation/PreparationScreensStackNavigator";
-import AreasTablesStackNavigator from "../../modules/areasTables/navigation/AreasTablesStackNavigator"; // Importar el nuevo stack
+import AreasTablesStackNavigator from "../../modules/areasTables/navigation/AreasTablesStackNavigator";
 import { CustomDrawerContent } from "./components/CustomDrawerContent";
 import { useAppTheme } from "../styles/theme";
+import { Icon } from "react-native-paper";
 import type { AppDrawerParamList } from "./types";
 
 const Drawer = createDrawerNavigator<AppDrawerParamList>();
@@ -16,7 +18,7 @@ export function AppDrawerNavigator() {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
-      screenOptions={{
+      screenOptions={({ navigation }) => ({
         headerStyle: {
           backgroundColor: theme.colors.primary,
           height: 50,
@@ -40,7 +42,27 @@ export function AppDrawerNavigator() {
           marginVertical: theme.spacing.xs,
         },
         headerShown: true,
-      }}
+        drawerType: "front",
+        drawerPosition: "left",
+        drawerHideStatusBarOnOpen: false,
+        overlayColor: "transparent",
+        drawerStatusBarAnimation: "slide",
+        drawerContentContainerStyle: {
+          flex: 1,
+        },
+        drawerContentStyle: {
+          flex: 1,
+        },
+        headerLeft: () => (
+          <TouchableOpacity
+            style={styles.drawerButtonContainer}
+            onPress={() => navigation.openDrawer()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Icon source="menu" size={32} color={theme.colors.onPrimary} />
+          </TouchableOpacity>
+        ),
+      })}
     >
       <Drawer.Screen
         name="Menu"
@@ -64,12 +86,22 @@ export function AppDrawerNavigator() {
         }}
       />
       <Drawer.Screen
-        name="AreasTablesStack" // Nombre definido en los tipos globales
+        name="AreasTablesStack"
         component={AreasTablesStackNavigator}
         options={{
-          title: "Áreas y Mesas", // Título que se mostrará en el Drawer
+          title: "Áreas y Mesas",
         }}
       />
     </Drawer.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  drawerButtonContainer: {
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+});
