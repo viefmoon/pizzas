@@ -138,17 +138,17 @@ const getStyles = (theme: AppTheme) => {
     filtersOuterContainer: {
       paddingTop: theme.spacing.s,
       paddingBottom: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.m,
+      paddingHorizontal: theme.spacing.xs, // Reducimos padding horizontal
       backgroundColor: theme.colors.background,
     },
     segmentedButtons: {
       backgroundColor: "transparent",
       borderRadius: theme.roundness,
-      minHeight: 48,
+      minHeight: 40,
     },
     filterButton: {
       borderWidth: 0,
-      paddingVertical: theme.spacing.s,
+      paddingVertical: theme.spacing.xs, // Reducimos padding vertical del botón
     },
     filterButtonLabel: {
       fontSize: 15,
@@ -478,7 +478,13 @@ const GenericList = <TItem extends { id: string }>({
             icon={fabIcon}
             style={styles.fab}
             onPress={onFabPress}
-            visible={isFocused && showFab && fabVisible && !isModalOpen && !isDrawerOpen} // Ocultar si el drawer está abierto
+            visible={
+              isFocused &&
+              showFab &&
+              fabVisible &&
+              !isModalOpen &&
+              !isDrawerOpen
+            } // Ocultar si el drawer está abierto
             label={fabLabel}
             color={theme.colors.onPrimary}
             theme={{ colors: { primaryContainer: theme.colors.primary } }}

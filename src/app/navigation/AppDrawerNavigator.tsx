@@ -19,15 +19,16 @@ export function AppDrawerNavigator() {
       screenOptions={{
         headerStyle: {
           backgroundColor: theme.colors.primary,
+          height: 50,
         },
         headerTintColor: theme.colors.onPrimary,
         headerTitleStyle: {
-          ...theme.fonts.titleMedium,
+          ...theme.fonts.titleLarge,
           fontWeight: "bold",
         },
         drawerStyle: {
           backgroundColor: theme.colors.surface,
-          width: 300,
+          width: 280,
         },
         drawerActiveTintColor: theme.colors.primary,
         drawerInactiveTintColor: theme.colors.onSurfaceVariant,
@@ -38,7 +39,7 @@ export function AppDrawerNavigator() {
         drawerItemStyle: {
           marginVertical: theme.spacing.xs,
         },
-        headerShown: false,
+        headerShown: true,
       }}
     >
       <Drawer.Screen

@@ -1,12 +1,15 @@
-import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useThemeStore, useSystemThemeDetector } from './src/app/store/themeStore';
-import { AppNavigator } from './src/app/navigation/AppNavigator';
-import GlobalSnackbar from './src/app/components/common/GlobalSnackbar';
-import { useInitializeAuth } from './src/app/hooks/useInitializeAuth';
+import React from "react";
+import { ActivityIndicator, View } from "react-native";
+import { Provider as PaperProvider } from "react-native-paper";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  useThemeStore,
+  useSystemThemeDetector,
+} from "./src/app/store/themeStore";
+import { AppNavigator } from "./src/app/navigation/AppNavigator";
+import GlobalSnackbar from "./src/app/components/common/GlobalSnackbar";
+import { useInitializeAuth } from "./src/app/hooks/useInitializeAuth";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +23,14 @@ export default function App() {
   // Muestra pantalla de carga durante la inicialización de autenticación
   if (isInitializingAuth) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: activeTheme.colors.background }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: activeTheme.colors.background,
+        }}
+      >
         <ActivityIndicator size="large" color={activeTheme.colors.primary} />
       </View>
     );
