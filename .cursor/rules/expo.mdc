@@ -126,7 +126,7 @@ Este documento es la **fuente de verdad** para las convenciones de codificación
 *   **Estado Global Cliente: `zustand` (v5)**
     *   **Uso:** Estado global no-servidor.
     *   **Stores:** En `src/app/store/` (`authStore`, `themeStore`, `snackbarStore`).
-    *   **Persistencia:** `persist` middleware (`zustand/middleware`) con `createJSONStorage(() => AsyncStorage)` o `EncryptedStorage`. Usado en `themeStore` con `AsyncStorage`.
+    *   **Persistencia:** `persist` middleware (`zustand/middleware`) con `createJSONStorage(() => EncryptedStorage)`. Usado en `themeStore` y `authStore`.
 *   **Imágenes: `expo-image` (v2)**
     *   Usar sobre `react-native` `<Image>`. Proporcionar `width`, `height`. Beneficios de caching/formato (WebP).
 *   **Renderizados:** `React.memo`, `useMemo` (para estilos/cálculos), `useCallback` con moderación.
@@ -243,7 +243,6 @@ Se implementa una estrategia estandarizada para el manejo de errores, especialme
 ## 12. Funcionalidades Nativas y Hardware
 
 *   **Almacenamiento:**
-    *   **Preferencias No Sensibles:** `@react-native-async-storage/async-storage` (v2) (usado por `themeStore`).
     *   **Datos Sensibles (Tokens):** `react-native-encrypted-storage` (v4) (usado por `authStore`). **Requiere `expo-dev-client`**.
 *   **Librerías Expo/Comunidad Instaladas:**
     *   `@expo/vector-icons`: Iconos.
@@ -304,7 +303,6 @@ Se implementa una estrategia estandarizada para el manejo de errores, especialme
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
     "@hookform/resolvers": "^5.0.1",
-    "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/datetimepicker": "^8.3.0",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-navigation/drawer": "^7.3.8",
