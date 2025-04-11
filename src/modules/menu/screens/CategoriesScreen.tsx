@@ -360,7 +360,7 @@ const CategoriesScreen: React.FC = () => {
         filterOptions={filterOptions}
         renderItemActions={(item: Category) => (
           <IconButton
-            icon="playlist-play"
+            icon="format-list-bulleted"
             size={24}
             onPress={() =>
               navigation.navigate("SubCategoriesScreen", {

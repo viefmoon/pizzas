@@ -147,7 +147,7 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
 
   const renderItemActions = (item: Area) => (
     <IconButton
-      icon="chevron-right"
+      icon="format-list-bulleted"
       size={28}
       onPress={() => handleNavigateToTables(item)}
       iconColor={theme.colors.primary}

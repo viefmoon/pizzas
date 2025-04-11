@@ -18,7 +18,7 @@ const ModifiersStackNavigator = () => {
       screenOptions={{
         headerStyle: { backgroundColor: theme.colors.elevation.level2 },
         headerTintColor: theme.colors.onSurface,
-        headerTitleStyle: { ...theme.fonts.titleLarge, fontWeight: 'bold' },
+        headerTitleStyle: { ...theme.fonts.titleMedium, fontWeight: 'bold' },
       }}
     >
       <Stack.Screen
@@ -26,13 +26,6 @@ const ModifiersStackNavigator = () => {
         component={ModifierGroupsScreen}
         options={({ navigation }): NativeStackNavigationOptions => ({
           title: 'Grupos de Modificadores',
-          headerLeft: (props) =>
-            Platform.OS !== "web" ? (
-              <DrawerToggleButton
-                {...props}
-                tintColor={theme.colors.onSurface}
-              />
-            ) : null,
         })}
       />
       <Stack.Screen

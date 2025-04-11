@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { ActivityIndicator, Text, Button } from 'react-native-paper';
+import { ActivityIndicator, Text, Button, IconButton } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -118,7 +118,7 @@ const ModifierGroupsScreen = () => {
   };
 
   const handleNavigateToModifiers = (groupId: string, groupName: string) => {
-    handleCloseDetailModal();
+    // Ya no se cierra el modal aquí, se llama desde la lista
     navigation.navigate('ModifiersScreen', { groupId, groupName });
   };
 
@@ -228,6 +228,17 @@ const ModifierGroupsScreen = () => {
         isModalOpen={isFormModalVisible || isDetailModalVisible}
         showImagePlaceholder={false}
         isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
+        renderItemActions={(item) => (
+          <IconButton
+            icon="format-list-bulleted"
+            size={24} // Tamaño estándar para iconos
+            onPress={(e) => {
+              e.stopPropagation(); // Evitar que se abra el modal de detalle
+              handleNavigateToModifiers(item.id, item.name);
+            }}
+            // No necesita 'compact' ni 'mode' como el Button
+          />
+        )}
       />
 
       <ModifierGroupFormModal
@@ -251,17 +262,7 @@ const ModifierGroupsScreen = () => {
         editButtonLabel="Editar"
         deleteButtonLabel="Eliminar"
       >
-        {selectedGroupForDetail && (
-           <Button
-             icon="format-list-bulleted"
-             mode="contained-tonal"
-             onPress={() => handleNavigateToModifiers(selectedGroupForDetail.id, selectedGroupForDetail.name)}
-             style={styles.detailActionButton}
-             disabled={isDeleting}
-           >
-             Ver Modificadores
-           </Button>
-        )}
+        {/* El botón para ver modificadores se ha movido a la lista (renderItemActions) */}
       </GenericDetailModal>
 
     </SafeAreaView>

@@ -22,7 +22,7 @@ const PreparationScreensStackNavigator = () => {
     },
     headerTintColor: theme.colors.onSurface, // Usar onSurface como en otros stacks
     headerTitleStyle: {
-      ...theme.fonts.titleLarge, // Usar titleLarge como en otros stacks
+      ...theme.fonts.titleMedium, // Usar titleMedium como en MenuStack
       fontWeight: 'bold', // Mantener bold
     },
     // headerLeft se definirá por pantalla si necesita acceso a navigation
@@ -38,13 +38,6 @@ const PreparationScreensStackNavigator = () => {
         options={({ navigation }) => ({ // Recibe { navigation, route }
           title: 'Pantallas de Preparación',
           // Usar DrawerToggleButton como en otros stacks
-          headerLeft: (props) =>
-            Platform.OS !== 'web' ? (
-              <DrawerToggleButton
-                {...props}
-                tintColor={theme.colors.onSurface} // Usar onSurface como en otros stacks
-              />
-            ) : null,
         })}
       />
       {/* Otras pantallas del stack irían aquí */}

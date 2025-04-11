@@ -21,7 +21,7 @@ const AreasTablesStackNavigator = () => {
         },
         headerTintColor: theme.colors.onSurface,
         headerTitleStyle: {
-          ...theme.fonts.titleLarge,
+          ...theme.fonts.titleMedium,
           fontWeight: 'bold',
         },
       }}
@@ -31,13 +31,6 @@ const AreasTablesStackNavigator = () => {
         component={AreasScreen}
         options={{
           title: 'Áreas',
-          headerLeft: (props) =>
-            Platform.OS !== 'web' ? (
-              <DrawerToggleButton
-                {...props}
-                tintColor={theme.colors.onSurface}
-              />
-            ) : null,
         }}
       />
       <Stack.Screen
