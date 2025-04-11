@@ -3,6 +3,7 @@ import { API_URL } from "@env";
 import EncryptedStorage from "react-native-encrypted-storage";
 import { useAuthStore } from "../store/authStore";
 
+console.log("API_URL loaded:", API_URL); // <-- Log para verificar la URL
 const AUTH_TOKEN_KEY = "auth_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 
