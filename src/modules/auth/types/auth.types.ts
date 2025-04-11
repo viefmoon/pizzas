@@ -42,12 +42,15 @@ export const authEmailLoginDtoSchema = z.object({
 export type AuthEmailLoginDto = z.infer<typeof authEmailLoginDtoSchema>;
 
 const userSchema = z.object({
-  id: z.string().uuid(),
+  id: z.number(),
   email: z.string().email().nullable(),
   username: z.string().nullable(),
   firstName: z.string().nullable(),
   lastName: z.string().nullable(),
-  role: z.object({ id: z.number() }).optional(),
+  role: z.object({
+      id: z.number(),
+      name: z.string()
+  }).optional(),
 });
 export type User = z.infer<typeof userSchema>;
 

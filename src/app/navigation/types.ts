@@ -2,6 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { DrawerScreenProps as NavigationDrawerScreenProps } from "@react-navigation/drawer";
 import type { NavigatorScreenParams } from "@react-navigation/native";
 import type { MenuStackParamList } from "../../modules/menu/navigation/types";
+import type { PreparationScreensStackParamList } from "../../modules/preparationScreens/navigation/PreparationScreensStackNavigator";
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -10,20 +11,19 @@ export type AuthStackParamList = {
 export type AuthStackScreenProps<T extends keyof AuthStackParamList> =
   NativeStackScreenProps<AuthStackParamList, T>;
 
-// Definir el Stack para Modificadores
 export type ModifiersStackParamList = {
-  ModifierGroupsScreen: undefined; // Pantalla de lista de grupos
-  ModifiersScreen: { groupId: string; groupName: string }; // Pantalla de modificadores hijos
+  ModifierGroupsScreen: undefined;
+  ModifiersScreen: { groupId: string; groupName: string };
 };
 
-// Helper type para las props de pantalla del Stack de Modificadores
 export type ModifiersStackScreenProps<T extends keyof ModifiersStackParamList> =
   NativeStackScreenProps<ModifiersStackParamList, T>;
 
 export type AppDrawerParamList = {
   Welcome: undefined;
   Menu: NavigatorScreenParams<MenuStackParamList>;
-  Modifiers: NavigatorScreenParams<ModifiersStackParamList>; // Añadir Modifiers Stack al Drawer
+  Modifiers: NavigatorScreenParams<ModifiersStackParamList>;
+  PreparationScreens: NavigatorScreenParams<PreparationScreensStackParamList>;
 };
 
 export type DrawerScreenProps<T extends keyof AppDrawerParamList> =
@@ -34,6 +34,7 @@ declare global {
     interface RootParamList
       extends AuthStackParamList,
         AppDrawerParamList,
-        ModifiersStackParamList {} // Incluir ModifiersStackParamList
+        ModifiersStackParamList,
+        PreparationScreensStackParamList {}
   }
 }

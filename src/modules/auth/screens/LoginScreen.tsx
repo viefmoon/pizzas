@@ -52,8 +52,8 @@ const LoginScreen = () => {
     }),
     onSuccess: async (data, variables) => {
       try {
-        // Usar setTokens y pasar ambos tokens recibidos de la API
-        await setTokens(data.token, data.refreshToken);
+        // console.log("[LoginScreen] Respuesta API Login (data):", JSON.stringify(data, null, 2)); // Log temporal eliminado
+        await setTokens(data.token, data.refreshToken, data.user ?? null);
         const { emailOrUsername, password, rememberMe } = variables;
 
         if (rememberMe) {

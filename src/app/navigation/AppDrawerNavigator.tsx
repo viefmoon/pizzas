@@ -2,6 +2,7 @@ import React from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { MenuStack } from "../../modules/menu/navigation/MenuStack";
 import ModifiersStackNavigator from "../../modules/modifiers/navigation/ModifiersStackNavigator";
+import PreparationScreensStackNavigator from "../../modules/preparationScreens/navigation/PreparationScreensStackNavigator";
 import { CustomDrawerContent } from "./components/CustomDrawerContent";
 import { useAppTheme } from "../styles/theme";
 import type { AppDrawerParamList } from "./types";
@@ -51,6 +52,13 @@ export function AppDrawerNavigator() {
         component={ModifiersStackNavigator}
         options={{
           title: "Modificadores",
+        }}
+      />
+      <Drawer.Screen
+        name="PreparationScreens"
+        component={PreparationScreensStackNavigator}
+        options={{
+          title: "Pantallas Preparación",
         }}
       />
     </Drawer.Navigator>
