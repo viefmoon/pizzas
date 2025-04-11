@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { MenuStack } from "../../modules/menu/navigation/MenuStack";
 import ModifiersStackNavigator from "../../modules/modifiers/navigation/ModifiersStackNavigator";
