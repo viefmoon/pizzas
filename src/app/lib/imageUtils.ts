@@ -14,6 +14,12 @@ export const getImageUrl = (
     return null;
   }
 
+  // Asegurarse de que API_URL esté definida y sea una cadena antes de usarla
+  if (typeof API_URL !== 'string' || !API_URL) {
+    console.error("API_URL no está definida o no es una cadena válida en el entorno.");
+    // Devolver null es consistente con el manejo de imagePath inválido.
+    return null;
+  }
   const apiUrl = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
   const normalizedPath = imagePath.replace(/\\/g, "/");
 
