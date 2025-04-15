@@ -1,5 +1,6 @@
 import apiClient from "@/app/services/apiClient";
 import { ApiError } from "@/app/lib/errors";
+import { API_PATHS } from "@/app/constants/apiPaths";
 import {
   Modifier,
   CreateModifierInput,
@@ -8,7 +9,6 @@ import {
 } from "../types/modifier.types";
 import { z } from "zod";
 
-const API_PATH = "/api/v1/product-modifiers";
 
 const modifiersListSchema = z.array(modifierApiSchema);
 
@@ -28,7 +28,7 @@ export const modifierService = {
       limit: params?.limit ?? 10,
       ...params,
     };
-    const response = await apiClient.get<unknown>(API_PATH, queryParams);
+    const response = await apiClient.get<unknown>(API_PATHS.MODIFIERS, queryParams);
 
     if (!response.ok || !response.data) {
       console.error(
@@ -54,7 +54,7 @@ export const modifierService = {
    * Obtiene un modificador por su ID.
    */
   async findOne(id: string): Promise<Modifier> {
-    const response = await apiClient.get<unknown>(`${API_PATH}/${id}`);
+    const response = await apiClient.get<unknown>(`${API_PATHS.MODIFIERS}/${id}`);
 
     if (!response.ok || !response.data) {
       console.error(
@@ -84,7 +84,7 @@ export const modifierService = {
         ...(params.isActive !== undefined && { isActive: params.isActive }),
         ...(params.search && { search: params.search }),
     };
-    const response = await apiClient.get<unknown>(`${API_PATH}/by-group/${groupId}`, queryParams);
+    const response = await apiClient.get<unknown>(`${API_PATHS.MODIFIERS}/by-group/${groupId}`, queryParams);
 
     if (!response.ok || !response.data) {
       console.error(
@@ -112,7 +112,7 @@ export const modifierService = {
    * Crea un nuevo modificador.
    */
   async create(data: CreateModifierInput): Promise<Modifier> {
-    const response = await apiClient.post<unknown>(API_PATH, data);
+    const response = await apiClient.post<unknown>(API_PATHS.MODIFIERS, data);
 
     if (!response.ok || !response.data) {
       console.error(
@@ -138,7 +138,7 @@ export const modifierService = {
    * Actualiza un modificador existente.
    */
   async update(id: string, data: UpdateModifierInput): Promise<Modifier> {
-    const response = await apiClient.patch<unknown>(`${API_PATH}/${id}`, data);
+    const response = await apiClient.patch<unknown>(`${API_PATHS.MODIFIERS}/${id}`, data);
 
     if (!response.ok || !response.data) {
       console.error(
@@ -166,7 +166,7 @@ export const modifierService = {
    * Elimina un modificador.
    */
   async remove(id: string): Promise<void> {
-    const response = await apiClient.delete(`${API_PATH}/${id}`);
+    const response = await apiClient.delete(`${API_PATHS.MODIFIERS}/${id}`);
 
     if (!response.ok) {
       console.error(
