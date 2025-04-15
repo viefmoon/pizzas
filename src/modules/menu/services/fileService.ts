@@ -1,8 +1,8 @@
 import apiClient from "../../../app/services/apiClient";
 import { ApiError } from "../../../app/lib/errors";
 import { Platform } from "react-native";
+import { API_PATHS } from "../../../app/constants/apiPaths";
 
-const UPLOAD_URL = "/api/v1/files/upload";
 
 export interface FileUploadResponse {
   file: {
@@ -33,7 +33,7 @@ export const uploadFile = async (
 
   try {
     const response = await apiClient.post<FileUploadResponse>(
-      UPLOAD_URL,
+      API_PATHS.FILES_UPLOAD,
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },

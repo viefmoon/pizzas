@@ -1,5 +1,6 @@
 import apiClient from "@/app/services/apiClient";
 import { ApiError } from "@/app/lib/errors";
+import { API_PATHS } from "@/app/constants/apiPaths";
 import {
   Product,
   ProductFormInputs,
@@ -8,7 +9,6 @@ import {
   AssignModifierGroupsInput,
 } from "../types/products.types";
 
-const PRODUCTS_ENDPOINT = "/api/v1/products"; // Base endpoint v1
 
 /**
  * Obtiene todos los productos con filtros y paginación.
@@ -20,7 +20,7 @@ async function findAll(
   params: FindAllProductsQuery
 ): Promise<ProductsListResponse> {
   const response = await apiClient.get<ProductsListResponse>(
-    PRODUCTS_ENDPOINT,
+    API_PATHS.PRODUCTS,
     params
   );
   if (!response.ok || !response.data) {
@@ -36,7 +36,7 @@ async function findAll(
  * @throws {ApiError} Si la petición falla o el producto no se encuentra.
  */
 async function findOne(id: string): Promise<Product> {
-  const response = await apiClient.get<Product>(`${PRODUCTS_ENDPOINT}/${id}`);
+  const response = await apiClient.get<Product>(`${API_PATHS.PRODUCTS}/${id}`);
   if (!response.ok || !response.data) {
     throw ApiError.fromApiResponse(response.data, response.status);
   }
@@ -50,7 +50,7 @@ async function findOne(id: string): Promise<Product> {
  * @throws {ApiError} Si la petición falla.
  */
 async function create(data: ProductFormInputs): Promise<Product> {
-  const response = await apiClient.post<Product>(PRODUCTS_ENDPOINT, data);
+  const response = await apiClient.post<Product>(API_PATHS.PRODUCTS, data);
   if (!response.ok || !response.data) {
     throw ApiError.fromApiResponse(response.data, response.status);
   }
@@ -69,7 +69,7 @@ async function update(
   data: Partial<ProductFormInputs>
 ): Promise<Product> {
   const response = await apiClient.patch<Product>(
-    `${PRODUCTS_ENDPOINT}/${id}`,
+    `${API_PATHS.PRODUCTS}/${id}`,
     data
   );
   if (!response.ok || !response.data) {
@@ -85,7 +85,7 @@ async function update(
  * @throws {ApiError} Si la petición falla.
  */
 async function remove(id: string): Promise<void> {
-  const response = await apiClient.delete(`${PRODUCTS_ENDPOINT}/${id}`);
+  const response = await apiClient.delete(`${API_PATHS.PRODUCTS}/${id}`);
   if (!response.ok) {
     // No esperamos 'data' en un 204 No Content, pero sí puede haber error
     throw ApiError.fromApiResponse(response.data, response.status);
@@ -105,7 +105,7 @@ async function assignModifierGroups(
   data: AssignModifierGroupsInput
 ): Promise<Product> {
   const response = await apiClient.post<Product>(
-    `${PRODUCTS_ENDPOINT}/${productId}/modifier-groups`,
+    `${API_PATHS.PRODUCTS}/${productId}/modifier-groups`,
     data
   );
   if (!response.ok || !response.data) {
@@ -124,7 +124,7 @@ async function getModifierGroups(productId: string): Promise<Product> {
   // Nota: El backend devuelve el producto completo con los grupos anidados.
   // Si hubiera un endpoint específico que solo devuelve los grupos, se ajustaría.
   const response = await apiClient.get<Product>(
-    `${PRODUCTS_ENDPOINT}/${productId}/modifier-groups`
+    `${API_PATHS.PRODUCTS}/${productId}/modifier-groups`
   );
   if (!response.ok || !response.data) {
     throw ApiError.fromApiResponse(response.data, response.status);
@@ -146,7 +146,7 @@ async function removeModifierGroups(
   // El backend usa DELETE pero espera un body, lo cual es atípico pero posible.
   // Apisauce maneja esto correctamente.
   const response = await apiClient.delete<Product>(
-    `${PRODUCTS_ENDPOINT}/${productId}/modifier-groups`,
+    `${API_PATHS.PRODUCTS}/${productId}/modifier-groups`,
     data
   );
   if (!response.ok || !response.data) {

@@ -1,5 +1,6 @@
 import apiClient from "../../../app/services/apiClient";
 import { ApiError } from "../../../app/lib/errors";
+import { API_PATHS } from "../../../app/constants/apiPaths";
 import {
   SubCategory,
   CreateSubCategoryDto,
@@ -8,7 +9,6 @@ import {
 } from "../types/subcategories.types";
 import { PaginatedResponse } from "../../../app/types/api.types";
 
-const API_PATH = "/api/v1/subcategories";
 
 /**
  * Crea una nueva subcategoría.
@@ -16,7 +16,7 @@ const API_PATH = "/api/v1/subcategories";
 export const createSubcategory = async (
   data: CreateSubCategoryDto
 ): Promise<SubCategory> => {
-  const response = await apiClient.post<SubCategory>(API_PATH, data);
+  const response = await apiClient.post<SubCategory>(API_PATHS.SUBCATEGORIES, data);
   if (!response.ok || !response.data) {
     throw ApiError.fromApiResponse(response.data, response.status);
   }
@@ -45,7 +45,7 @@ export const findAllSubcategories = async (
 
   // Realiza la petición GET asumiendo una respuesta [data, total]
   const response = await apiClient.get<[SubCategory[], number]>(
-    API_PATH,
+    API_PATHS.SUBCATEGORIES,
     queryParams
   );
 
@@ -68,7 +68,7 @@ export const findAllSubcategories = async (
  * Obtiene una subcategoría por su ID.
  */
 export const findOneSubcategory = async (id: string): Promise<SubCategory> => {
-  const response = await apiClient.get<SubCategory>(`${API_PATH}/${id}`);
+  const response = await apiClient.get<SubCategory>(`${API_PATHS.SUBCATEGORIES}/${id}`);
   if (!response.ok || !response.data) {
     throw ApiError.fromApiResponse(response.data, response.status);
   }
@@ -83,7 +83,7 @@ export const updateSubcategory = async (
   data: UpdateSubCategoryDto
 ): Promise<SubCategory> => {
   const response = await apiClient.patch<SubCategory>(
-    `${API_PATH}/${id}`,
+    `${API_PATHS.SUBCATEGORIES}/${id}`,
     data
   );
   if (!response.ok || !response.data) {
@@ -96,7 +96,7 @@ export const updateSubcategory = async (
  * Elimina (soft delete) una subcategoría por su ID.
  */
 export const removeSubcategory = async (id: string): Promise<void> => {
-  const response = await apiClient.delete(`${API_PATH}/${id}`);
+  const response = await apiClient.delete(`${API_PATHS.SUBCATEGORIES}/${id}`);
   // Manejo específico para DELETE:
   // - Si !response.ok y hay datos de error, lanzar ApiError.
   // - Si !response.ok, no hay datos, pero el status NO es 404, lanzar Error genérico.

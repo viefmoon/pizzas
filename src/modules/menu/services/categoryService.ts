@@ -1,5 +1,6 @@
 import apiClient from "../../../app/services/apiClient";
 import { ApiError } from "../../../app/lib/errors";
+import { API_PATHS } from "../../../app/constants/apiPaths";
 import type {
   Category,
   CreateCategoryDto,
@@ -7,7 +8,6 @@ import type {
   PaginatedResponse,
 } from "../types/category.types";
 
-const BASE_URL = "/api/v1/categories";
 
 /**
  * Obtiene una lista paginada de categorías, opcionalmente filtrada.
@@ -20,7 +20,7 @@ export const getCategories = async (params?: {
   page?: number;
   limit?: number;
 }): Promise<PaginatedResponse<Category>> => {
-  const response = await apiClient.get<[Category[], number]>(BASE_URL, params);
+  const response = await apiClient.get<[Category[], number]>(API_PATHS.CATEGORIES, params);
 
   if (
     !response.ok ||
@@ -55,7 +55,7 @@ export const getCategories = async (params?: {
  * @throws {ApiError} Si la respuesta de la API no es exitosa (ej. 404 Not Found).
  */
 export const getCategory = async (id: string): Promise<Category> => {
-  const response = await apiClient.get<Category>(`${BASE_URL}/${id}`);
+  const response = await apiClient.get<Category>(`${API_PATHS.CATEGORIES}/${id}`);
 
   if (!response.ok || !response.data) {
     throw ApiError.fromApiResponse(response.data, response.status ?? 500);
@@ -72,7 +72,7 @@ export const getCategory = async (id: string): Promise<Category> => {
 export const createCategory = async (
   data: CreateCategoryDto
 ): Promise<Category> => {
-  const response = await apiClient.post<Category>(BASE_URL, data);
+  const response = await apiClient.post<Category>(API_PATHS.CATEGORIES, data);
 
   if (!response.ok || !response.data) {
     throw ApiError.fromApiResponse(response.data, response.status ?? 500);
@@ -91,7 +91,7 @@ export const updateCategory = async (
   id: string,
   data: UpdateCategoryDto
 ): Promise<Category> => {
-  const response = await apiClient.patch<Category>(`${BASE_URL}/${id}`, data);
+  const response = await apiClient.patch<Category>(`${API_PATHS.CATEGORIES}/${id}`, data);
 
   if (!response.ok || !response.data) {
     throw ApiError.fromApiResponse(response.data, response.status ?? 500);
@@ -106,7 +106,7 @@ export const updateCategory = async (
  * @throws {ApiError} Si la respuesta de la API no es exitosa.
  */
 export const deleteCategory = async (id: string): Promise<void> => {
-  const response = await apiClient.delete(`${BASE_URL}/${id}`);
+  const response = await apiClient.delete(`${API_PATHS.CATEGORIES}/${id}`);
 
   if (!response.ok) {
     throw ApiError.fromApiResponse(response.data, response.status ?? 500);

@@ -1,5 +1,6 @@
 import apiClient from "../../../app/services/apiClient";
 import { ApiError } from "../../../app/lib/errors";
+import { API_PATHS } from "../../../app/constants/apiPaths";
 import {
   AuthEmailLoginDto,
   LoginResponseDto,
@@ -18,7 +19,7 @@ class AuthService {
     };
 
     const response = await apiClient.post<LoginResponseDto>(
-      "/api/v1/auth/email/login",
+      API_PATHS.AUTH_EMAIL_LOGIN,
       payload
     );
 
@@ -30,7 +31,7 @@ class AuthService {
 
   async register(data: RegisterFormInputs): Promise<void> {
     const response = await apiClient.post<{ message?: string }>(
-      "/api/v1/auth/email/register",
+      API_PATHS.AUTH_EMAIL_REGISTER,
       data
     );
 
