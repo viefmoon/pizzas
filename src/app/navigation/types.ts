@@ -2,7 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { DrawerScreenProps as NavigationDrawerScreenProps } from "@react-navigation/drawer";
 import type { NavigatorScreenParams } from "@react-navigation/native";
 import type { MenuStackParamList } from "../../modules/menu/navigation/types";
-import type { PreparationScreensStackParamList } from "../../modules/preparationScreens/navigation/PreparationScreensStackNavigator";
+import type { PreparationScreensStackParamList } from "../../modules/preparationScreens/navigation/types"; // Corregido: Importar desde types.ts
 import type { AreasTablesStackParamList } from "../../modules/areasTables/navigation/types"; // Importar los tipos del nuevo stack
 export type AuthStackParamList = {
   Login: undefined;
@@ -21,10 +21,10 @@ export type ModifiersStackScreenProps<T extends keyof ModifiersStackParamList> =
   NativeStackScreenProps<ModifiersStackParamList, T>;
 
 export type AppDrawerParamList = {
-  Welcome: undefined;
-  Menu: NavigatorScreenParams<MenuStackParamList>;
-  Modifiers: NavigatorScreenParams<ModifiersStackParamList>;
-  PreparationScreens: NavigatorScreenParams<PreparationScreensStackParamList>;
+  Welcome: undefined; // Mantener si existe una pantalla de bienvenida
+  MenuStack: NavigatorScreenParams<MenuStackParamList>; // Renombrado
+  ModifiersStack: NavigatorScreenParams<ModifiersStackParamList>; // Renombrado
+  PreparationScreensStack: NavigatorScreenParams<PreparationScreensStackParamList>; // Renombrado para consistencia
   AreasTablesStack: NavigatorScreenParams<AreasTablesStackParamList>; // Añadir el nuevo stack al Drawer
 };
 

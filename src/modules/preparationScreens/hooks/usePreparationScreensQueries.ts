@@ -1,157 +1,127 @@
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
-import { preparationScreensService } from '../services/preparationScreensService';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryKey,
+} from '@tanstack/react-query';
+import * as preparationScreenService from '../services/preparationScreenService';
 import {
   PreparationScreen,
   CreatePreparationScreenDto,
   UpdatePreparationScreenDto,
-  FindAllPreparationScreensFilter,
-} from '../types/preparationScreens.types';
+  FindAllPreparationScreensDto,
+} from '../types/preparationScreen.types';
 import { BaseListQuery } from '../../../app/types/query.types';
 import { useSnackbarStore } from '../../../app/store/snackbarStore';
 import { getApiErrorMessage } from '../../../app/lib/errorMapping';
-import { ApiError } from '../../../app/lib/errors';
 
-// Constante para las query keys, siguiendo el patrón del proyecto
-export const PREPARATION_SCREENS_QUERY_KEYS = {
+// --- Query Keys ---
+const preparationScreensQueryKeys = {
   all: ['preparationScreens'] as const,
-  lists: () => [...PREPARATION_SCREENS_QUERY_KEYS.all, 'list'] as const,
-  list: (filters?: FindAllPreparationScreensFilter, pagination?: BaseListQuery) =>
-    [...PREPARATION_SCREENS_QUERY_KEYS.lists(), { filters: filters ?? {}, pagination: pagination ?? {} }] as const, // Ensure filters/pagination are objects
-  details: () => [...PREPARATION_SCREENS_QUERY_KEYS.all, 'detail'] as const,
-  detail: (id: string) => [...PREPARATION_SCREENS_QUERY_KEYS.details(), id] as const,
+  lists: () => [...preparationScreensQueryKeys.all, 'list'] as const,
+  list: (filters: FindAllPreparationScreensDto & BaseListQuery) =>
+    [...preparationScreensQueryKeys.lists(), filters] as const,
+  details: () => [...preparationScreensQueryKeys.all, 'detail'] as const,
+  detail: (id: string) => [...preparationScreensQueryKeys.details(), id] as const,
 };
 
-// Opciones comunes para los hooks de query
-type PreparationScreenQueryOptions<TData = PreparationScreen[], TError = ApiError> = Omit<
-  UseQueryOptions<TData, TError>,
-  'queryKey' | 'queryFn'
->;
-
-// Opciones comunes para los hooks de mutación
-type PreparationScreenMutationOptions<TData = PreparationScreen, TError = ApiError, TVariables = void> = Omit<
-  UseMutationOptions<TData, TError, TVariables>,
-  'mutationFn'
->;
-
+// --- Hooks ---
 
 /**
- * Hook para obtener todas las pantallas de preparación con filtros y paginación.
+ * Hook to fetch a paginated list of preparation screens with filters.
  */
-export const useGetAllPreparationScreens = (
-  filters?: FindAllPreparationScreensFilter,
-  pagination?: BaseListQuery,
-  options?: PreparationScreenQueryOptions
+export const useGetPreparationScreens = (
+  filters: FindAllPreparationScreensDto = {},
+  pagination: BaseListQuery = { page: 1, limit: 15 } // Default limit 15
 ) => {
-  const queryKey = PREPARATION_SCREENS_QUERY_KEYS.list(filters, pagination);
-  return useQuery<PreparationScreen[], ApiError>({
+  const queryKey = preparationScreensQueryKeys.list({ ...filters, ...pagination });
+  // El servicio getPreparationScreens ya maneja la estructura [data, count] y devuelve data[]
+  return useQuery<PreparationScreen[], Error>({
     queryKey,
-    queryFn: () => preparationScreensService.getAll(filters, pagination),
-    ...options, // Spread other options like 'enabled', 'staleTime', etc.
+    queryFn: () => preparationScreenService.getPreparationScreens(filters, pagination),
+    // Considerar placeholderData o initialData si es necesario para UX
   });
 };
 
 /**
- * Hook para obtener una pantalla de preparación específica por su ID.
+ * Hook to fetch a single preparation screen by its ID.
  */
-export const useGetPreparationScreenById = (
-    id: string | null,
-    options?: PreparationScreenQueryOptions<PreparationScreen> // Specify TData = PreparationScreen
-) => {
-  const queryKey = PREPARATION_SCREENS_QUERY_KEYS.detail(id ?? '');
-  return useQuery<PreparationScreen, ApiError>({
+export const useGetPreparationScreenById = (id: string | null, options?: { enabled?: boolean }) => {
+  const queryKey = preparationScreensQueryKeys.detail(id!); // Use non-null assertion as it's enabled conditionally
+  return useQuery<PreparationScreen, Error>({
     queryKey,
-    queryFn: () => {
-      if (!id) {
-        // React Query manejará esto si enabled es false, pero podemos ser explícitos
-        return Promise.reject(new Error('ID de pantalla de preparación no proporcionado.'));
-      }
-      return preparationScreensService.getById(id);
-    },
-    enabled: !!id && (options?.enabled ?? true), // Habilitar solo si hay ID y options.enabled no es false
-    ...options,
+    queryFn: () => preparationScreenService.getPreparationScreenById(id!),
+    enabled: !!id && (options?.enabled ?? true), // Only run query if id is provided and enabled
   });
 };
 
 /**
- * Hook para crear una nueva pantalla de preparación.
+ * Hook for creating a new preparation screen.
  */
-export const useCreatePreparationScreen = (
-    options?: PreparationScreenMutationOptions<PreparationScreen, ApiError, CreatePreparationScreenDto>
-) => {
+export const useCreatePreparationScreen = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
-  return useMutation<PreparationScreen, ApiError, CreatePreparationScreenDto>({
-    mutationFn: preparationScreensService.create,
-    onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: PREPARATION_SCREENS_QUERY_KEYS.lists() });
-      showSnackbar({ message: `Pantalla "${data.name}" creada con éxito`, type: 'success' });
-      options?.onSuccess?.(data, variables, context); // Call original onSuccess if provided
+  return useMutation<PreparationScreen, Error, CreatePreparationScreenDto>({
+    mutationFn: preparationScreenService.createPreparationScreen,
+    onSuccess: (newScreen) => {
+      // Invalidate list queries to refetch
+      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.lists() });
+      showSnackbar({ message: 'Pantalla de preparación creada con éxito', type: 'success' });
     },
-    onError: (error, variables, context) => {
+    onError: (error) => {
       const errorMessage = getApiErrorMessage(error);
-      showSnackbar({ message: `Error al crear: ${errorMessage}`, type: 'error' });
-      console.error("Error creating preparation screen:", error);
-      options?.onError?.(error, variables, context); // Call original onError if provided
+      showSnackbar({ message: errorMessage, type: 'error' });
+      console.error('Error creating preparation screen:', error);
     },
-    ...options, // Spread other mutation options
   });
 };
 
 /**
- * Hook para actualizar una pantalla de preparación existente.
+ * Hook for updating an existing preparation screen.
  */
-export const useUpdatePreparationScreen = (
-    options?: PreparationScreenMutationOptions<PreparationScreen, ApiError, { id: string; data: UpdatePreparationScreenDto }>
-) => {
+export const useUpdatePreparationScreen = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
-  return useMutation<PreparationScreen, ApiError, { id: string; data: UpdatePreparationScreenDto }>({
-    mutationFn: ({ id, data }) => preparationScreensService.update(id, data),
-    onSuccess: (data, variables, context) => {
-      // Invalidate list and the specific detail query
-      queryClient.invalidateQueries({ queryKey: PREPARATION_SCREENS_QUERY_KEYS.lists() });
-      queryClient.invalidateQueries({ queryKey: PREPARATION_SCREENS_QUERY_KEYS.detail(variables.id) });
-      // Optionally update cache directly for faster UI response
-      // queryClient.setQueryData(PREPARATION_SCREENS_QUERY_KEYS.detail(variables.id), data);
-      showSnackbar({ message: `Pantalla "${data.name}" actualizada con éxito`, type: 'success' });
-      options?.onSuccess?.(data, variables, context);
+  return useMutation<PreparationScreen, Error, { id: string; data: UpdatePreparationScreenDto }>({
+    mutationFn: ({ id, data }) => preparationScreenService.updatePreparationScreen(id, data),
+    onSuccess: (updatedScreen) => {
+      // Invalidate list and detail queries
+      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.detail(updatedScreen.id) });
+      // Opcionalmente, actualizar la caché directamente con setQueryData
+      // queryClient.setQueryData(preparationScreensQueryKeys.detail(updatedScreen.id), updatedScreen);
+      showSnackbar({ message: 'Pantalla de preparación actualizada con éxito', type: 'success' });
     },
-    onError: (error, variables, context) => {
+    onError: (error, variables) => {
       const errorMessage = getApiErrorMessage(error);
-      showSnackbar({ message: `Error al actualizar: ${errorMessage}`, type: 'error' });
+      showSnackbar({ message: errorMessage, type: 'error' });
       console.error(`Error updating preparation screen ${variables.id}:`, error);
-      options?.onError?.(error, variables, context);
     },
-     ...options,
   });
 };
 
 /**
- * Hook para eliminar una pantalla de preparación.
+ * Hook for deleting a preparation screen.
  */
-export const useDeletePreparationScreen = (
-    options?: PreparationScreenMutationOptions<void, ApiError, string> // TVariables is the ID (string)
-) => {
+export const useDeletePreparationScreen = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
-  return useMutation<void, ApiError, string>({
-    mutationFn: preparationScreensService.delete, // Directly pass the service function
-    onSuccess: (_, id, context) => { // First arg is void for delete
-      queryClient.invalidateQueries({ queryKey: PREPARATION_SCREENS_QUERY_KEYS.lists() });
-      // Remove the specific detail query from cache
-      queryClient.removeQueries({ queryKey: PREPARATION_SCREENS_QUERY_KEYS.detail(id) });
+  return useMutation<void, Error, string>({
+    mutationFn: preparationScreenService.deletePreparationScreen,
+    onSuccess: (_, deletedId) => {
+      // Invalidate list queries
+      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.lists() });
+      // Remove detail query from cache
+      queryClient.removeQueries({ queryKey: preparationScreensQueryKeys.detail(deletedId) });
       showSnackbar({ message: 'Pantalla de preparación eliminada con éxito', type: 'success' });
-      options?.onSuccess?.(_, id, context);
     },
-    onError: (error, id, context) => {
+    onError: (error, deletedId) => {
       const errorMessage = getApiErrorMessage(error);
-      showSnackbar({ message: `Error al eliminar: ${errorMessage}`, type: 'error' });
-      console.error(`Error deleting preparation screen ${id}:`, error);
-      options?.onError?.(error, id, context);
+      showSnackbar({ message: errorMessage, type: 'error' });
+      console.error(`Error deleting preparation screen ${deletedId}:`, error);
     },
-    ...options,
   });
 };

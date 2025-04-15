@@ -172,38 +172,38 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
           <Divider style={styles.divider} />
 
           <PaperDrawer.Section style={styles.drawerSection}>
-            {renderDrawerItem("Menu", "Menú", "menu", 0, () => {
+            {renderDrawerItem("MenuStack", "Menú", "menu", 0, () => { // Corregido routeName
               props.navigation.dispatch(
                 CommonActions.reset({
                   index: 0,
                   routes: [
                     {
-                      name: "Menu",
+                      name: "MenuStack", // Corregido
                       state: {
                         routes: [{ name: "CategoriesScreen" }],
                       },
                     },
-                    { name: "Modifiers" },
-                    { name: "PreparationScreens" },
+                    { name: "ModifiersStack" }, // Corregido
+                    { name: "PreparationScreensStack" },
                     { name: "AreasTablesStack" },
                   ],
                 })
               );
             })}
 
-            {renderDrawerItem("Modifiers", "Modificadores", "tune", 1, () => {
+            {renderDrawerItem("ModifiersStack", "Modificadores", "tune", 1, () => { // Corregido routeName
               props.navigation.dispatch(
                 CommonActions.reset({
                   index: 1,
                   routes: [
-                    { name: "Menu" },
+                    { name: "MenuStack" }, // Corregido
                     {
-                      name: "Modifiers",
+                      name: "ModifiersStack", // Corregido
                       state: {
                         routes: [{ name: "ModifierGroupsScreen" }],
                       },
                     },
-                    { name: "PreparationScreens" },
+                    { name: "PreparationScreensStack" }, // Corregido
                     { name: "AreasTablesStack" },
                   ],
                 })
@@ -211,7 +211,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
             })}
 
             {renderDrawerItem(
-              "PreparationScreens",
+              "PreparationScreensStack", // Corregido
               "Pantallas Preparación",
               "monitor-dashboard",
               2,
@@ -220,10 +220,10 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                   CommonActions.reset({
                     index: 2,
                     routes: [
-                      { name: "Menu" },
-                      { name: "Modifiers" },
+                      { name: "MenuStack" }, // Corregido
+                      { name: "ModifiersStack" }, // Corregido
                       {
-                        name: "PreparationScreens",
+                        name: "PreparationScreensStack", // Corregido
                         state: {
                           routes: [{ name: "PreparationScreensList" }],
                         },
@@ -245,9 +245,9 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                   CommonActions.reset({
                     index: 3,
                     routes: [
-                      { name: "Menu" },
-                      { name: "Modifiers" },
-                      { name: "PreparationScreens" },
+                      { name: "MenuStack" }, // Corregido
+                      { name: "ModifiersStack" }, // Corregido
+                      { name: "PreparationScreensStack" }, // Corregido
                       {
                         name: "AreasTablesStack",
                         state: {

@@ -87,13 +87,13 @@ export function AppDrawerNavigator() {
             // Personalizar el título de cada pantalla basado en el nombre
             let title = "";
             switch (children) {
-              case "Menu":
+              case "MenuStack": // Corregido
                 title = "Menú";
                 break;
-              case "Modifiers":
+              case "ModifiersStack": // Corregido
                 title = "Modificadores";
                 break;
-              case "PreparationScreens":
+              case "PreparationScreensStack": // Corregido: Coincidir con el nombre de la ruta
                 title = "Pantallas Preparación";
                 break;
               case "AreasTablesStack":
@@ -117,7 +117,7 @@ export function AppDrawerNavigator() {
         })}
       >
         <Drawer.Screen
-          name="Menu"
+          name="MenuStack" // Corregido
           component={MenuStackNavigator}
           options={{
             title: "Menú",
@@ -127,7 +127,7 @@ export function AppDrawerNavigator() {
           }}
         />
         <Drawer.Screen
-          name="Modifiers"
+          name="ModifiersStack" // Corregido
           component={ModifiersStackNavigator}
           options={{
             title: "Modificadores",
@@ -137,7 +137,7 @@ export function AppDrawerNavigator() {
           }}
         />
         <Drawer.Screen
-          name="PreparationScreens"
+          name="PreparationScreensStack"
           component={PreparationScreensStackNavigator}
           options={{
             title: "Pantallas Preparación",

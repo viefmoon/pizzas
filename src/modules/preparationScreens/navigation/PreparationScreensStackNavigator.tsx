@@ -1,46 +1,41 @@
 import React from 'react';
-import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { DrawerToggleButton } from '@react-navigation/drawer'; // Importar DrawerToggleButton
-import { Platform } from 'react-native'; // Importar Platform
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { PreparationScreensStackParamList } from './types';
+import PreparationScreensScreen from '../screens/PreparationScreensScreen'; // Importar la pantalla principal
 import { useAppTheme } from '../../../app/styles/theme';
-import PreparationScreensScreen from '../screens/PreparationScreensScreen';
-
-// Definir tipos para las rutas del stack
-export type PreparationScreensStackParamList = {
-  PreparationScreensList: undefined;
-};
+// Importar DrawerToggleButton si se necesita (ej. si este stack es la pantalla inicial del drawer)
+// import { DrawerToggleButton } from '@react-navigation/drawer';
 
 const Stack = createNativeStackNavigator<PreparationScreensStackParamList>();
 
 const PreparationScreensStackNavigator = () => {
   const theme = useAppTheme();
 
-  // Definir screenOptions base como un objeto para estilos comunes
-  const baseScreenOptions: NativeStackNavigationOptions = {
-    headerStyle: {
-      backgroundColor: theme.colors.elevation.level2, // Usar elevation.level2 como en otros stacks
-    },
-    headerTintColor: theme.colors.onSurface, // Usar onSurface como en otros stacks
-    headerTitleStyle: {
-      ...theme.fonts.titleMedium, // Usar titleMedium como en MenuStack
-      fontWeight: 'bold', // Mantener bold
-    },
-    // headerLeft se definirá por pantalla si necesita acceso a navigation
-  };
-
   return (
-    // Usar las opciones base para el Navigator
-    <Stack.Navigator screenOptions={baseScreenOptions}>
+    <Stack.Navigator
+      initialRouteName="PreparationScreensList"
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.elevation.level2, // Usar color de elevación del tema
+        },
+        headerTintColor: theme.colors.onSurface, // Color del texto y botones del header
+        headerTitleStyle: {
+          ...theme.fonts.titleMedium, // Usar fuente del tema
+          fontWeight: 'bold',
+        },
+        // Descomentar si se quiere el botón del drawer en la pantalla principal de este stack
+        // headerLeft: (props) => <DrawerToggleButton {...props} tintColor={theme.colors.onSurface} />,
+      }}
+    >
       <Stack.Screen
         name="PreparationScreensList"
         component={PreparationScreensScreen}
-        // Definir options como función para esta pantalla específica
-        options={({ navigation }) => ({ // Recibe { navigation, route }
-          title: 'Pantallas de Preparación',
-          // Usar DrawerToggleButton como en otros stacks
-        })}
+        options={{
+          title: 'Pantallas de Preparación', // Título de la pantalla
+        }}
       />
-      {/* Otras pantallas del stack irían aquí */}
+      {/* Añadir aquí otras pantallas si el módulo crece */}
+      {/* <Stack.Screen name="PreparationScreenDetail" component={DetailScreenComponent} /> */}
     </Stack.Navigator>
   );
 };
