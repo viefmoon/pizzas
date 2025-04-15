@@ -6,8 +6,19 @@ import type { PreparationScreensStackParamList } from "../../modules/preparation
 import type { AreasTablesStackParamList } from "../../modules/areasTables/navigation/types"; // Importar los tipos del nuevo stack
 export type AuthStackParamList = {
   Login: undefined;
-  Register: undefined;
+  // Register: undefined; // Comentado si no se usa
 };
+
+// Tipos para el Stack de Órdenes
+export type OrdersStackParamList = {
+  Orders: undefined; // Pantalla principal del módulo de órdenes
+  CreateOrder: undefined; // Pantalla para crear una nueva orden
+  // Add other screens for the orders module here, e.g.:
+  // OrderDetail: { orderId: string };
+};
+
+export type OrdersStackScreenProps<T extends keyof OrdersStackParamList> =
+  NativeStackScreenProps<OrdersStackParamList, T>;
 
 export type AuthStackScreenProps<T extends keyof AuthStackParamList> =
   NativeStackScreenProps<AuthStackParamList, T>;
@@ -26,6 +37,7 @@ export type AppDrawerParamList = {
   ModifiersStack: NavigatorScreenParams<ModifiersStackParamList>; // Renombrado
   PreparationScreensStack: NavigatorScreenParams<PreparationScreensStackParamList>; // Renombrado para consistencia
   AreasTablesStack: NavigatorScreenParams<AreasTablesStackParamList>; // Añadir el nuevo stack al Drawer
+  OrdersStack: NavigatorScreenParams<OrdersStackParamList>; // Añadir el stack de órdenes al Drawer
 };
 
 export type DrawerScreenProps<T extends keyof AppDrawerParamList> =
@@ -38,6 +50,7 @@ declare global {
         AppDrawerParamList,
         ModifiersStackParamList,
         PreparationScreensStackParamList,
-        AreasTablesStackParamList {} // Añadir los parámetros del nuevo stack a RootParamList
-  }
+        AreasTablesStackParamList,
+        OrdersStackParamList {} // Añadir los parámetros del stack de órdenes a RootParamList
+ }
 }

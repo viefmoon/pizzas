@@ -5,6 +5,7 @@ import { MenuStackNavigator } from "../../modules/menu/navigation/MenuStackNavig
 import ModifiersStackNavigator from "../../modules/modifiers/navigation/ModifiersStackNavigator";
 import PreparationScreensStackNavigator from "../../modules/preparationScreens/navigation/PreparationScreensStackNavigator";
 import AreasTablesStackNavigator from "../../modules/areasTables/navigation/AreasTablesStackNavigator";
+import OrdersStackNavigator from "./OrdersStackNavigator"; // Importar el nuevo Stack Navigator
 import { CustomDrawerContent } from "./components/CustomDrawerContent";
 import { useAppTheme } from "../styles/theme";
 import { Icon, Surface } from "react-native-paper";
@@ -99,6 +100,9 @@ export function AppDrawerNavigator() {
               case "AreasTablesStack":
                 title = "Áreas y Mesas";
                 break;
+              case "OrdersStack": // Añadir caso para el stack de órdenes
+                title = "Órdenes";
+                break;
               default:
                 title = children?.toString() || "";
             }
@@ -157,6 +161,16 @@ export function AppDrawerNavigator() {
                 color={color}
                 size={size}
               />
+            ),
+          }}
+        />
+        <Drawer.Screen // Añadir la pantalla para el stack de órdenes
+          name="OrdersStack"
+          component={OrdersStackNavigator}
+          options={{
+            title: "Órdenes",
+            drawerIcon: ({ color, size }) => (
+              <Icon source="clipboard-list-outline" color={color} size={size} /> // Icono para órdenes
             ),
           }}
         />
