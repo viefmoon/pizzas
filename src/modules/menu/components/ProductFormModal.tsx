@@ -364,12 +364,23 @@ function ProductFormModal({
                   render={({ field: { onChange, value } }) => (
                     <Switch
                       value={value}
-                      onValueChange={onChange}
+                      onValueChange={(newValue) => {
+                        onChange(newValue);
+                        if (newValue) {
+                          setValue("price", null, { shouldValidate: true });
+                        }
+                      }}
                       disabled={isSubmitting}
                     />
                   )}
                 />
               </View>
+
+              {hasVariants && errors.price && (
+                <HelperText type="error" visible={!!errors.price}>
+                  {errors.price.message}
+                </HelperText>
+              )}
 
               {!hasVariants && (
                 <>
@@ -474,13 +485,24 @@ function ProductFormModal({
                       />
                     </Card>
                   ))}
-                  {errors.variants &&
-                    typeof errors.variants === "object" &&
-                    "message" in errors.variants && (
-                      <HelperText type="error" visible={!!errors.variants}>
-                        {errors.variants.message as string}
-                      </HelperText>
-                    )}
+                  {/* Mostrar error si hasVariants es true pero no hay variantes */}
+                  {errors.variants?.message && (
+                    <HelperText
+                      type="error"
+                      visible={!!errors.variants.message}
+                    >
+                      {errors.variants.message as string}
+                    </HelperText>
+                  )}
+                  {/* También podría estar en root para errores de array */}
+                  {errors.variants?.root?.message && (
+                    <HelperText
+                      type="error"
+                      visible={!!errors.variants.root.message}
+                    >
+                      {errors.variants.root.message as string}
+                    </HelperText>
+                  )}
                 </View>
               )}
 

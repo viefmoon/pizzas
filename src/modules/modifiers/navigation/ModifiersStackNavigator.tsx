@@ -7,6 +7,7 @@ import { ModifiersStackParamList } from '@/app/navigation/types';
 import ModifierGroupsScreen from '../screens/ModifierGroupsScreen';
 import ModifiersScreen from '../screens/ModifiersScreen';
 import { useAppTheme } from '@/app/styles/theme';
+import { getStackHeaderOptions } from '@/app/navigation/options';
 
 const Stack = createNativeStackNavigator<ModifiersStackParamList>();
 
@@ -16,9 +17,7 @@ const ModifiersStackNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: theme.colors.elevation.level2 },
-        headerTintColor: theme.colors.onSurface,
-        headerTitleStyle: { ...theme.fonts.titleMedium, fontWeight: 'bold' },
+        ...getStackHeaderOptions(theme),
       }}
     >
       <Stack.Screen
