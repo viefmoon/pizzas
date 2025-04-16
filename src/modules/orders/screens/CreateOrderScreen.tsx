@@ -1,450 +1,489 @@
-import React, { useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Platform } from 'react-native'; // Añadir Platform
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Card, Title, Paragraph, Button, ActivityIndicator, Divider, IconButton } from 'react-native-paper';
-import { Image } from 'expo-image'; // Importar Image de expo-image
-import { useAppTheme } from '@/app/styles/theme';
-import type { Product, Category, SubCategory } from '../types/orders.types';
-import { useGetFullMenu } from '../hooks/useMenuQueries';
-import { getApiErrorMessage } from '@/app/lib/errorMapping';
-import { getImageUrl } from '@/app/lib/imageUtils';
-import OrderCartDetail from '../components/OrderCartDetail'; // Importar el nuevo componente
-import { OrderType } from '../types/orders.types'; // Importar OrderType
- 
-// --- Componente Reutilizable para Selección ---
-interface SelectionCardProps {
-  id: string;
-  name: string;
-  imageUrl?: string; // Hacer la URL opcional
-  onPress: (id: string) => void;
-}
+import React, { useState, useMemo, useEffect } from "react";
+import { StyleSheet, View, FlatList, TouchableOpacity } from "react-native";
+import {
+  Text,
+  Portal,
+  Button,
+  ActivityIndicator,
+  Card,
+  Title,
+  Snackbar,
+  IconButton,
+} from "react-native-paper"; // Eliminado useTheme no usado
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { useGetFullMenu } from "../hooks/useMenuQueries";
+import { useCart, CartProvider } from "../context/CartContext";
+import { OrderType } from "../types/orders.types";
+import { Image } from "expo-image";
+import { getImageUrl } from "@/app/lib/imageUtils";
 
-const SelectionCard: React.FC<SelectionCardProps> = ({ id, name, imageUrl, onPress }) => {
+// Componentes
+import OrderCartDetail from "../components/OrderCartDetail";
+import ProductCustomizationModal from "../components/ProductCustomizationModal";
+import CartButton from "../components/CartButton";
+
+// Custom hook
+import { useAppTheme } from "@/app/styles/theme";
+
+const CreateOrderScreen = () => {
   const theme = useAppTheme();
-  const styles = useMemo(() => createSelectionCardStyles(theme), [theme]);
-  const finalImageUrl = getImageUrl(imageUrl); // Obtener la URL final
+  const { colors } = theme;
+  const navigation = useNavigation();
+  const {
+    items,
+    addItem,
+    removeItem,
+    updateItemQuantity,
+    isCartEmpty,
+    subtotal,
+    total,
+  } = useCart();
 
-  // Placeholder difuminado para expo-image
-  const blurhash =
-  '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
-
-  return (
-    <Card style={styles.card} onPress={() => onPress(id)}>
-      {finalImageUrl ? (
-        <Image
-          style={styles.image}
-          source={{ uri: finalImageUrl }} // Usar la URL final calculada
-          placeholder={{ blurhash }} // Mostrar blurhash mientras carga
-          contentFit="cover"
-          transition={300} // Suave transición al cargar
-        />
-      ) : (
-        // Placeholder si no hay imagen
-        <View style={[styles.image, styles.selectionPlaceholder]}>
-           <Text style={styles.selectionPlaceholderText}>{name}</Text>
-        </View>
-      )}
-      <Card.Content style={styles.content}>
-        <Title style={styles.title}>{name}</Title>
-      </Card.Content>
-    </Card>
+  // Estados para la navegación y selección
+  const [navigationLevel, setNavigationLevel] = useState<
+    "categories" | "subcategories" | "products"
+  >("categories");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
   );
-};
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<
+    string | null
+  >(null);
+  const [isCartVisible, setIsCartVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null); // Estado que controla el modal de producto
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
-// --- Pantalla Principal ---
-function CreateOrderScreen() {
-  const theme = useAppTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-
-  const [viewState, setViewState] = useState<'categories' | 'subcategories' | 'products'>('categories');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<string | null>(null);
-  const [isCartVisible, setIsCartVisible] = useState(false); // Estado para visibilidad del carrito
- 
-  const { data: menuData, isLoading, error } = useGetFullMenu();
- 
-  // TODO: Implementar estado para la orden actual (items, total, etc.)
-  // const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
+  const { data: menu, isLoading, error } = useGetFullMenu();
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
-    setViewState('subcategories');
+    setSelectedSubCategoryId(null); // Reiniciar selección de subcategoría
+    setNavigationLevel("subcategories");
   };
 
   const handleSubCategorySelect = (subCategoryId: string) => {
     setSelectedSubCategoryId(subCategoryId);
-    setViewState('products');
-    // TODO: Filtrar productos por subCategoryId si es necesario
+    setNavigationLevel("products");
   };
 
+  // Función auxiliar para verificar si un producto necesita personalización
+  const productNeedsCustomization = (product: any): boolean => {
+    if (!product) return false;
+
+    // Verificar si tiene variantes
+    const hasVariants =
+      product.hasVariants &&
+      product.variants &&
+      Array.isArray(product.variants) &&
+      product.variants.length > 0;
+
+    // Verificar si tiene modificadores
+    const hasModifiers =
+      product.modifierGroups &&
+      Array.isArray(product.modifierGroups) &&
+      product.modifierGroups.length > 0;
+
+    return hasVariants || hasModifiers;
+  };
+
+  const handleProductSelect = (product: any) => {
+    if (productNeedsCustomization(product)) {
+      // Si necesita personalización, abrir el modal
+      setSelectedProduct(product);
+    } else {
+      // Si no necesita personalización, añadir directamente al carrito
+      addItem(product, 1);
+      // Mostrar mensaje de confirmación
+      setSnackbarMessage(`${product.name} añadido al carrito`);
+      setSnackbarVisible(true);
+    }
+  };
+
+  // Esta función CIERRA el modal de personalización de producto
+  const handleCloseProductModal = React.useCallback(() => {
+    setSelectedProduct(null);
+  }, []); // useCallback para estabilidad en useEffect
+
   const handleGoBack = () => {
-    if (viewState === 'subcategories') {
-      setViewState('categories');
-      setSelectedCategoryId(null);
-    } else if (viewState === 'products') {
-      setViewState('subcategories');
+    if (navigationLevel === "products") {
+      setNavigationLevel("subcategories");
       setSelectedSubCategoryId(null);
+    } else if (navigationLevel === "subcategories") {
+      setNavigationLevel("categories");
+      setSelectedCategoryId(null);
     }
-    // Si estamos en el carrito, el botón "atrás" lo cierra
-    if (isCartVisible) {
-      setIsCartVisible(false);
-    }
   };
- 
-  const handleAddProduct = (product: Product) => {
-    console.log('Añadir producto:', product.name);
-    // TODO: Lógica para añadir producto a la orden actual
-    // TODO: Lógica para añadir producto a la orden actual (actualizar estado de items)
-  };
- 
-  const handleViewCart = () => {
-    setIsCartVisible(true); // Mostrar el detalle del carrito
-  };
- 
+
+  const handleViewCart = React.useCallback(() => {
+    // Envuelto en useCallback
+    setIsCartVisible(true);
+  }, []);
+
   const handleCloseCart = () => {
     setIsCartVisible(false); // Ocultar el detalle del carrito
   };
- 
-  const handleConfirmOrder = (details: { orderType: OrderType; tableId?: string }) => {
-    console.log('Confirmar orden con detalles:', details);
+
+  const handleConfirmOrder = (details: {
+    orderType: OrderType;
+    tableId?: string;
+  }) => {
+    console.log("Confirmar orden con detalles:", details);
     // TODO: Implementar lógica para enviar la orden al backend
     setIsCartVisible(false); // Cerrar carrito después de confirmar (o manejar navegación)
   };
- 
-  // Placeholder difuminado para expo-image
-  const blurhash =
-  '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
-  const renderProductCard = (product: Product) => {
-    const productImageUrl = getImageUrl(product.photo?.path); // Acceder a photo.path
-
-    return (
-      <Card key={product.id} style={styles.productCard} onPress={() => handleAddProduct(product)}>
-        {productImageUrl ? (
-          <Image
-            style={styles.productImage}
-            source={{ uri: productImageUrl }} // Usar la URL calculada
-            placeholder={{ blurhash }}
-            contentFit="cover"
-            transition={300}
-          />
-        ) : (
-          <View style={styles.productImagePlaceholder}>
-            <Text style={styles.productPlaceholderText}>{product.name}</Text>
-          </View>
-        )}
-        <Card.Content>
-          <Title style={styles.productTitle}>{product.name}</Title>
-          <Paragraph style={styles.productPrice}>${parseFloat(String(product.price)).toFixed(2)}</Paragraph>
-        </Card.Content>
-      </Card>
-    );
+  const getCategories = () => {
+    if (!menu || !Array.isArray(menu)) return [];
+    return menu;
   };
 
-  const getTitle = () => {
-    if (isCartVisible) return 'Detalle de Orden'; // Título cuando el carrito está visible
-    if (viewState === 'categories') return 'Categorías';
-    if (viewState === 'subcategories') {
-      const category = Array.isArray(menuData) ? menuData.find(cat => cat.id === selectedCategoryId) : undefined;
-      return category?.name || 'Subcategorías';
+  const getSubCategories = () => {
+    if (!selectedCategory || !Array.isArray(selectedCategory.subCategories))
+      return [];
+    return selectedCategory.subCategories;
+  };
+
+  const getProducts = () => {
+    if (!selectedSubCategory || !Array.isArray(selectedSubCategory.products))
+      return [];
+    return selectedSubCategory.products;
+  };
+
+  const selectedCategory =
+    menu && Array.isArray(menu)
+      ? menu.find((cat: any) => cat.id === selectedCategoryId)
+      : null;
+
+  const selectedSubCategory =
+    selectedCategory && Array.isArray(selectedCategory.subCategories)
+      ? selectedCategory.subCategories.find(
+          (sub: any) => sub.id === selectedSubCategoryId
+        )
+      : null;
+
+  // Función para mostrar u ocultar el carrito
+  const toggleCartVisibility = () => {
+    setIsCartVisible(!isCartVisible);
+  };
+
+  // Obtener el título según el nivel de navegación (movido ANTES de useEffect)
+  const getNavTitle = React.useCallback(() => {
+    // Si el modal de producto está abierto, mantenemos el título anterior o uno específico
+    if (selectedProduct) {
+      // Podríamos querer mantener el título de productos/subcategorías o poner "Personalizar Producto"
+      // Por ahora, mantenemos el título anterior para consistencia
+      if (navigationLevel === "products") {
+        return selectedSubCategory?.name
+          ? `Subcategoría: ${selectedSubCategory.name}`
+          : "Productos";
+      }
+      // Añadir más lógica si se abre desde subcategorías o categorías directamente (si fuera posible)
     }
-    return 'Productos';
-  };
- 
+    // Títulos normales si el modal no está abierto
+    switch (navigationLevel) {
+      case "categories":
+        return "Categorías";
+      case "subcategories":
+        return selectedCategory?.name
+          ? `Categoría: ${selectedCategory.name}`
+          : "Subcategorías";
+      case "products":
+        return selectedSubCategory?.name
+          ? `Subcategoría: ${selectedSubCategory.name}`
+          : "Productos";
+      default:
+        return "Categorías";
+    }
+  }, [navigationLevel, selectedCategory, selectedSubCategory, selectedProduct]); // Añadir selectedProduct
+
+  // --- Configuración dinámica del Header ---
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: getNavTitle(),
+      // Configurar botón izquierdo: Manejar la navegación interna
+      headerLeft: () => {
+        if (selectedProduct) {
+          // Botón para cerrar el modal de producto
+          return (
+            <IconButton
+              icon="arrow-left"
+              size={24}
+              onPress={handleCloseProductModal}
+            />
+          );
+        } else if (navigationLevel !== "categories") {
+          // Botón de retroceso interno para subcategorías y productos
+          return (
+            <IconButton icon="arrow-left" size={24} onPress={handleGoBack} />
+          );
+        }
+        // En el nivel de categorías, mostrar el botón del drawer
+        return undefined;
+      },
+      // Configurar botón derecho: Muestra el botón del carrito solo si el modal de producto Y el carrito NO están visibles.
+      headerRight: () =>
+        !isCartVisible && !selectedProduct ? (
+          <CartButton itemCount={items.length} onPress={handleViewCart} />
+        ) : null,
+      // Deshabilitar el gesto de retroceso por defecto cuando estamos en subcategorías o productos
+      gestureEnabled: navigationLevel === "categories",
+    });
+  }, [
+    navigation,
+    navigationLevel,
+    selectedCategory,
+    selectedSubCategory,
+    items,
+    isCartVisible,
+    selectedProduct,
+    handleViewCart,
+    handleCloseProductModal,
+    getNavTitle,
+  ]);
+
   const renderContent = () => {
-    // Si el carrito está visible, mostrar OrderCartDetail
     if (isCartVisible) {
       return (
         <OrderCartDetail
-          // items={currentOrderItems} // Pasar items reales cuando estén en el estado
-          onConfirmOrder={handleConfirmOrder}
+          visible={isCartVisible}
           onClose={handleCloseCart}
+          onConfirmOrder={handleConfirmOrder}
         />
       );
     }
- 
-    // --- Lógica existente para mostrar categorías/subcategorías/productos ---
-    if (isLoading) {
-      return <ActivityIndicator animating={true} color={theme.colors.primary} size="large" style={styles.loader} />;
-    }
-    if (error) {
-      return <Text style={styles.errorText}>{getApiErrorMessage(error)}</Text>;
-    }
-    if (!menuData) {
-      return <Text>No se pudo cargar el menú.</Text>; // Mensaje si no hay datos después de cargar
-    }
 
-    if (viewState === 'categories') {
+    const blurhash =
+      "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
+
+    const renderItem = ({ item }: { item: any }) => {
+      // Obtener URL de la imagen
+      const imageUrl = item.photo ? getImageUrl(item.photo.path) : null;
+
+      // Determinar la acción según el nivel de navegación
+      const handlePress = () => {
+        if (navigationLevel === "categories") {
+          handleCategorySelect(item.id);
+        } else if (navigationLevel === "subcategories") {
+          handleSubCategorySelect(item.id);
+        } else {
+          handleProductSelect(item);
+        }
+      };
+
+      // Determinar el precio (solo para productos)
+      const renderPrice = () => {
+        if (navigationLevel === "products" && !item.hasVariants && item.price) {
+          return (
+            <Text style={styles.priceText}>
+              ${Number(item.price).toFixed(2)}
+            </Text>
+          );
+        }
+        return null;
+      };
+
       return (
-        <View style={styles.grid}>
-          {Array.isArray(menuData) && menuData.map((category: Category) => (
-            <SelectionCard
-              key={category.id}
-              id={category.id}
-              name={category.name}
-              imageUrl={category.photo?.path} // Acceder a photo.path
-              onPress={handleCategorySelect}
+        <Card style={styles.cardItem} onPress={handlePress}>
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.itemImage}
+              contentFit="cover"
+              placeholder={blurhash}
+              transition={300}
             />
-          ))}
-        </View>
-      );
-    }
-
-    if (viewState === 'subcategories') {
-      const selectedCategory = Array.isArray(menuData) ? menuData.find(cat => cat.id === selectedCategoryId) : undefined;
-      if (!selectedCategory) return <Text>Categoría no encontrada.</Text>; // Manejo de error
-      return (
-        <View style={styles.grid}>
-          {selectedCategory.subCategories.map((subCategory: SubCategory) => (
-            <SelectionCard
-              key={subCategory.id}
-              id={subCategory.id}
-              name={subCategory.name}
-              imageUrl={subCategory.photo?.path} // Acceder a photo.path
-              onPress={handleSubCategorySelect}
-            />
-          ))}
-        </View>
-      );
-    }
-
-    if (viewState === 'products') {
-       // TODO: Filtrar productos basados en selectedSubCategoryId si es necesario
-       const productsToShow = Array.isArray(menuData)
-         ? menuData
-             .flatMap(cat => cat.subCategories)
-             // .filter(sub => sub.id === selectedSubCategoryId) // Descomentar para filtrar
-             .flatMap(sub => sub.products)
-         : []; // Fallback a array vacío si menuData no es un array
-
-      return (
-        <View style={styles.productsGrid}>
-          {productsToShow.length > 0 ? (
-             productsToShow.map(renderProductCard)
           ) : (
-             <Text>No hay productos en esta sección.</Text>
+            <View style={styles.imagePlaceholder}>
+              <Text style={styles.placeholderText}>
+                {item.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={styles.cardContent}>
+            <Title style={styles.cardTitle}>{item.name}</Title>
+            {renderPrice()}
+          </View>
+        </Card>
+      );
+    };
+
+    // Determinar qué items mostrar según el nivel de navegación
+    const getItemsToDisplay = () => {
+      switch (navigationLevel) {
+        case "categories":
+          return getCategories();
+        case "subcategories":
+          return getSubCategories();
+        case "products":
+          return getProducts();
+        default:
+          return [];
+      }
+    };
+
+    const itemsToDisplay = getItemsToDisplay();
+
+    return (
+      <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
+        <View style={styles.container}>
+          {/* Eliminamos el botón de navegación interno, ahora se maneja en el header */}
+          {/* {navigationLevel !== 'categories' && (
+            <View style={styles.internalNav}>
+              <IconButton
+                icon="arrow-left"
+                size={24}
+                onPress={handleGoBack}
+                style={styles.backButtonInternal}
+              />
+            </View>
+          )} */}
+
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#2e7d32" />
+              <Text>Cargando...</Text>
+            </View>
+          ) : itemsToDisplay.length > 0 ? (
+            <FlatList
+              data={itemsToDisplay}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.gridContainer}
+              numColumns={2}
+              columnWrapperStyle={styles.row}
+              initialNumToRender={6}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+            />
+          ) : (
+            <Text style={styles.noItemsText}>
+              {navigationLevel === "products"
+                ? "No hay productos disponibles"
+                : navigationLevel === "subcategories"
+                  ? "No hay subcategorías disponibles"
+                  : "No hay categorías disponibles"}
+            </Text>
           )}
         </View>
-      );
-    }
 
-    return null; // Estado inesperado
+        <Portal>
+          {/* El modal ahora usa handleCloseProductModal que solo cambia el estado */}
+          {selectedProduct && productNeedsCustomization(selectedProduct) && (
+            <ProductCustomizationModal
+              visible={true} // La visibilidad depende de si selectedProduct tiene valor
+              product={selectedProduct}
+              onAddToCart={addItem}
+              onDismiss={handleCloseProductModal} // Esta función solo cierra el modal
+            />
+          )}
+        </Portal>
+
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={2000}
+          action={{
+            label: "OK",
+            onPress: () => setSnackbarVisible(false),
+          }}
+        >
+          {snackbarMessage}
+        </Snackbar>
+      </SafeAreaView>
+    );
   };
 
-  return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      {/* --- Barra Superior (Título y Botones) --- */}
-      <View style={styles.header}>
-        {/* Mostrar botón atrás si no estamos en categorías O si el carrito está visible */}
-        {(viewState !== 'categories' || isCartVisible) && (
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={handleGoBack}
-            style={styles.backButton}
-          />
-        )}
-        <Title style={styles.headerTitle}>{getTitle()}</Title>
-        {/* Mostrar botón carrito solo si NO está visible el carrito */}
-        {!isCartVisible ? (
-          <IconButton
-            icon="cart-outline"
-            size={24}
-            onPress={handleViewCart}
-            style={styles.cartButton}
-          />
-        ) : (
-          // Espaciador para mantener el título centrado cuando el carrito está visible
-          <View style={styles.headerSpacer} />
-        )}
-      </View>
-      {/* No mostrar Divider ni Resumen Fijo si el carrito está visible */}
-      {!isCartVisible && <Divider />}
- 
-      {/* --- Área Principal de Contenido (Scrollable o Carrito) --- */}
-      {/* El ScrollView ahora está DENTRO de OrderCartDetail si está visible */}
-      <View style={styles.contentArea}>
-        {renderContent()}
-      </View>
- 
-      {/* No mostrar Divider ni Resumen Fijo si el carrito está visible */}
-      {!isCartVisible && (
-        <>
-          <Divider />
-          {/* --- Área Resumen de Orden (Fija - Placeholder) --- */}
-          {/* TODO: Este resumen podría actualizarse con datos reales */}
-          <View style={styles.orderSummary}>
-            <Text>Resumen (Placeholder)</Text>
-            <Button mode="contained" onPress={handleViewCart}>
-              Ver Carrito
-            </Button>
-          </View>
-        </>
-      )}
-    </SafeAreaView>
-  );
-}
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safeArea: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        container: {
+          flex: 1,
+        },
+        content: {
+          flex: 1,
+          padding: 12,
+        },
+        gridContainer: {
+          padding: 4,
+        },
+        row: {
+          justifyContent: "flex-start",
+        },
+        cardItem: {
+          width: "48%",
+          marginHorizontal: "1%",
+          marginVertical: 4,
+          overflow: "hidden",
+          borderRadius: 8,
+          elevation: 2,
+        },
+        itemImage: {
+          width: "100%",
+          height: 120,
+        },
+        imagePlaceholder: {
+          width: "100%",
+          height: 120,
+          backgroundColor: "#eeeeee",
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        placeholderText: {
+          fontSize: 24,
+          fontWeight: "bold",
+          color: "#999",
+        },
+        cardContent: {
+          padding: 12,
+        },
+        cardTitle: {
+          fontSize: 16,
+          fontWeight: "bold",
+          marginBottom: 4,
+        },
+        priceText: {
+          color: "#2e7d32",
+          fontWeight: "bold",
+          marginTop: 4,
+        },
+        noItemsText: {
+          textAlign: "center",
+          marginTop: 40,
+          fontSize: 16,
+          color: "#666",
+        },
+        loadingContainer: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        // internalNav ya no es necesario, se maneja en el header
+        // internalNav: {
+        //   flexDirection: 'row',
+        //   alignItems: 'center',
+        //   paddingHorizontal: theme.spacing.s,
+        //   paddingVertical: theme.spacing.xs,
+        // },
+        // backButtonInternal: {
+        //   margin: 0,
+        // },
+      }),
+    [theme]
+  ); // theme -> colors
 
-// --- Estilos ---
-const createSelectionCardStyles = (theme: ReturnType<typeof useAppTheme>) =>
-  StyleSheet.create({
-    card: {
-      width: '45%', // Aproximadamente 2 columnas
-      margin: theme.spacing.s,
-      elevation: 3,
-      backgroundColor: theme.colors.surface,
-    },
-    image: {
-      height: 100, // Altura fija para la imagen
-      // Asegurar bordes redondeados superiores para expo-image dentro de Card
-      borderTopLeftRadius: theme.roundness,
-      borderTopRightRadius: theme.roundness,
-      // Quitar bordes redondeados inferiores si se usa Card.Cover
-      // borderBottomLeftRadius: 0,
-      // borderBottomRightRadius: 0,
-      overflow: 'hidden', // Necesario para que el redondeo aplique a la imagen
-    },
-    selectionPlaceholder: { // Placeholder para SelectionCard sin imagen
-      backgroundColor: theme.colors.surfaceVariant, // Fondo similar al de producto
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: theme.spacing.s,
-    },
-    selectionPlaceholderText: { // Texto para placeholder de SelectionCard
-      fontSize: 16, // Ajustar tamaño según necesidad
-      fontWeight: 'bold',
-      color: theme.colors.onSurfaceVariant,
-      textAlign: 'center',
-    },
-    imagePlaceholder: { // Este estilo parece no usarse ya con expo-image, pero lo dejamos por si acaso
-      height: 100,
-      backgroundColor: theme.colors.surfaceVariant, // Mantener por consistencia
-      justifyContent: 'center',
-      alignItems: 'center',
-      // Asegurar bordes redondeados superiores
-      borderTopLeftRadius: theme.roundness,
-      borderTopRightRadius: theme.roundness,
-    },
-    placeholderText: {
-      fontSize: 30,
-      color: theme.colors.onSurfaceVariant,
-    },
-    content: {
-      paddingTop: theme.spacing.s, // Espacio entre imagen y texto
-      alignItems: 'center', // Centrar título
-    },
-    title: {
-      fontSize: 16,
-      lineHeight: 20,
-      textAlign: 'center',
-      paddingBottom: theme.spacing.s,
-    },
-});
+  return renderContent();
+};
 
-const createStyles = (theme: ReturnType<typeof useAppTheme>) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: theme.spacing.s,
-      paddingVertical: theme.spacing.xs, // Menos padding vertical
-      minHeight: 50, // Altura mínima
-      backgroundColor: theme.colors.surface, // Opcional: color de fondo para header
-    },
-    backButton: {
-      margin: 0, // Quitar margen extra de IconButton
-    },
-    headerTitle: {
-      flex: 1, // Ocupa el espacio disponible
-      textAlign: 'center',
-      fontSize: 18, // Ajustar tamaño
-      fontWeight: 'bold',
-    },
-    cartButton: { // Estilo para el botón del carrito
-      margin: 0,
-    },
-    headerSpacer: { // Espaciador para centrar título cuando el botón derecho no está
-      width: 48, // Ancho similar al IconButton
-    },
-    contentArea: {
-      flex: 1, // Ocupa el espacio principal
-    },
-    grid: { // Para categorías y subcategorías
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-around',
-      padding: theme.spacing.s,
-    },
-    productsGrid: { // Para productos
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-around',
-      padding: theme.spacing.s,
-    },
-    productCard: {
-      width: '45%',
-      margin: theme.spacing.s,
-      elevation: 2, // Mantener elevación para sombra
-      backgroundColor: theme.colors.surface, // Asegurar fondo por si la imagen no carga
-    },
-     productImage: { // Estilo para la imagen del producto (expo-image)
-      height: 120,
-      width: '100%', // Asegurar que ocupe el ancho de la Card
-      borderTopLeftRadius: theme.roundness, // Redondeo superior
-      borderTopRightRadius: theme.roundness,
-     },
-     productImagePlaceholder: { // Estilo para el View del placeholder SIN imagen
-      height: 120,
-      backgroundColor: theme.colors.surfaceVariant, // Fondo para el placeholder
-      justifyContent: 'center',
-      alignItems: 'center', // Centrar contenido
-      borderTopLeftRadius: theme.roundness, // Redondeo superior igual que la imagen
-      borderTopRightRadius: theme.roundness,
-      padding: theme.spacing.s, // Añadir padding interno
-    },
-    productPlaceholderText: { // Estilo para el texto del placeholder
-       fontSize: 18, // Tamaño de fuente más grande
-       fontWeight: 'bold',
-       color: theme.colors.onSurfaceVariant, // Color del texto sobre el fondo
-       textAlign: 'center', // Centrar texto
-    },
-    productTitle: {
-      fontSize: 16,
-      lineHeight: 20,
-    },
-    productPrice: {
-      fontSize: 14,
-      color: theme.colors.primary,
-      fontWeight: 'bold',
-      marginTop: 4,
-    },
-    orderSummary: {
-      padding: theme.spacing.m,
-      backgroundColor: theme.colors.surface,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.outlineVariant,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    loader: {
-      marginTop: 50,
-      alignSelf: 'center',
-    },
-    errorText: {
-      textAlign: 'center',
-      marginTop: 50,
-      color: theme.colors.error,
-      paddingHorizontal: theme.spacing.m,
-    },
-     placeholderText: { // Estilo reutilizado para texto de placeholder '?'
-      fontSize: 30,
-      color: theme.colors.onSurfaceVariant,
-    },
-  });
+const CreateOrderScreenWithCart = () => (
+  <CartProvider>
+    <CreateOrderScreen />
+  </CartProvider>
+);
 
-export default CreateOrderScreen;
+export default CreateOrderScreenWithCart;
