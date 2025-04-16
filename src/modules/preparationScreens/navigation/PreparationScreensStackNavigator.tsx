@@ -1,9 +1,9 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { PreparationScreensStackParamList } from './types';
-import PreparationScreensScreen from '../screens/PreparationScreensScreen'; // Importar la pantalla principal
+import PreparationScreensScreen from '../screens/PreparationScreensScreen';
 import { useAppTheme } from '../../../app/styles/theme';
-// Importar DrawerToggleButton si se necesita (ej. si este stack es la pantalla inicial del drawer)
+import { getStackHeaderOptions } from '../../../app/navigation/options';
 // import { DrawerToggleButton } from '@react-navigation/drawer';
 
 const Stack = createNativeStackNavigator<PreparationScreensStackParamList>();
@@ -15,15 +15,7 @@ const PreparationScreensStackNavigator = () => {
     <Stack.Navigator
       initialRouteName="PreparationScreensList"
       screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.elevation.level2, // Usar color de elevación del tema
-        },
-        headerTintColor: theme.colors.onSurface, // Color del texto y botones del header
-        headerTitleStyle: {
-          ...theme.fonts.titleMedium, // Usar fuente del tema
-          fontWeight: 'bold',
-        },
-        // Descomentar si se quiere el botón del drawer en la pantalla principal de este stack
+        ...getStackHeaderOptions(theme),
         // headerLeft: (props) => <DrawerToggleButton {...props} tintColor={theme.colors.onSurface} />,
       }}
     >
@@ -31,10 +23,9 @@ const PreparationScreensStackNavigator = () => {
         name="PreparationScreensList"
         component={PreparationScreensScreen}
         options={{
-          title: 'Pantallas de Preparación', // Título de la pantalla
+          title: 'Pantallas de Preparación',
         }}
       />
-      {/* Añadir aquí otras pantallas si el módulo crece */}
       {/* <Stack.Screen name="PreparationScreenDetail" component={DetailScreenComponent} /> */}
     </Stack.Navigator>
   );

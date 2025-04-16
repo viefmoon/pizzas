@@ -6,6 +6,7 @@ import { AreasTablesStackParamList } from './types';
 import AreasScreen from '../screens/AreasScreen';
 import TablesScreen from '../screens/TablesScreen';
 import { useAppTheme } from '../../../app/styles/theme';
+import { getStackHeaderOptions } from '../../../app/navigation/options';
 
 const Stack = createNativeStackNavigator<AreasTablesStackParamList>();
 
@@ -16,14 +17,7 @@ const AreasTablesStackNavigator = () => {
     <Stack.Navigator
       initialRouteName="AreasList"
       screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.elevation.level2,
-        },
-        headerTintColor: theme.colors.onSurface,
-        headerTitleStyle: {
-          ...theme.fonts.titleMedium,
-          fontWeight: 'bold',
-        },
+        ...getStackHeaderOptions(theme),
       }}
     >
       <Stack.Screen

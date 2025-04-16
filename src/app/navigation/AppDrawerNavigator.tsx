@@ -16,7 +16,6 @@ const Drawer = createDrawerNavigator<AppDrawerParamList>();
 export function AppDrawerNavigator() {
   const theme = useAppTheme();
 
-  // Definir los estilos usando useMemo para optimizar renderizado
   const styles = React.useMemo(
     () =>
       StyleSheet.create({
@@ -30,7 +29,7 @@ export function AppDrawerNavigator() {
         },
         headerStyle: {
           backgroundColor: theme.colors.primary,
-          height: 56, // Altura estándar MD3
+          height: 56,
           elevation: 2,
         },
         headerTitleStyle: {
@@ -40,7 +39,7 @@ export function AppDrawerNavigator() {
         },
         drawerStyle: {
           backgroundColor: theme.colors.surface,
-          width: 320, // Ancho estándar MD3
+          width: 320,
           borderTopRightRadius: theme.roundness * 2,
           borderBottomRightRadius: theme.roundness * 2,
         },
@@ -85,22 +84,21 @@ export function AppDrawerNavigator() {
             </TouchableOpacity>
           ),
           headerTitle: ({ children }) => {
-            // Personalizar el título de cada pantalla basado en el nombre
             let title = "";
             switch (children) {
-              case "MenuStack": // Corregido
+              case "MenuStack":
                 title = "Menú";
                 break;
-              case "ModifiersStack": // Corregido
+              case "ModifiersStack":
                 title = "Modificadores";
                 break;
-              case "PreparationScreensStack": // Corregido: Coincidir con el nombre de la ruta
+              case "PreparationScreensStack":
                 title = "Pantallas Preparación";
                 break;
               case "AreasTablesStack":
                 title = "Áreas y Mesas";
                 break;
-              case "OrdersStack": // Añadir caso para el stack de órdenes
+              case "OrdersStack":
                 title = "Órdenes";
                 break;
               default:
@@ -111,7 +109,6 @@ export function AppDrawerNavigator() {
                 elevation={0}
                 style={{
                   backgroundColor: "transparent",
-                  // El padding se maneja mejor en el Text para alineación
                 }}
               >
                 <Text style={styles.headerTitleStyle}>{title}</Text>
@@ -121,7 +118,7 @@ export function AppDrawerNavigator() {
         })}
       >
         <Drawer.Screen
-          name="MenuStack" // Corregido
+          name="MenuStack"
           component={MenuStackNavigator}
           options={{
             title: "Menú",
@@ -131,7 +128,7 @@ export function AppDrawerNavigator() {
           }}
         />
         <Drawer.Screen
-          name="ModifiersStack" // Corregido
+          name="ModifiersStack"
           component={ModifiersStackNavigator}
           options={{
             title: "Modificadores",
@@ -164,13 +161,13 @@ export function AppDrawerNavigator() {
             ),
           }}
         />
-        <Drawer.Screen // Añadir la pantalla para el stack de órdenes
+        <Drawer.Screen
           name="OrdersStack"
           component={OrdersStackNavigator}
           options={{
             title: "Órdenes",
             drawerIcon: ({ color, size }) => (
-              <Icon source="clipboard-list-outline" color={color} size={size} /> // Icono para órdenes
+              <Icon source="clipboard-list-outline" color={color} size={size} />
             ),
           }}
         />

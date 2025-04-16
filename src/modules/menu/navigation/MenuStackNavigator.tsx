@@ -1,7 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-// Eliminamos importaciones innecesarias: useNavigation, DrawerActions, IconButton, NativeStackNavigationProp, AppDrawerParamList
 import { useAppTheme } from "../../../app/styles/theme";
+import { getStackHeaderOptions } from "../../../app/navigation/options";
 import type { MenuStackParamList } from "./types.ts";
 
 import CategoriesScreen from "../screens/CategoriesScreen";
@@ -12,20 +12,12 @@ const Stack = createNativeStackNavigator<MenuStackParamList>();
 
 export const MenuStackNavigator: React.FC = () => {
   const theme = useAppTheme();
-  // Eliminamos el hook useNavigation que ya no es necesario
 
   return (
     <Stack.Navigator
       screenOptions={{
+        ...getStackHeaderOptions(theme),
         headerShown: true,
-        headerStyle: {
-          backgroundColor: theme.colors.elevation.level2,
-        },
-        headerTintColor: theme.colors.onSurface, 
-        headerTitleStyle: {
-          ...theme.fonts.titleMedium,
-          fontWeight: "bold",
-        },
       }}
     >
       <Stack.Screen
