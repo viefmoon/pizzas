@@ -1,7 +1,6 @@
 import { ApiError } from './errors';
 import { ERROR_CODES, ApiErrorCode } from '../constants/apiErrorCodes';
 import { AxiosError } from 'axios';
-import { ApiResponse } from 'apisauce';
 
 const errorCodeMessages: { [key in ApiErrorCode | string]?: string } = {
   [ERROR_CODES.AUTH_INVALID_CREDENTIALS]: "El correo/usuario o la contraseña son incorrectos.",
@@ -64,20 +63,3 @@ export function getApiErrorMessage(error: unknown): string {
   }
 }
 
-export function mapApisauceProblem(problem: ApiResponse<any>['problem']): string {
-   switch (problem) {
-      case 'NETWORK_ERROR':
-      case 'CONNECTION_ERROR':
-      case 'TIMEOUT_ERROR':
-         return errorCodeMessages[ERROR_CODES.NETWORK_ERROR] || "Error de red.";
-      case 'CLIENT_ERROR':
-         return errorCodeMessages[ERROR_CODES.API_CLIENT_ERROR] || "Error del cliente.";
-      case 'SERVER_ERROR':
-         return errorCodeMessages[ERROR_CODES.INTERNAL_SERVER_ERROR] || "Error del servidor.";
-      case 'CANCEL_ERROR':
-         return 'La solicitud fue cancelada.';
-      case 'UNKNOWN_ERROR':
-      default:
-         return errorCodeMessages[ERROR_CODES.UNKNOWN_API_ERROR] || "Error al comunicar con el servidor.";
-   }
-}

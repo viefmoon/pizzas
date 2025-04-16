@@ -1,82 +1,16 @@
-import { create, ApiResponse, ApiErrorResponse } from "apisauce";
+import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from "axios";
+import { create as createApisauceInstance, ApiResponse } from 'apisauce'; // Import apisauce create
 import { API_URL } from "@env";
 import EncryptedStorage from "react-native-encrypted-storage";
 import { useAuthStore } from "../store/authStore";
+import { ApiError } from "../lib/errors";
 
-console.log("API_URL loaded:", API_URL); // <-- Log para verificar la URL
-const AUTH_TOKEN_KEY = "auth_token";
+console.log("API_URL loaded:", API_URL);
 const REFRESH_TOKEN_KEY = "refresh_token";
+const AUTH_REFRESH_PATH = "/api/v1/auth/refresh";
 
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value: unknown) => void;
-  reject: (reason?: any) => void;
-}> = [];
-
-const processQueue = (error: Error | null, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
-async function refreshToken(): Promise<string | null> {
-  try {
-    const currentRefreshToken =
-      await EncryptedStorage.getItem(REFRESH_TOKEN_KEY);
-    if (!currentRefreshToken) {
-      console.warn("REFRESH: No refresh token found in EncryptedStorage.");
-      await useAuthStore.getState().logout(); // Logout si no hay refresh token
-      return null;
-    }
-
-    console.log(
-      `REFRESH: Attempting refresh. Found token? ${!!currentRefreshToken}`
-    );
-    // Por seguridad, no loguear el token completo. Podrías loguear los últimos 4 caracteres si necesitas identificarlo:
-    const refreshApiClient = create({ baseURL: API_URL });
-    const response: ApiResponse<{
-      accessToken: string;
-      refreshToken?: string;
-    }> = await refreshApiClient.post("/api/v1/auth/refresh", {
-      refreshToken: currentRefreshToken,
-    });
-
-    if (response.ok && response.data?.accessToken) {
-      const newAccessToken = response.data.accessToken;
-      const newRefreshToken = response.data.refreshToken;
-
-      console.log("Token refreshed successfully.");
-      await useAuthStore.getState().setAccessToken(newAccessToken);
-
-      if (newRefreshToken && newRefreshToken !== currentRefreshToken) {
-        console.log("Updating refresh token as well.");
-        await EncryptedStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
-        useAuthStore.setState({ refreshToken: newRefreshToken });
-      }
-
-      return newAccessToken;
-    } else {
-      console.error("REFRESH: Refresh token request failed.");
-      console.error("REFRESH: Status:", response.status);
-      console.error("REFRESH: Problem:", response.problem);
-      console.error("REFRESH: Headers:", response.headers);
-      console.error("REFRESH: Data:", response.data);
-      await useAuthStore.getState().logout();
-      return null;
-    }
-  } catch (error) {
-    console.error("REFRESH: Unexpected error during refresh process:", error);
-    await useAuthStore.getState().logout();
-    return null;
-  }
-}
-
-const apiClient = create({
+// --- Instancia de Axios (para interceptores) ---
+const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     "Cache-Control": "no-cache",
@@ -86,123 +20,128 @@ const apiClient = create({
   timeout: 30000,
 });
 
-apiClient.addAsyncRequestTransform(async (request) => {
-  const accessToken = useAuthStore.getState().accessToken;
-  if (accessToken && !request.url?.includes("/auth/")) {
-    if (!request.headers) request.headers = {};
-    request.headers["Authorization"] = `Bearer ${accessToken}`;
-  }
-});
+// --- Lógica de Refresco de Token (igual que antes) ---
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: Error) => void;
+}> = [];
 
-apiClient.addMonitor(async (response: ApiResponse<any>) => {
-  const originalRequest = response.config;
+const processQueue = (error: Error | null, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else if (token) {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
-  if (!response.ok && response.status !== 401) {
-    console.error("Problema en la petición API:", {
-      problema: response.problem,
-      url: originalRequest?.url,
-      método: originalRequest?.method,
-      estado: response.status,
-      data: response.data,
-    });
-    return;
-  }
-
-  if (
-    response.status === 401 &&
-    originalRequest &&
-    !originalRequest.url?.includes("/auth/refresh")
-  ) {
-    console.warn(
-      `401 Unauthorized detectado para ${originalRequest.url}. Intentando refrescar token...`
+async function refreshToken(): Promise<string> {
+  try {
+    const currentRefreshToken = await EncryptedStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!currentRefreshToken) {
+      console.warn("REFRESH: No refresh token found.");
+      throw new Error("No refresh token available.");
+    }
+    console.log("REFRESH: Attempting token refresh...");
+    const response = await axios.post<{ token: string; refreshToken?: string }>(
+      `${API_URL}${AUTH_REFRESH_PATH}`,
+      {},
+      { headers: { Authorization: `Bearer ${currentRefreshToken}` } }
     );
+    const newAccessToken = response.data.token;
+    const newRefreshToken = response.data.refreshToken;
+    console.log("REFRESH: Token refreshed successfully.");
+    await useAuthStore.getState().setAccessToken(newAccessToken);
+    if (newRefreshToken && newRefreshToken !== currentRefreshToken) {
+      console.log("REFRESH: Updating refresh token in storage.");
+      await EncryptedStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+      useAuthStore.setState({ refreshToken: newRefreshToken });
+    }
+    return newAccessToken;
+  } catch (error: any) {
+    console.error("REFRESH: Refresh token request failed.", error.response?.data || error.message);
+    if (error.response?.status === 401) {
+      console.error("REFRESH: Refresh token is invalid or expired. Logging out.");
+      await useAuthStore.getState().logout();
+    }
+    // Lanzamos un error específico que el interceptor pueda reconocer si es necesario,
+    // o simplemente el error original para que fromAxiosError lo maneje.
+    throw error; // Lanzamos el error original para que el interceptor lo capture
+  }
+}
 
+// --- Interceptores de Axios (aplicados a axiosInstance) ---
+
+// 1. Interceptor de Peticiones
+axiosInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const accessToken = useAuthStore.getState().accessToken;
+    if (accessToken && config.url !== AUTH_REFRESH_PATH) {
+      config.headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// 2. Interceptor de Respuestas
+axiosInstance.interceptors.response.use(
+  (response: AxiosResponse) => response, // Pasa respuestas exitosas
+  async (error: AxiosError) => { // Maneja errores
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    if (error.response?.status !== 401 || originalRequest.url === AUTH_REFRESH_PATH || originalRequest._retry) {
+      // Si no es 401, es refresh, o ya se reintentó -> Rechazar con ApiError
+      return Promise.reject(ApiError.fromAxiosError(error));
+    }
+
+    // --- Manejo del 401 ---
     if (isRefreshing) {
-      console.log(
-        "Refresco en curso, añadiendo petición a la cola:",
-        originalRequest.url
-      );
+      // Encolar petición
       return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      })
-        .then((token) => {
-          console.log(
-            "Procesando petición en cola con nuevo token:",
-            originalRequest.url
-          );
-          if (originalRequest.headers && token) {
+        failedQueue.push({
+          resolve: (token) => {
             originalRequest.headers["Authorization"] = `Bearer ${token}`;
-          }
-          const method = originalRequest.method?.toLowerCase();
-          if (method && typeof (apiClient as any)[method] === "function") {
-            return (apiClient as any)[method](
-              originalRequest.url,
-              originalRequest.data,
-              { headers: originalRequest.headers }
-            );
-          } else {
-            console.error(
-              "Método original desconocido para reintentar petición en cola:",
-              method
-            );
-            return Promise.reject(response);
-          }
-        })
-        .catch((err) => {
-          console.error("Error en petición en cola después del refresco:", err);
-          return Promise.reject(err);
+            originalRequest._retry = true;
+            resolve(axiosInstance(originalRequest)); // Reintentar con Axios
+          },
+          reject: (err) => reject(ApiError.fromAxiosError(err as AxiosError)), // Rechazar cola con ApiError
         });
+      });
     }
 
     isRefreshing = true;
+    originalRequest._retry = true;
 
     try {
       const newAccessToken = await refreshToken();
-
-      if (newAccessToken) {
-        console.log(
-          "Token refrescado. Procesando cola y reintentando petición original:",
-          originalRequest.url
-        );
-        processQueue(null, newAccessToken);
-
-        if (originalRequest.headers) {
-          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-        }
-        const method = originalRequest.method?.toLowerCase();
-        if (method && typeof (apiClient as any)[method] === "function") {
-          return (apiClient as any)[method](
-            originalRequest.url,
-            originalRequest.data,
-            { headers: originalRequest.headers }
-          );
-        } else {
-          console.error(
-            "Método original desconocido para reintentar petición principal:",
-            method
-          );
-          return Promise.reject(response);
-        }
-      } else {
-        console.warn("Refresco fallido o no posible. Logout realizado.");
-        const error = new Error(
-          "Session expired or refresh failed. Please login again."
-        );
-        processQueue(error, null);
-        return response;
-      }
-    } catch (error) {
-      console.error(
-        "Error inesperado durante el proceso de refresco/reintento:",
-        error
-      );
-      processQueue(error as Error, null);
-      return response;
+      processQueue(null, newAccessToken);
+      originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+      return axiosInstance(originalRequest); // Devolver promesa del reintento con Axios
+    } catch (refreshError: any) {
+      processQueue(refreshError, null);
+      // Rechazar con ApiError estandarizado para fallo de refresco
+      return Promise.reject(ApiError.fromRefreshError(refreshError));
     } finally {
       isRefreshing = false;
-      console.log("Flag isRefreshing puesto a false.");
     }
   }
+);
+
+// --- Crear instancia de Apisauce USANDO la instancia de Axios configurada ---
+const apiClient = createApisauceInstance({
+  baseURL: API_URL,
+  headers: { // Headers base que Apisauce podría usar/mergear
+    "Cache-Control": "no-cache",
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  },
+  timeout: 30000,
+  axiosInstance: axiosInstance, // ¡Aquí está la clave!
 });
 
+// Exportamos la instancia de APISAUCE que usa nuestro Axios configurado
 export default apiClient;
