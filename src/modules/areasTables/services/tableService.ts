@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'; // Mantener una sola importación
 import apiClient from '../../../app/services/apiClient';
 import { ApiError } from '../../../app/lib/errors';
 import { API_PATHS } from '../../../app/constants/apiPaths';
@@ -8,7 +9,7 @@ import {
   CreateTableDto,
   UpdateTableDto,
   FindAllTablesDto,
-} from '../types/table.types';
+} from '../types/table.types'; // Asegurarse que Table esté importado
 
 
 export const getTables = async (
@@ -97,3 +98,36 @@ export const deleteTable = async (id: string): Promise<void> => {
     );
   }
 };
+
+// --- React Query Hooks ---
+
+// Claves de Query para tablas relacionadas con áreas
+const tableQueryKeys = {
+  base: ['tables'] as const, // Clave base para todas las tablas
+  byArea: (areaId: string | null | undefined) => [...tableQueryKeys.base, 'area', areaId] as const,
+};
+
+
+/**
+ * Hook para obtener la lista de mesas activas para un área específica usando React Query.
+ * La query se habilita solo si se proporciona un areaId válido.
+ * @param areaId - El ID del área seleccionada. La query se deshabilita si es null o undefined.
+ */
+export function useGetTablesByArea(areaId: string | null | undefined) {
+  return useQuery<Table[], ApiError>({
+    queryKey: tableQueryKeys.byArea(areaId),
+    queryFn: () => {
+      // Asegurarse de no llamar al servicio si areaId no es válido
+      if (!areaId) {
+        // Devolver una promesa resuelta con un array vacío para que useQuery no lance error
+        return Promise.resolve([]);
+      }
+      return getTablesByAreaId(areaId); // Llama a la función getTablesByAreaId definida arriba
+    },
+    // Habilitar la query solo si areaId tiene un valor
+    enabled: !!areaId,
+    // Opciones adicionales (ej. mantener datos previos mientras carga)
+    // keepPreviousData: true,
+    staleTime: 2 * 60 * 1000, // 2 minutos (las mesas pueden cambiar más a menudo)
+  });
+}

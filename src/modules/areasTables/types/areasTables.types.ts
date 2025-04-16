@@ -3,7 +3,7 @@ export interface Table {
   id: string; // o number, según tu backend
   name: string; // Nombre o número de la mesa (ej. "Mesa 5", "Barra 1")
   areaId: string; // ID del área a la que pertenece
-  capacity?: number; // Capacidad de la mesa (opcional)
+  capacity?: number | null; // Capacidad de la mesa (opcional, puede ser null)
   isActive: boolean;
   // Otros campos relevantes (ej. status: 'available' | 'occupied')
 }

@@ -13,7 +13,8 @@ import {
 } from 'react-native-paper';
 import { useAppTheme } from '@/app/styles/theme';
 import { OrderType, OrderItem } from '../types/orders.types';
-import { useGetAreas, useGetTablesByArea } from '@/modules/areasTables/hooks/useAreaTableQueries';
+import { useGetAreas } from '@/modules/areasTables/services/areaService'; // Importar desde areaService
+import { useGetTablesByArea } from '@/modules/areasTables/services/tableService'; // Importar desde tableService
 import type { Area, Table } from '@/modules/areasTables/types/areasTables.types';
 
 // Simulación de items en la orden para visualización
