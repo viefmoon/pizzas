@@ -39,6 +39,8 @@ export interface RenderItemConfig<TItem> {
   titleField: keyof TItem;
   descriptionField?: keyof TItem;
   descriptionMaxLength?: number;
+  priceField?: keyof TItem;
+  sortOrderField?: keyof TItem;
   imageField?: keyof TItem;
   statusConfig?: StatusConfig<TItem>;
 }
@@ -263,7 +265,39 @@ const GenericList = <TItem extends { id: string }>({
               ? `${rawDescription.substring(0, maxLength)}...`
               : rawDescription;
         }
+     }
+
+     let sortOrderString: string | null = null;
+     if (
+       renderConfig.sortOrderField &&
+       item.hasOwnProperty(renderConfig.sortOrderField)
+     ) {
+       const sortOrderValue = item[renderConfig.sortOrderField];
+        if (sortOrderValue !== null && sortOrderValue !== undefined) {
+          sortOrderString = `Posicion: ${String(sortOrderValue)}`;
+        }
+     }
+
+     let priceString: string | null = null;
+     if (
+        renderConfig.priceField &&
+        item.hasOwnProperty(renderConfig.priceField)
+      ) {
+        const priceValue = item[renderConfig.priceField];
+        if (priceValue !== null && priceValue !== undefined) {
+           // Intentar formatear como número con dos decimales
+           const numericPrice = Number(priceValue);
+           if (!isNaN(numericPrice)) {
+             priceString = `$${numericPrice.toFixed(2)}`;
+           } else if (typeof priceValue === 'string' && priceValue.trim() !== '') {
+             // Si no es número pero es un string no vacío, mostrarlo tal cual
+             // Podrías añadir un prefijo si lo deseas, ej: `Precio: ${priceValue}`
+             priceString = String(priceValue); // O formatearlo como prefieras
+           }
+           // Si es otro tipo o no se puede formatear, priceString permanecerá null
+        }
       }
+
 
       let imageSource: string | undefined = undefined;
       if (
@@ -324,15 +358,22 @@ const GenericList = <TItem extends { id: string }>({
                 {title}
               </Text>
             )}
-            description={
-              description
-                ? (props) => (
-                    <Text variant="bodyMedium" style={styles.description}>
-                      {description}
-                    </Text>
-                  )
-                : undefined
-            }
+            description={(props) => {
+              const sortOrderText = sortOrderString ? `${sortOrderString} | ` : '';
+              const descriptionText = description ? description : '';
+              const priceText = priceString ? ` - ${priceString}` : '';
+
+              const combinedText = `${sortOrderText}${descriptionText}${priceText}`;
+
+              if (combinedText.trim()) {
+                return (
+                  <Text variant="bodyMedium" style={styles.description} numberOfLines={2} ellipsizeMode="tail">
+                    {combinedText}
+                  </Text>
+                );
+              }
+              return null;
+            }}
             left={(props) => {
               if (imageSource) {
                 return (

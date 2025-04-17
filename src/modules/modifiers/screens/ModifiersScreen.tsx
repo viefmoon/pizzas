@@ -195,7 +195,8 @@ const ModifiersScreen = () => {
 
   const listRenderConfig: RenderItemConfig<Modifier> = {
     titleField: 'name',
-    descriptionField: 'description',
+    priceField: 'price',
+    sortOrderField: 'sortOrder',
     statusConfig: {
         field: 'isActive',
         activeValue: true,
