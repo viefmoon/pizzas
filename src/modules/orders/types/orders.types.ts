@@ -13,22 +13,32 @@ export interface Modifier {
 export interface ModifierGroup {
   id: string; // o number
   name: string;
-  minSelection: number; // Mínimo de modificadores a seleccionar
-  maxSelection: number; // Máximo de modificadores a seleccionar
+  minSelection: number;
+  maxSelection: number;
+  allowMultipleSelections?: boolean;
+  isRequired?: boolean;
   isActive: boolean;
-  modifiers: Modifier[]; // Lista de modificadores dentro de este grupo
+  modifiers: Modifier[];
+}
+
+/** Representa una variante de un producto (ej. Tamaño Pequeño, Mediano) */
+export interface ProductVariant {
+  id: string;
+  name: string;
+  price: number | null | undefined;
 }
 
 /** Representa un producto del menú (ej. Pizza Margarita, Refresco) */
 export interface Product {
-  id: string; // o number
+  id: string;
   name: string;
   description?: string;
-  price: number; // Precio base del producto
-  photo?: { path: string } | null; // Objeto de foto con ruta
+  price: number | null | undefined;
+  photo?: { path: string } | null;
   isActive: boolean;
-  modifierGroups: ModifierGroup[]; // Grupos de modificadores asociados a este producto
-  // variants?: ProductVariant[]; // Si tienes variantes de producto
+  hasVariants: boolean;
+  variants?: ProductVariant[];
+  modifierGroups: ModifierGroup[];
 }
 
 /** Representa una subcategoría del menú (ej. Pizzas Clásicas, Bebidas) */
@@ -78,14 +88,9 @@ export enum OrderStatus {
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
 }
- 
-// El enum OrderType ya existe más abajo, asegurémonos de que coincida
-// con el proporcionado o lo actualizamos si es necesario.
-// Revisando el código proporcionado, ya existe un enum OrderType.
-// No es necesario añadirlo de nuevo aquí si ya está definido correctamente.
- 
+
 /** Representa el tipo de orden */
-export enum OrderType { // Asegurarse que esta definición exista y sea correcta
+export enum OrderType {
   DINE_IN = "DINE_IN",
   TAKE_AWAY = "TAKE_AWAY",
   DELIVERY = "DELIVERY",

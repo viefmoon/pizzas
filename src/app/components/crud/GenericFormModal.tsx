@@ -34,6 +34,7 @@ import {
   DeepPartial,
   DefaultValues,
   Control,
+  FieldError, // Importar FieldError
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z, ZodSchema } from "zod";
@@ -99,7 +100,9 @@ interface GenericFormModalProps<
   onFileSelected?: (file: FileObject | null) => void;
 }
 
-const getDefaultValueForType = (type: FieldType): any => {
+const getDefaultValueForType = (
+  type: FieldType
+): string | number | boolean | null | undefined => {
   switch (type) {
     case "text":
     case "textarea":
@@ -183,9 +186,7 @@ const getStyles = (theme: AppTheme) =>
       maxWidth: 200,
       minWidth: 140,
     },
-    cancelButton: {
-      // Eliminado marginRight ya que ahora usamos gap
-    },
+    cancelButton: {},
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -244,11 +245,14 @@ const GenericFormModal = <
   }: UseFormReturn<TFormData> = useForm<TFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: useMemo((): DefaultValues<TFormData> => {
-      const defaults = formFields.reduce((acc, field) => {
-        (acc as any)[field.name] =
-          field.defaultValue ?? getDefaultValueForType(field.type);
-        return acc;
-      }, {} as DefaultValues<TFormData>);
+      const defaults = formFields.reduce(
+        (acc: DefaultValues<TFormData>, field) => {
+          acc[field.name] =
+            field.defaultValue ?? getDefaultValueForType(field.type);
+          return acc;
+        },
+        {} as DefaultValues<TFormData>
+      );
       return { ...defaults, ...(initialValues as DefaultValues<TFormData>) };
     }, [formFields, initialValues]),
   });
@@ -265,11 +269,14 @@ const GenericFormModal = <
       visible && editingItem?.id !== prevEditingItemIdRef.current;
 
     if (visible) {
-      const defaultFormValues = formFields.reduce((acc, field) => {
-        (acc as any)[field.name] =
-          field.defaultValue ?? getDefaultValueForType(field.type);
-        return acc;
-      }, {} as DefaultValues<TFormData>);
+      const defaultFormValues = formFields.reduce(
+        (acc: DefaultValues<TFormData>, field) => {
+          acc[field.name] =
+            field.defaultValue ?? getDefaultValueForType(field.type);
+          return acc;
+        },
+        {} as DefaultValues<TFormData>
+      );
       const resetValues = {
         ...defaultFormValues,
         ...(initialValues as DefaultValues<TFormData>),
@@ -369,7 +376,8 @@ const GenericFormModal = <
 
   const renderFormField = (fieldConfig: FormFieldConfig<TFormData>) => {
     const fieldName = fieldConfig.name;
-    const errorMessage = (errors[fieldName] as any)?.message;
+    const fieldError = errors[fieldName] as FieldError | undefined;
+    const errorMessage = fieldError?.message;
 
     switch (fieldConfig.type) {
       case "textarea":
@@ -384,9 +392,7 @@ const GenericFormModal = <
               name={fieldName}
               control={control as Control<FieldValues>}
               render={({ field: { onChange, onBlur, value } }) => {
-                // --- Condicional basado en el tipo de campo ---
                 if (fieldConfig.type === "number") {
-                  // --- Lógica específica para campos numéricos ---
                   const [inputValue, setInputValue] = useState<string>(
                     value === null || value === undefined ? "" : String(value)
                   );
@@ -396,7 +402,6 @@ const GenericFormModal = <
                       value === null || value === undefined
                         ? ""
                         : String(value);
-                    // Solo actualizar si es diferente para evitar bucles y si el input no está activo (evita saltos al escribir decimales)
                     if (stringValue !== inputValue) {
                       const numericValueFromInput = parseFloat(inputValue);
                       if (
@@ -409,7 +414,7 @@ const GenericFormModal = <
                         setInputValue(stringValue);
                       }
                     }
-                  }, [value, inputValue]); // Añadir inputValue a dependencias
+                  }, [value, inputValue]);
 
                   return (
                     <TextInput
@@ -417,24 +422,19 @@ const GenericFormModal = <
                       value={inputValue}
                       onChangeText={(text) => {
                         const formattedText = text.replace(/,/g, ".");
-                        // Permitir solo números, un punto decimal, y vacío
                         if (/^(\d*\.?\d*)$/.test(formattedText)) {
-                          setInputValue(formattedText); // Actualizar estado local string SIEMPRE que el formato sea válido
+                          setInputValue(formattedText);
 
-                          // Actualizar valor del formulario (number | null)
                           if (formattedText === "" || formattedText === ".") {
-                            // Solo llamar a onChange si el valor actual no es ya null
                             if (value !== null) onChange(null);
                           } else {
                             const numericValue = parseFloat(formattedText);
-                            // Solo llamar a onChange si es un número válido y diferente al valor actual
                             if (
                               !isNaN(numericValue) &&
                               numericValue !== value
                             ) {
                               onChange(numericValue);
                             } else if (isNaN(numericValue) && value !== null) {
-                              // Si el texto no es parseable (ej. solo '-') y el valor no es null, ponerlo a null
                               onChange(null);
                             }
                           }
@@ -447,41 +447,37 @@ const GenericFormModal = <
                       keyboardType={
                         fieldConfig.inputProps?.keyboardType ?? "decimal-pad"
                       }
-                      error={!!errorMessage} // errorMessage viene del scope exterior (renderFormField)
-                      disabled={isActuallySubmitting} // isActuallySubmitting viene del scope exterior
-                      {...fieldConfig.inputProps} // Aplicar otras props, keyboardType aquí puede ser sobrescrito si existe en inputProps
+                      error={!!errorMessage}
+                      disabled={isActuallySubmitting}
+                      {...fieldConfig.inputProps}
                     />
                   );
-                  // --- Fin lógica numérica ---
                 } else {
-                  // --- Lógica para otros tipos de input (text, textarea, email, password) ---
                   return (
                     <TextInput
                       label={fieldConfig.label}
-                      value={value ?? ""} // Usar directamente el valor (string)
-                      onChangeText={onChange} // Usar directamente onChange
+                      value={value ?? ""}
+                      onChangeText={onChange}
                       onBlur={onBlur}
                       mode="outlined"
                       style={styles.input}
                       placeholder={fieldConfig.placeholder}
                       secureTextEntry={fieldConfig.type === "password"}
                       keyboardType={
-                        // Asignar keyboardType adecuado
                         fieldConfig.type === "email"
                           ? "email-address"
-                          : "default" // Para text, textarea, password
+                          : "default"
                       }
                       multiline={fieldConfig.type === "textarea"}
                       numberOfLines={
                         fieldConfig.numberOfLines ??
                         (fieldConfig.type === "textarea" ? 3 : 1)
                       }
-                      error={!!errorMessage} // errorMessage viene del scope exterior
-                      disabled={isActuallySubmitting} // isActuallySubmitting viene del scope exterior
-                      {...fieldConfig.inputProps} // Aplicar otras props
+                      error={!!errorMessage}
+                      disabled={isActuallySubmitting}
+                      {...fieldConfig.inputProps}
                     />
                   );
-                  // --- Fin lógica de texto ---
                 }
               }}
             />
@@ -563,13 +559,23 @@ const GenericFormModal = <
                   disabled={isParentSubmitting}
                   size={imagePickerConfig.imagePickerSize ?? 180}
                 />
-                {errors[imagePickerConfig.imageUriField] && (
+                {(
+                  errors[imagePickerConfig.imageUriField] as
+                    | FieldError
+                    | undefined
+                )?.message && (
                   <HelperText
                     type="error"
                     visible={!!errors[imagePickerConfig.imageUriField]}
                     style={styles.helperText}
                   >
-                    {(errors[imagePickerConfig.imageUriField] as any)?.message}
+                    {
+                      (
+                        errors[imagePickerConfig.imageUriField] as
+                          | FieldError
+                          | undefined
+                      )?.message
+                    }
                   </HelperText>
                 )}
               </View>

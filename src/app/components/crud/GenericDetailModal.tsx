@@ -26,7 +26,7 @@ export interface DisplayFieldConfig<TItem> {
 
 interface StatusConfig<TItem> {
   field: keyof TItem;
-  activeValue: any;
+  activeValue: TItem[keyof TItem];
   activeLabel: string;
   inactiveLabel: string;
 }
@@ -48,7 +48,7 @@ interface GenericDetailModalProps<TItem extends { id: string }> {
   closeButtonLabel?: string;
   modalStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
-  imageStyle?: StyleProp<any>;
+  imageStyle?: StyleProp<ViewStyle>;
   descriptionStyle?: StyleProp<TextStyle>;
   fieldLabelStyle?: StyleProp<TextStyle>;
   fieldValueStyle?: StyleProp<TextStyle>;
@@ -357,7 +357,6 @@ const GenericDetailModal = <TItem extends { id: string }>({
         contentContainerStyle={[styles.modalSurface, modalStyle]}
         dismissable={!isDeleting}
       >
-        {/* Surface anidado eliminado, el Modal ya provee el contenedor */}
         {renderContent()}
       </Modal>
     </Portal>

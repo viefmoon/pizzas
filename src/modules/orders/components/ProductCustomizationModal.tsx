@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useMemo } from "react";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import {
   Modal,
   Portal,
@@ -11,14 +11,20 @@ import {
   Title,
   TouchableRipple,
   IconButton,
-  TextInput
-} from 'react-native-paper';
-import { Image } from 'expo-image';
-import { useForm, Controller, FieldValues } from 'react-hook-form'; // Importar react-hook-form
-import { useAppTheme } from '@/app/styles/theme';
-import { Product } from '@/modules/menu/types/products.types';
-import { CartItemModifier } from '../context/CartContext';
-import { getImageUrl } from '@/app/lib/imageUtils';
+  TextInput,
+} from "react-native-paper";
+import { Image } from "expo-image";
+import { useForm, Controller, FieldValues } from "react-hook-form";
+import { useAppTheme } from "@/app/styles/theme";
+import {
+  Product,
+  ProductVariant,
+  Modifier,
+  ModifierGroup,
+} from "../types/orders.types";
+import { CartItemModifier } from "../context/CartContext";
+import { getImageUrl } from "@/app/lib/imageUtils";
+import { AppTheme } from "@/app/styles/theme";
 
 interface ProductCustomizationModalProps {
   visible: boolean;
@@ -33,7 +39,6 @@ interface ProductCustomizationModalProps {
   ) => void;
 }
 
-// Definir tipo para el formulario de notas
 interface NotesFormData extends FieldValues {
   preparationNotes: string;
 }
@@ -47,115 +52,129 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  // Inicializar react-hook-form para las notas
   const { control, reset, watch } = useForm<NotesFormData>({
-    defaultValues: { preparationNotes: '' },
+    defaultValues: { preparationNotes: "" },
   });
-  const watchedPreparationNotes = watch('preparationNotes'); // Observar el valor
+  const watchedPreparationNotes = watch("preparationNotes");
 
-  const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(
-    product && product.variants && Array.isArray(product.variants) && product.variants.length > 0
+  const [selectedVariantId, setSelectedVariantId] = useState<
+    string | undefined
+  >(
+    product &&
+      product.variants &&
+      Array.isArray(product.variants) &&
+      product.variants.length > 0
       ? product.variants[0].id
       : undefined
   );
-  // Agrupamos los modificadores seleccionados por groupId para facilitar la validación
-  const [selectedModifiersByGroup, setSelectedModifiersByGroup] = useState<Record<string, CartItemModifier[]>>({});
+  const [selectedModifiersByGroup, setSelectedModifiersByGroup] = useState<
+    Record<string, CartItemModifier[]>
+  >({});
 
-  // Lista plana de todos los modificadores seleccionados para enviar al carrito
   const selectedModifiers = useMemo(() => {
     return Object.values(selectedModifiersByGroup).flat();
   }, [selectedModifiersByGroup]);
   const [quantity, setQuantity] = useState(1);
-  // Ya no se necesitan los useState para preparationNotes y localNotes
 
-  // Resetear selecciones cuando cambia el producto
   useEffect(() => {
     if (!product) return;
 
-    if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+    if (
+      product.variants &&
+      Array.isArray(product.variants) &&
+      product.variants.length > 0
+    ) {
       setSelectedVariantId(product.variants[0].id);
     } else {
       setSelectedVariantId(undefined);
     }
     setSelectedModifiersByGroup({});
     setQuantity(1);
-    reset({ preparationNotes: '' }); // Resetear el campo del formulario
-  }, [product, reset]); // Añadir reset a las dependencias
+    reset({ preparationNotes: "" });
+  }, [product, reset]);
 
   const handleVariantSelect = (variantId: string) => {
     setSelectedVariantId(variantId);
   };
 
-  const handleModifierToggle = (modifier: any, group: any) => {
-    // Obtener los modificadores actuales del grupo
+  const handleModifierToggle = (modifier: Modifier, group: ModifierGroup) => {
     const currentGroupModifiers = selectedModifiersByGroup[group.id] || [];
-    const isSelected = currentGroupModifiers.some(mod => mod.id === modifier.id);
+    const isSelected = currentGroupModifiers.some(
+      (mod) => mod.id === modifier.id
+    );
 
-    // Crear copia de la selección de todos los grupos
     const updatedModifiersByGroup = { ...selectedModifiersByGroup };
 
     if (isSelected) {
-      // Si ya está seleccionado, simplemente quitarlo
-      updatedModifiersByGroup[group.id] = currentGroupModifiers.filter(mod => mod.id !== modifier.id);
+      updatedModifiersByGroup[group.id] = currentGroupModifiers.filter(
+        (mod) => mod.id !== modifier.id
+      );
     } else {
-      // Si es nuevo para seleccionar
-      const newModifier = {
+      const newModifier: CartItemModifier = {
         id: modifier.id,
         name: modifier.name,
         price: Number(modifier.price) || 0,
-        groupId: group.id
       };
 
-      // Si no permite múltiples selecciones, reemplazar la selección actual
       if (!group.allowMultipleSelections) {
         updatedModifiersByGroup[group.id] = [newModifier];
       } else {
-        // Verificar si añadir este modificador excedería el máximo permitido
-        if (currentGroupModifiers.length < group.maxSelections) {
-          updatedModifiersByGroup[group.id] = [...currentGroupModifiers, newModifier];
+        if (currentGroupModifiers.length < group.maxSelection) {
+          updatedModifiersByGroup[group.id] = [
+            ...currentGroupModifiers,
+            newModifier,
+          ];
         } else {
-          // Mostrar alerta o mensaje de error porque excede el máximo
-          alert(`Solo puedes seleccionar hasta ${group.maxSelections} opciones en ${group.name}`);
+          alert(
+            `Solo puedes seleccionar hasta ${group.maxSelection} opciones en ${group.name}`
+          );
           return;
         }
       }
     }
 
-    // Actualizar estado global de modificadores seleccionados
     setSelectedModifiersByGroup(updatedModifiersByGroup);
   };
 
   const handleAddToCart = () => {
-    // Usar el valor observado del formulario
-    onAddToCart(product, quantity, selectedVariantId, selectedModifiers, watchedPreparationNotes);
+    onAddToCart(
+      product,
+      quantity,
+      selectedVariantId,
+      selectedModifiers,
+      watchedPreparationNotes
+    );
     onDismiss();
   };
 
-  const increaseQuantity = () => setQuantity(prev => prev + 1);
-  const decreaseQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+  const increaseQuantity = () => setQuantity((prev) => prev + 1);
+  const decreaseQuantity = () =>
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
-  // Verificar que el producto existe antes de acceder a sus propiedades
   if (!product) {
-    return null; // No mostrar nada si el producto es null
+    return null;
   }
 
-  // Obtener la variante seleccionada
-  const selectedVariant = product.variants && Array.isArray(product.variants)
-    ? product.variants.find(variant => variant.id === selectedVariantId)
-    : undefined;
+  const selectedVariant =
+    product.variants && Array.isArray(product.variants)
+      ? product.variants.find(
+          (variant: ProductVariant) => variant.id === selectedVariantId
+        )
+      : undefined;
 
-  // Calcular precio total
-  const basePrice = selectedVariant ? Number(selectedVariant.price) : (Number(product.price) || 0);
-  const modifiersPrice = selectedModifiers.reduce((sum, mod) => sum + Number(mod.price || 0), 0);
+  const basePrice = selectedVariant
+    ? Number(selectedVariant.price)
+    : Number(product.price) || 0;
+  const modifiersPrice = selectedModifiers.reduce(
+    (sum, mod) => sum + Number(mod.price || 0),
+    0
+  );
   const totalPrice = (basePrice + modifiersPrice) * quantity;
 
-  // Obtener URL de la imagen
   const imageUrl = product.photo ? getImageUrl(product.photo.path) : null;
 
-  // Placeholder difuminado para expo-image
   const blurhash =
-    '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
-
+    "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
 
   return (
     <Portal>
@@ -171,133 +190,160 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
             style={styles.backButton}
             size={24}
           />
-          <Title style={styles.title}>{product?.name || 'Producto'}</Title>
+          <Title style={styles.title}>{product?.name || "Producto"}</Title>
         </View>
 
         <ScrollView style={styles.scrollView}>
-          {/* Sección de Variantes */}
-          {product.hasVariants && product.variants && Array.isArray(product.variants) && product.variants.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Variantes</Text>
-              <RadioButton.Group
-                onValueChange={value => handleVariantSelect(value)}
-                value={selectedVariantId || ''}
-              >
-                {product.variants.map(variant => (
-                  <View key={variant.id} style={styles.optionContainer}>
-                    <View style={styles.optionRow}>
-                      <RadioButton.Item
-                        label={variant.name}
-                        labelStyle={styles.modifierTitle}
-                        value={variant.id}
-                        position="leading"
-                        style={styles.radioItem}
-                      />
-                      <Text style={styles.modifierPrice}>${Number(variant.price).toFixed(2)}</Text>
+          {product.hasVariants &&
+            product.variants &&
+            Array.isArray(product.variants) &&
+            product.variants.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Variantes</Text>
+                <RadioButton.Group
+                  onValueChange={(value) => handleVariantSelect(value)}
+                  value={selectedVariantId || ""}
+                >
+                  {product.variants.map((variant: ProductVariant) => (
+                    <View key={variant.id} style={styles.optionContainer}>
+                      <View style={styles.optionRow}>
+                        <RadioButton.Item
+                          label={variant.name}
+                          labelStyle={styles.modifierTitle}
+                          value={variant.id}
+                          position="leading"
+                          style={styles.radioItem}
+                        />
+                        <Text style={styles.modifierPrice}>
+                          ${Number(variant.price).toFixed(2)}
+                        </Text>
+                      </View>
+                      <Divider style={styles.optionDivider} />
                     </View>
-                    <Divider style={styles.optionDivider} />
-                  </View>
-                ))}
-              </RadioButton.Group>
-            </View>
-          )}
+                  ))}
+                </RadioButton.Group>
+              </View>
+            )}
 
-          {/* Sección de Modificadores */}
-          {product.modifierGroups && Array.isArray(product.modifierGroups) && product.modifierGroups.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Modificadores</Text>
-              {product.modifierGroups.map((group: any) => (
-                <View key={group.id} style={styles.modifierGroup}>
-                  <View style={styles.modifierGroupHeader}>
-                    <Text style={styles.groupTitle}>{group.name}</Text>
-                    {group.isRequired ? (
-                      <Text style={styles.requiredText}>Obligatorio</Text>
+          {product.modifierGroups &&
+            Array.isArray(product.modifierGroups) &&
+            product.modifierGroups.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Modificadores</Text>
+                {product.modifierGroups.map((group: ModifierGroup) => (
+                  <View key={group.id} style={styles.modifierGroup}>
+                    <View style={styles.modifierGroupHeader}>
+                      <Text style={styles.groupTitle}>{group.name}</Text>
+                      {group.isRequired ? (
+                        <Text style={styles.requiredText}>Obligatorio</Text>
+                      ) : (
+                        <Text style={styles.optionalText}>Opcional</Text>
+                      )}
+                    </View>
+                    {group.minSelection !== undefined &&
+                      group.maxSelection !== undefined && (
+                        <Text style={styles.selectionRules}>
+                          {group.minSelection === 0 && group.maxSelection === 1
+                            ? "Puedes elegir hasta 1 opción"
+                            : group.minSelection === group.maxSelection
+                              ? `Debes elegir ${group.maxSelection}`
+                              : `Mín. ${group.minSelection}, máx. ${group.maxSelection}`}
+                        </Text>
+                      )}
+
+                    {group.allowMultipleSelections ? (
+                      <>
+                        {Array.isArray(group.modifiers) &&
+                          group.modifiers.map((modifier: Modifier) => {
+                            const groupModifiers =
+                              selectedModifiersByGroup[group.id] || [];
+                            const isSelected = groupModifiers.some(
+                              (mod) => mod.id === modifier.id
+                            );
+
+                            return (
+                              <View
+                                key={modifier.id}
+                                style={styles.optionContainer}
+                              >
+                                <TouchableRipple
+                                  onPress={() =>
+                                    handleModifierToggle(modifier, group)
+                                  }
+                                  style={styles.optionTouchable}
+                                >
+                                  <View style={styles.optionRow}>
+                                    <View style={styles.checkbox}>
+                                      <Checkbox
+                                        status={
+                                          isSelected ? "checked" : "unchecked"
+                                        }
+                                        onPress={() =>
+                                          handleModifierToggle(modifier, group)
+                                        }
+                                      />
+                                    </View>
+                                    <View style={styles.optionContent}>
+                                      <Text style={styles.modifierTitle}>
+                                        {modifier.name}
+                                      </Text>
+                                      {Number(modifier.price) > 0 && (
+                                        <Text style={styles.modifierPrice}>
+                                          +${Number(modifier.price).toFixed(2)}
+                                        </Text>
+                                      )}
+                                    </View>
+                                  </View>
+                                </TouchableRipple>
+                                <Divider style={styles.optionDivider} />
+                              </View>
+                            );
+                          })}
+                      </>
                     ) : (
-                      <Text style={styles.optionalText}>Opcional</Text>
-                    )}
-                  </View>
-                  {group.minSelections !== undefined && group.maxSelections !== undefined && (
-                    <Text style={styles.selectionRules}>
-                      {group.minSelections === 0 && group.maxSelections === 1
-                        ? 'Puedes elegir hasta 1 opción'
-                        : group.minSelections === group.maxSelections
-                          ? `Debes elegir ${group.maxSelections}`
-                          : `Mín. ${group.minSelections}, máx. ${group.maxSelections}`
-                      }
-                    </Text>
-                  )}
-
-                  {/* Renderizar cada modificador del grupo */}
-                  {group.allowMultipleSelections ? (
-                    // Checkbox para selecciones múltiples
-                    <>
-                      {Array.isArray(group.productModifiers) && group.productModifiers.map((modifier: any) => {
-                        const groupModifiers = selectedModifiersByGroup[group.id] || [];
-                        const isSelected = groupModifiers.some(mod => mod.id === modifier.id);
-
-                        return (
-                          <View key={modifier.id} style={styles.optionContainer}>
-                            <TouchableRipple
-                              onPress={() => handleModifierToggle(modifier, group)}
-                              style={styles.optionTouchable}
+                      <RadioButton.Group
+                        onValueChange={(value) => {
+                          const modifier = group.modifiers.find(
+                            (m: Modifier) => m.id === value
+                          );
+                          if (modifier) {
+                            handleModifierToggle(modifier, group);
+                          }
+                        }}
+                        value={
+                          selectedModifiersByGroup[group.id]?.[0]?.id || ""
+                        }
+                      >
+                        {Array.isArray(group.modifiers) &&
+                          group.modifiers.map((modifier: Modifier) => (
+                            <View
+                              key={modifier.id}
+                              style={styles.optionContainer}
                             >
                               <View style={styles.optionRow}>
-                                <View style={styles.checkbox}>
-                                  <Checkbox
-                                    status={isSelected ? 'checked' : 'unchecked'}
-                                    onPress={() => handleModifierToggle(modifier, group)}
-                                  />
-                                </View>
-                                <View style={styles.optionContent}>
-                                  <Text style={styles.modifierTitle}>{modifier.name}</Text>
-                                  {Number(modifier.price) > 0 && (
-                                    <Text style={styles.modifierPrice}>+${Number(modifier.price).toFixed(2)}</Text>
-                                  )}
-                                </View>
+                                <RadioButton.Item
+                                  label={modifier.name}
+                                  labelStyle={styles.modifierTitle}
+                                  value={modifier.id}
+                                  position="leading"
+                                  style={styles.radioItem}
+                                />
+                                {Number(modifier.price) > 0 && (
+                                  <Text style={styles.modifierPrice}>
+                                    +${Number(modifier.price).toFixed(2)}
+                                  </Text>
+                                )}
                               </View>
-                            </TouchableRipple>
-                            <Divider style={styles.optionDivider} />
-                          </View>
-                        );
-                      })}
-                    </>
-                  ) : (
-                    // RadioButton para selecciones únicas
-                    <RadioButton.Group
-                      onValueChange={value => {
-                        const modifier = group.productModifiers.find((m: any) => m.id === value);
-                        if (modifier) {
-                          handleModifierToggle(modifier, group);
-                        }
-                      }}
-                      value={(selectedModifiersByGroup[group.id]?.[0]?.id) || ''}
-                    >
-                      {Array.isArray(group.productModifiers) && group.productModifiers.map((modifier: any) => (
-                        <View key={modifier.id} style={styles.optionContainer}>
-                          <View style={styles.optionRow}>
-                            <RadioButton.Item
-                              label={modifier.name}
-                              labelStyle={styles.modifierTitle}
-                              value={modifier.id}
-                              position="leading"
-                              style={styles.radioItem}
-                            />
-                            {Number(modifier.price) > 0 && (
-                              <Text style={styles.modifierPrice}>+${Number(modifier.price).toFixed(2)}</Text>
-                            )}
-                          </View>
-                          <Divider style={styles.optionDivider} />
-                        </View>
-                      ))}
-                    </RadioButton.Group>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
+                              <Divider style={styles.optionDivider} />
+                            </View>
+                          ))}
+                      </RadioButton.Group>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
 
-
-          {/* Sección de Cantidad */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Cantidad</Text>
             <View style={styles.quantityContainer}>
@@ -321,7 +367,6 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
             </View>
           </View>
 
-          {/* Sección de Notas de Preparación con Controller */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Notas de Preparación</Text>
             <Controller
@@ -332,7 +377,7 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
                   mode="outlined"
                   value={value}
                   onBlur={onBlur}
-                  onChangeText={onChange} // Usar onChange de RHF
+                  onChangeText={onChange}
                   multiline
                   numberOfLines={3}
                   style={styles.preparationInput}
@@ -341,7 +386,6 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
             />
           </View>
 
-          {/* Resumen */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Resumen</Text>
             <View style={styles.summaryRow}>
@@ -369,7 +413,7 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
         <View style={styles.buttonsContainer}>
           <Button
             mode="contained"
-            onPress={handleAddToCart} // handleAddToCart ahora usa el valor observado
+            onPress={handleAddToCart}
             style={styles.addButton}
             icon="cart-plus"
           >
@@ -380,100 +424,99 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
     </Portal>
   );
 };
-
-const createStyles = (theme: any) =>
+const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     modalContent: {
       backgroundColor: theme.colors.background,
-      width: '100%',
-      height: '100%',
+      width: "100%",
+      height: "100%",
       margin: 0,
       padding: 0,
-      position: 'absolute',
+      position: "absolute",
       top: 0,
-      left: 0
+      left: 0,
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       padding: theme.spacing.m,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.outlineVariant,
-      position: 'relative',
+      position: "relative",
     },
     backButton: {
-      position: 'absolute',
+      position: "absolute",
       left: 8,
       zIndex: 1,
     },
     modifierGroup: {
-      marginBottom: theme.spacing.s
+      marginBottom: theme.spacing.s,
     },
     modifierGroupHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       marginBottom: 2,
     },
     groupTitle: {
       fontSize: 16,
-      fontWeight: 'bold',
-      color: theme.colors.onSurface
+      fontWeight: "bold",
+      color: theme.colors.onSurface,
     },
     groupDescription: {
       fontSize: 12,
-      color: theme.colors.onSurfaceVariant
+      color: theme.colors.onSurfaceVariant,
     },
     requiredText: {
       fontSize: 12,
       color: theme.colors.error,
-      fontWeight: '500'
+      fontWeight: "500",
     },
     optionalText: {
       fontSize: 12,
       color: theme.colors.primary,
-      fontWeight: '500'
+      fontWeight: "500",
     },
     selectionRules: {
       fontSize: 10,
       color: theme.colors.onSurfaceVariant,
       marginBottom: theme.spacing.xs,
-      fontStyle: 'italic'
+      fontStyle: "italic",
     },
     title: {
       flex: 1,
       fontSize: 22,
-      textAlign: 'center',
-      fontWeight: 'bold',
+      textAlign: "center",
+      fontWeight: "bold",
       color: theme.colors.primary,
-      marginHorizontal: 40
+      marginHorizontal: 40,
     },
     productImage: {
       height: 150,
       borderRadius: theme.roundness,
-      marginBottom: theme.spacing.m
+      marginBottom: theme.spacing.m,
     },
     imagePlaceholder: {
       backgroundColor: theme.colors.surfaceVariant,
-      justifyContent: 'center',
-      alignItems: 'center'
+      justifyContent: "center",
+      alignItems: "center",
     },
     placeholderText: {
       fontSize: 50,
-      color: theme.colors.onSurfaceVariant
+      color: theme.colors.onSurfaceVariant,
     },
     scrollView: {
       flex: 1,
-      padding: theme.spacing.m
+      padding: theme.spacing.m,
     },
     section: {
-      marginBottom: theme.spacing.s
+      marginBottom: theme.spacing.s,
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       marginBottom: theme.spacing.s,
-      color: theme.colors.primary
+      color: theme.colors.primary,
     },
     optionContainer: {
       marginBottom: 2,
@@ -482,16 +525,16 @@ const createStyles = (theme: any) =>
       paddingVertical: 4,
     },
     optionRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       paddingHorizontal: 8,
       paddingVertical: 8,
     },
     optionContent: {
       flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       paddingRight: 8,
     },
     checkbox: {
@@ -507,47 +550,47 @@ const createStyles = (theme: any) =>
     },
     modifierTitle: {
       fontSize: 16,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     modifierPrice: {
       fontSize: 14,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: theme.colors.primary,
-      marginLeft: 'auto',
+      marginLeft: "auto",
       marginRight: 8,
     },
     quantityContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center'
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
     },
     quantityButton: {
-      margin: 0
+      margin: 0,
     },
     quantityButtonLabel: {
-      fontSize: 18
+      fontSize: 18,
     },
     quantityText: {
       fontSize: 18,
-      fontWeight: 'bold',
-      paddingHorizontal: theme.spacing.m
+      fontWeight: "bold",
+      paddingHorizontal: theme.spacing.m,
     },
     summaryRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingVertical: theme.spacing.xs
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: theme.spacing.xs,
     },
     divider: {
-      marginVertical: theme.spacing.s
+      marginVertical: theme.spacing.s,
     },
     totalText: {
-      fontWeight: 'bold',
-      fontSize: 16
+      fontWeight: "bold",
+      fontSize: 16,
     },
     totalPrice: {
-      fontWeight: 'bold',
+      fontWeight: "bold",
       fontSize: 16,
-      color: theme.colors.primary
+      color: theme.colors.primary,
     },
     buttonsContainer: {
       padding: theme.spacing.m,
@@ -555,13 +598,13 @@ const createStyles = (theme: any) =>
       borderTopColor: theme.colors.outlineVariant,
     },
     addButton: {
-      width: '100%',
-      paddingVertical: 8
+      width: "100%",
+      paddingVertical: 8,
     },
     preparationInput: {
       backgroundColor: theme.colors.surfaceVariant,
-      marginVertical: theme.spacing.xs
-    }
+      marginVertical: theme.spacing.xs,
+    },
   });
 
 export default ProductCustomizationModal;

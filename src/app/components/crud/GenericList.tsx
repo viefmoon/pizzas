@@ -7,6 +7,7 @@ import {
   ViewStyle,
   StyleProp,
   View,
+  TextStyle,
 } from "react-native";
 import {
   List,
@@ -18,6 +19,7 @@ import {
   FAB,
   Portal,
 } from "react-native-paper";
+import type { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon";
 import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
 import { getImageUrl } from "../../lib/imageUtils";
@@ -30,7 +32,7 @@ export interface FilterOption<TValue> {
 
 interface StatusConfig<TItem> {
   field: keyof TItem;
-  activeValue: any;
+  activeValue: TItem[keyof TItem];
   activeLabel: string;
   inactiveLabel: string;
 }
@@ -56,7 +58,7 @@ interface GenericListProps<TItem extends { id: string }> {
   listStyle?: StyleProp<ViewStyle>;
   listItemStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
-  imageStyle?: StyleProp<any>;
+  imageStyle?: StyleProp<ViewStyle>;
   itemActionsContainerStyle?: StyleProp<ViewStyle>;
   renderItemActions?: (item: TItem) => React.ReactNode;
   enableSearch?: boolean;
@@ -65,8 +67,8 @@ interface GenericListProps<TItem extends { id: string }> {
   onSearchChange?: (query: string) => void;
   enableSort?: boolean;
   filterValue?: string | number;
-  onFilterChange?: (value: any) => void;
-  filterOptions?: FilterOption<any>[];
+  onFilterChange?: (value: string | number) => void;
+  filterOptions?: FilterOption<string | number>[];
   showFab?: boolean;
   onFabPress?: () => void;
   fabIcon?: string;
@@ -74,7 +76,7 @@ interface GenericListProps<TItem extends { id: string }> {
   fabVisible?: boolean;
   showImagePlaceholder?: boolean;
   isModalOpen?: boolean;
-  isDrawerOpen?: boolean; // Prop para saber si el drawer está abierto
+  isDrawerOpen?: boolean;
 }
 
 const getStyles = (theme: AppTheme) => {
@@ -140,7 +142,7 @@ const getStyles = (theme: AppTheme) => {
     filtersOuterContainer: {
       paddingTop: theme.spacing.s,
       paddingBottom: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.xs, // Reducimos padding horizontal
+      paddingHorizontal: theme.spacing.xs,
       backgroundColor: theme.colors.background,
     },
     segmentedButtons: {
@@ -150,7 +152,7 @@ const getStyles = (theme: AppTheme) => {
     },
     filterButton: {
       borderWidth: 0,
-      paddingVertical: theme.spacing.xs, // Reducimos padding vertical del botón
+      paddingVertical: theme.spacing.xs,
     },
     filterButtonLabel: {
       fontSize: 15,
@@ -195,7 +197,7 @@ const GenericList = <TItem extends { id: string }>({
   fabVisible = true,
   showImagePlaceholder = true,
   isModalOpen = false,
-  isDrawerOpen = false, // Valor por defecto para isDrawerOpen
+  isDrawerOpen = false,
 }: GenericListProps<TItem>) => {
   const theme = useAppTheme();
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -265,39 +267,37 @@ const GenericList = <TItem extends { id: string }>({
               ? `${rawDescription.substring(0, maxLength)}...`
               : rawDescription;
         }
-     }
+      }
 
-     let sortOrderString: string | null = null;
-     if (
-       renderConfig.sortOrderField &&
-       item.hasOwnProperty(renderConfig.sortOrderField)
-     ) {
-       const sortOrderValue = item[renderConfig.sortOrderField];
+      let sortOrderString: string | null = null;
+      if (
+        renderConfig.sortOrderField &&
+        item.hasOwnProperty(renderConfig.sortOrderField)
+      ) {
+        const sortOrderValue = item[renderConfig.sortOrderField];
         if (sortOrderValue !== null && sortOrderValue !== undefined) {
           sortOrderString = `Posicion: ${String(sortOrderValue)}`;
         }
-     }
+      }
 
-     let priceString: string | null = null;
-     if (
+      let priceString: string | null = null;
+      if (
         renderConfig.priceField &&
         item.hasOwnProperty(renderConfig.priceField)
       ) {
         const priceValue = item[renderConfig.priceField];
         if (priceValue !== null && priceValue !== undefined) {
-           // Intentar formatear como número con dos decimales
-           const numericPrice = Number(priceValue);
-           if (!isNaN(numericPrice)) {
-             priceString = `$${numericPrice.toFixed(2)}`;
-           } else if (typeof priceValue === 'string' && priceValue.trim() !== '') {
-             // Si no es número pero es un string no vacío, mostrarlo tal cual
-             // Podrías añadir un prefijo si lo deseas, ej: `Precio: ${priceValue}`
-             priceString = String(priceValue); // O formatearlo como prefieras
-           }
-           // Si es otro tipo o no se puede formatear, priceString permanecerá null
+          const numericPrice = Number(priceValue);
+          if (!isNaN(numericPrice)) {
+            priceString = `$${numericPrice.toFixed(2)}`;
+          } else if (
+            typeof priceValue === "string" &&
+            priceValue.trim() !== ""
+          ) {
+            priceString = String(priceValue);
+          }
         }
       }
-
 
       let imageSource: string | undefined = undefined;
       if (
@@ -329,7 +329,10 @@ const GenericList = <TItem extends { id: string }>({
         const chipLabel = isActive ? activeLabel : inactiveLabel;
         const chipIcon = isActive ? "check-circle" : "close-circle";
 
-        statusChip = (props: any) => (
+        statusChip = (props: {
+          color: string;
+          style?: StyleProp<TextStyle>;
+        }) => (
           <Chip
             {...props}
             mode="flat"
@@ -353,28 +356,35 @@ const GenericList = <TItem extends { id: string }>({
       return (
         <Surface style={[styles.listItem, listItemStyle]} elevation={1}>
           <List.Item
-            title={(props) => (
+            title={() => (
               <Text variant="titleMedium" style={styles.title}>
                 {title}
               </Text>
             )}
-            description={(props) => {
-              const sortOrderText = sortOrderString ? `${sortOrderString} | ` : '';
-              const descriptionText = description ? description : '';
-              const priceText = priceString ? ` - ${priceString}` : '';
+            description={() => {
+              const sortOrderText = sortOrderString
+                ? `${sortOrderString} | `
+                : "";
+              const descriptionText = description ? description : "";
+              const priceText = priceString ? ` - ${priceString}` : "";
 
               const combinedText = `${sortOrderText}${descriptionText}${priceText}`;
 
               if (combinedText.trim()) {
                 return (
-                  <Text variant="bodyMedium" style={styles.description} numberOfLines={2} ellipsizeMode="tail">
+                  <Text
+                    variant="bodyMedium"
+                    style={styles.description}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >
                     {combinedText}
                   </Text>
                 );
               }
               return null;
             }}
-            left={(props) => {
+            left={() => {
               if (imageSource) {
                 return (
                   <AutoImage
@@ -391,9 +401,9 @@ const GenericList = <TItem extends { id: string }>({
                 return null;
               }
             }}
-            right={(props) => (
+            right={() => (
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                {statusChip && statusChip(props)}
+                {statusChip && statusChip({ color: theme.colors.onSurface })}
                 {renderItemActions && (
                   <View
                     style={[
@@ -475,7 +485,7 @@ const GenericList = <TItem extends { id: string }>({
             iconColor={theme.colors.onSurfaceVariant}
             clearIcon={
               currentSearchTerm
-                ? (props) => <List.Icon {...props} icon="close-circle" />
+                ? () => <List.Icon icon="close-circle" />
                 : undefined
             }
             onClearIconPress={() =>
@@ -525,7 +535,7 @@ const GenericList = <TItem extends { id: string }>({
               fabVisible &&
               !isModalOpen &&
               !isDrawerOpen
-            } // Ocultar si el drawer está abierto
+            }
             label={fabLabel}
             color={theme.colors.onPrimary}
             theme={{ colors: { primaryContainer: theme.colors.primary } }}
