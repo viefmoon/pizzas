@@ -95,17 +95,46 @@ export const useUpdateTable = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
-  return useMutation<Table, Error, { id: string; data: UpdateTableDto }>({
+  type UpdateTableContext = { previousDetail?: Table };
+
+  return useMutation<Table, Error, { id: string; data: UpdateTableDto }, UpdateTableContext>({
     mutationFn: ({ id, data }) => tableService.updateTable(id, data),
-    onSuccess: (updatedTable) => {
-      queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(updatedTable.id) });
-      showSnackbar({ message: 'Mesa actualizada con éxito', type: 'success' });
+
+    onMutate: async (variables) => {
+      const { id, data } = variables;
+      const detailQueryKey = tablesQueryKeys.detail(id);
+
+      await queryClient.cancelQueries({ queryKey: detailQueryKey });
+
+      const previousDetail = queryClient.getQueryData<Table>(detailQueryKey);
+
+      if (previousDetail) {
+        queryClient.setQueryData<Table>(detailQueryKey, (old) =>
+          old ? { ...old, ...data } : undefined
+        );
+      }
+
+      return { previousDetail };
     },
-    onError: (error, variables) => {
+
+    onError: (error, variables, context) => {
       const errorMessage = getApiErrorMessage(error);
       showSnackbar({ message: errorMessage, type: 'error' });
       console.error(`Error updating table ${variables.id}:`, error);
+
+      if (context?.previousDetail) {
+        queryClient.setQueryData(tablesQueryKeys.detail(variables.id), context.previousDetail);
+      }
+    },
+
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
+      // Considerar invalidar listsByArea si areaId cambia
+      queryClient.invalidateQueries({ queryKey: tablesQueryKeys.detail(variables.id) });
+
+      if (!error && data) {
+        showSnackbar({ message: 'Mesa actualizada con éxito', type: 'success' });
+      }
     },
   });
 };
@@ -117,17 +146,43 @@ export const useDeleteTable = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
-  return useMutation<void, Error, string>({
+  type DeleteTableContext = { previousDetail?: Table };
+
+  return useMutation<void, Error, string, DeleteTableContext>({
     mutationFn: tableService.deleteTable,
-    onSuccess: (_, deletedId) => {
-      queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
-      queryClient.removeQueries({ queryKey: tablesQueryKeys.detail(deletedId) });
-      showSnackbar({ message: 'Mesa eliminada con éxito', type: 'success' });
+
+    onMutate: async (deletedId) => {
+        const detailQueryKey = tablesQueryKeys.detail(deletedId);
+
+        await queryClient.cancelQueries({ queryKey: detailQueryKey });
+
+        const previousDetail = queryClient.getQueryData<Table>(detailQueryKey);
+
+        queryClient.removeQueries({ queryKey: detailQueryKey });
+
+        return { previousDetail };
     },
-    onError: (error, deletedId) => {
+
+    onError: (error, deletedId, context) => {
       const errorMessage = getApiErrorMessage(error);
       showSnackbar({ message: errorMessage, type: 'error' });
       console.error(`Error deleting table ${deletedId}:`, error);
+
+      if (context?.previousDetail) {
+        queryClient.setQueryData(tablesQueryKeys.detail(deletedId), context.previousDetail);
+      }
+    },
+
+    onSettled: (data, error, deletedId, context) => {
+      queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
+      if (context?.previousDetail?.areaId) {
+          queryClient.invalidateQueries({ queryKey: tablesQueryKeys.listsByArea(context.previousDetail.areaId) });
+      }
+
+      if (!error) {
+          queryClient.removeQueries({ queryKey: tablesQueryKeys.detail(deletedId) });
+          showSnackbar({ message: 'Mesa eliminada con éxito', type: 'success' });
+      }
     },
   });
 };

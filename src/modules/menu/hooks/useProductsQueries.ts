@@ -8,6 +8,8 @@ import {
   AssignModifierGroupsInput,
 } from '../types/products.types';
 import { ApiError } from '@/app/lib/errors';
+import { useSnackbarStore } from '@/app/store/snackbarStore'; // Importar store de Snackbar
+import { getApiErrorMessage } from '@/app/lib/errorMapping'; // Importar mapeo de errores
 
 const productKeys = {
   all: ['products'] as const,
@@ -64,12 +66,50 @@ export function useCreateProductMutation(): UseMutationResult<Product, ApiError,
 /**
  * Hook para actualizar un producto existente.
  */
-export function useUpdateProductMutation(): UseMutationResult<Product, ApiError, { id: string; data: Partial<ProductFormInputs> }> {
+export function useUpdateProductMutation(): UseMutationResult<Product, ApiError, { id: string; data: Partial<ProductFormInputs> }, { previousProducts?: ProductsListResponse; previousDetail?: Product }> {
   const queryClient = useQueryClient();
-  return useMutation<Product, ApiError, { id: string; data: Partial<ProductFormInputs> }>({
+  const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
+
+  type UpdateProductContext = { previousDetail?: Product };
+
+  return useMutation<Product, ApiError, { id: string; data: Partial<ProductFormInputs> }, UpdateProductContext>({
     mutationFn: ({ id, data }) => productsService.update(id, data),
-    onSuccess: (updatedProduct) => {
+
+    onMutate: async (variables) => {
+      const { id, data } = variables;
+      const detailQueryKey = productKeys.details(id);
+
+      await queryClient.cancelQueries({ queryKey: detailQueryKey });
+
+      const previousDetail = queryClient.getQueryData<Product>(detailQueryKey);
+
+      if (previousDetail) {
+        queryClient.setQueryData<Product>(detailQueryKey, (old) => {
+          if (!old) return undefined;
+          const { variants, modifierGroupIds, ...restOfData } = data;
+          return { ...old, ...restOfData };
+        });
+      }
+
+      return { previousDetail };
+    },
+
+    onError: (error, variables, context) => {
+      const errorMessage = getApiErrorMessage(error);
+      showSnackbar({ message: errorMessage, type: 'error' });
+      console.error(`Error updating product ${variables.id}:`, error);
+
+      if (context?.previousDetail) {
+        queryClient.setQueryData(productKeys.details(variables.id), context.previousDetail);
+      }
+    },
+
+    onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
+
+      if (!error && data) {
+        showSnackbar({ message: 'Producto actualizado con éxito', type: 'success' });
+      }
     },
   });
 }
@@ -77,14 +117,44 @@ export function useUpdateProductMutation(): UseMutationResult<Product, ApiError,
 /**
  * Hook para eliminar (soft delete) un producto.
  */
-export function useDeleteProductMutation(): UseMutationResult<void, ApiError, string> {
+export function useDeleteProductMutation(): UseMutationResult<void, ApiError, string, { previousDetail?: Product }> {
   const queryClient = useQueryClient();
-  return useMutation<void, ApiError, string>({
+  const showSnackbar = useSnackbarStore((state) => state.showSnackbar); // Añadir Snackbar
+
+  type DeleteProductContext = { previousDetail?: Product };
+
+  return useMutation<void, ApiError, string, DeleteProductContext>({
     mutationFn: (productId) => productsService.remove(productId),
-    onSuccess: (_, productId) => {
+
+    onMutate: async (deletedId) => {
+        const detailQueryKey = productKeys.details(deletedId);
+
+        await queryClient.cancelQueries({ queryKey: detailQueryKey });
+
+        const previousDetail = queryClient.getQueryData<Product>(detailQueryKey);
+
+        queryClient.removeQueries({ queryKey: detailQueryKey });
+
+        return { previousDetail };
+    },
+
+    onError: (error, deletedId, context) => {
+      const errorMessage = getApiErrorMessage(error);
+      showSnackbar({ message: errorMessage, type: 'error' });
+      console.error(`Error deleting product ${deletedId}:`, error);
+
+      if (context?.previousDetail) {
+        queryClient.setQueryData(productKeys.details(deletedId), context.previousDetail);
+      }
+    },
+
+    onSettled: (data, error, deletedId) => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
-      // Opcionalmente, remover de la caché de detalles si existe
-      queryClient.removeQueries({ queryKey: productKeys.details(productId) });
+
+      if (!error) {
+          queryClient.removeQueries({ queryKey: productKeys.details(deletedId) });
+          showSnackbar({ message: 'Producto eliminado con éxito', type: 'success' });
+      }
     },
   });
 }

@@ -84,21 +84,58 @@ export const useUpdatePreparationScreen = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
-  return useMutation<PreparationScreen, Error, { id: string; data: UpdatePreparationScreenDto }>({
+  // Contexto para actualización optimista
+  type UpdatePreparationScreenContext = { previousDetail?: PreparationScreen };
+
+  return useMutation<PreparationScreen, Error, { id: string; data: UpdatePreparationScreenDto }, UpdatePreparationScreenContext>({
     mutationFn: ({ id, data }) => preparationScreenService.updatePreparationScreen(id, data),
-    onSuccess: (updatedScreen) => {
-      // Invalidate list and detail queries
-      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.detail(updatedScreen.id) });
-      // Opcionalmente, actualizar la caché directamente con setQueryData
-      // queryClient.setQueryData(preparationScreensQueryKeys.detail(updatedScreen.id), updatedScreen);
-      showSnackbar({ message: 'Pantalla de preparación actualizada con éxito', type: 'success' });
+
+    // --- Inicio Actualización Optimista ---
+    onMutate: async (variables) => {
+        const { id, data } = variables;
+        const detailQueryKey = preparationScreensQueryKeys.detail(id);
+
+        // 1. Cancelar query de detalle
+        await queryClient.cancelQueries({ queryKey: detailQueryKey });
+
+        // 2. Guardar estado anterior del detalle
+        const previousDetail = queryClient.getQueryData<PreparationScreen>(detailQueryKey);
+
+        // 3. Actualizar caché de detalle optimistamente
+        if (previousDetail) {
+            // Fusionar datos antiguos y nuevos. Asumiendo que UpdatePreparationScreenDto no tiene estructuras anidadas problemáticas.
+            queryClient.setQueryData<PreparationScreen>(detailQueryKey, (old) =>
+                old ? { ...old, ...data } : undefined
+            );
+        }
+
+        // 4. Retornar contexto
+        return { previousDetail };
     },
-    onError: (error, variables) => {
+    // --- Fin Actualización Optimista ---
+
+    onError: (error, variables, context) => {
       const errorMessage = getApiErrorMessage(error);
       showSnackbar({ message: errorMessage, type: 'error' });
       console.error(`Error updating preparation screen ${variables.id}:`, error);
+
+      // Revertir caché de detalle
+      if (context?.previousDetail) {
+        queryClient.setQueryData(preparationScreensQueryKeys.detail(variables.id), context.previousDetail);
+      }
     },
+
+    onSettled: (data, error, variables) => {
+      // Invalidar listas y detalle para consistencia final
+      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.detail(variables.id) });
+
+      // Mostrar snackbar de éxito solo si no hubo error
+      if (!error && data) {
+        showSnackbar({ message: 'Pantalla de preparación actualizada con éxito', type: 'success' });
+      }
+    },
+     // onSuccess eliminado
   });
 };
 
@@ -109,19 +146,51 @@ export const useDeletePreparationScreen = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
-  return useMutation<void, Error, string>({
+  // Contexto para guardar el detalle eliminado
+  type DeletePreparationScreenContext = { previousDetail?: PreparationScreen };
+
+  return useMutation<void, Error, string, DeletePreparationScreenContext>({
     mutationFn: preparationScreenService.deletePreparationScreen,
-    onSuccess: (_, deletedId) => {
-      // Invalidate list queries
-      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.lists() });
-      // Remove detail query from cache
-      queryClient.removeQueries({ queryKey: preparationScreensQueryKeys.detail(deletedId) });
-      showSnackbar({ message: 'Pantalla de preparación eliminada con éxito', type: 'success' });
+
+    // --- Inicio Actualización Optimista ---
+    onMutate: async (deletedId) => {
+        const detailQueryKey = preparationScreensQueryKeys.detail(deletedId);
+
+        // 1. Cancelar query de detalle
+        await queryClient.cancelQueries({ queryKey: detailQueryKey });
+
+        // 2. Guardar estado anterior del detalle
+        const previousDetail = queryClient.getQueryData<PreparationScreen>(detailQueryKey);
+
+        // 3. Eliminar optimistamente de la caché de detalle
+        queryClient.removeQueries({ queryKey: detailQueryKey });
+
+        // 4. Retornar contexto
+        return { previousDetail };
     },
-    onError: (error, deletedId) => {
+    // --- Fin Actualización Optimista ---
+
+    onError: (error, deletedId, context) => {
       const errorMessage = getApiErrorMessage(error);
       showSnackbar({ message: errorMessage, type: 'error' });
       console.error(`Error deleting preparation screen ${deletedId}:`, error);
+
+      // Revertir caché de detalle si hubo error
+      if (context?.previousDetail) {
+        queryClient.setQueryData(preparationScreensQueryKeys.detail(deletedId), context.previousDetail);
+      }
     },
+
+    onSettled: (data, error, deletedId) => {
+      // Invalidar listas para asegurar consistencia final
+      queryClient.invalidateQueries({ queryKey: preparationScreensQueryKeys.lists() });
+
+      // Asegurar remoción en éxito y mostrar snackbar
+      if (!error) {
+          queryClient.removeQueries({ queryKey: preparationScreensQueryKeys.detail(deletedId) });
+          showSnackbar({ message: 'Pantalla de preparación eliminada con éxito', type: 'success' });
+      }
+    },
+     // onSuccess eliminado
   });
 };
