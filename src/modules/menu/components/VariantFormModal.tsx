@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ProductVariantInput,
   productVariantSchema,
-} from "../types/products.types";
+} from "../schema/products.schema";
 import { useAppTheme } from "@/app/styles/theme";
 
 interface VariantFormModalProps {
@@ -43,7 +43,8 @@ function VariantFormModal({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm({ // Sin tipo explícito aquí
+  } = useForm({
+    // Sin tipo explícito aquí
     resolver: zodResolver(productVariantSchema),
     defaultValues: {
       name: initialData?.name ?? "",

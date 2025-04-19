@@ -1,19 +1,21 @@
-import React, { useMemo, useCallback } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { SubmitHandler } from 'react-hook-form';
+import React, { useMemo, useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { SubmitHandler } from "react-hook-form";
 
-import { useAppTheme } from '@/app/styles/theme';
-import { useSnackbarStore } from '@/app/store/snackbarStore';
-import { getApiErrorMessage } from '@/app/lib/errorMapping';
-import GenericFormModal, { FormFieldConfig } from '@/app/components/crud/GenericFormModal';
-import { modifierService } from '../services/modifierService';
+import { useAppTheme } from "@/app/styles/theme";
+import { useSnackbarStore } from "@/app/store/snackbarStore";
+import { getApiErrorMessage } from "@/app/lib/errorMapping";
+import GenericFormModal, {
+  FormFieldConfig,
+} from "@/app/components/crud/GenericFormModal";
+import { modifierService } from "../services/modifierService";
+import { ModifierFormInputs } from "../types/modifier.types";
 import {
   Modifier,
-  ModifierFormInputs,
   modifierSchema,
   CreateModifierInput,
   UpdateModifierInput,
-} from '../types/modifier.types';
+} from "../schema/modifier.schema";
 
 interface Props {
   visible: boolean;
@@ -24,12 +26,33 @@ interface Props {
 }
 
 const formFields: FormFieldConfig<ModifierFormInputs>[] = [
-  { name: 'name', label: 'Nombre *', type: 'text', required: true },
-  { name: 'description', label: 'Descripción (Opcional)', type: 'textarea', numberOfLines: 3 },
-  { name: 'price', label: 'Precio Adicional (Opcional)', type: 'number', inputProps: { keyboardType: 'numeric' } },
-  { name: 'sortOrder', label: 'Orden de Visualización', type: 'number', defaultValue: 0, inputProps: { keyboardType: 'numeric' } },
-  { name: 'isDefault', label: 'Seleccionado por Defecto', type: 'switch', defaultValue: false },
-  { name: 'isActive', label: 'Activo', type: 'switch', defaultValue: true },
+  { name: "name", label: "Nombre *", type: "text", required: true },
+  {
+    name: "description",
+    label: "Descripción (Opcional)",
+    type: "textarea",
+    numberOfLines: 3,
+  },
+  {
+    name: "price",
+    label: "Precio Adicional (Opcional)",
+    type: "number",
+    inputProps: { keyboardType: "numeric" },
+  },
+  {
+    name: "sortOrder",
+    label: "Orden de Visualización",
+    type: "number",
+    defaultValue: 0,
+    inputProps: { keyboardType: "numeric" },
+  },
+  {
+    name: "isDefault",
+    label: "Seleccionado por Defecto",
+    type: "switch",
+    defaultValue: false,
+  },
+  { name: "isActive", label: "Activo", type: "switch", defaultValue: true },
 ];
 
 const formSchema = modifierSchema.omit({ groupId: true });
@@ -46,7 +69,7 @@ const ModifierFormModal: React.FC<Props> = ({
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
   const isEditing = !!initialData;
-  const QUERY_KEY_TO_INVALIDATE = ['modifiers', groupId];
+  const QUERY_KEY_TO_INVALIDATE = ["modifiers", groupId];
 
   const mutation = useMutation<
     Modifier,
@@ -55,7 +78,10 @@ const ModifierFormModal: React.FC<Props> = ({
   >({
     mutationFn: (data) => {
       if (isEditing && initialData) {
-        return modifierService.update(initialData.id, data as UpdateModifierInput);
+        return modifierService.update(
+          initialData.id,
+          data as UpdateModifierInput
+        );
       } else {
         return modifierService.create(data as CreateModifierInput);
       }
@@ -63,36 +89,50 @@ const ModifierFormModal: React.FC<Props> = ({
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_TO_INVALIDATE });
       showSnackbar({
-        message: `Modificador "${data.name}" ${isEditing ? 'actualizado' : 'creado'} correctamente`,
-        type: 'success',
+        message: `Modificador "${data.name}" ${isEditing ? "actualizado" : "creado"} correctamente`,
+        type: "success",
       });
       onSaveSuccess();
     },
     onError: (error) => {
       const message = getApiErrorMessage(error);
-      showSnackbar({ message, type: 'error' });
+      showSnackbar({ message, type: "error" });
       console.error("Error saving modifier:", error);
     },
   });
 
-  const handleFormSubmit = useCallback(async (formData: ModifierFormInputs) => {
-    const dataToSend: CreateModifierInput | UpdateModifierInput = {
-      ...formData,
-      price: formData.price === undefined || isNaN(Number(formData.price)) ? null : Number(formData.price),
-      description: formData.description === undefined ? null : formData.description,
-      sortOrder: formData.sortOrder ?? 0,
-      isDefault: formData.isDefault ?? false,
-      isActive: formData.isActive ?? true,
-      groupId: groupId,
-    };
+  const handleFormSubmit = useCallback(
+    async (formData: ModifierFormInputs) => {
+      const dataToSend: CreateModifierInput | UpdateModifierInput = {
+        ...formData,
+        price:
+          formData.price === undefined || isNaN(Number(formData.price))
+            ? null
+            : Number(formData.price),
+        description:
+          formData.description === undefined ? null : formData.description,
+        sortOrder: formData.sortOrder ?? 0,
+        isDefault: formData.isDefault ?? false,
+        isActive: formData.isActive ?? true,
+        groupId: groupId,
+      };
 
-    try {
+      try {
         await mutation.mutateAsync(dataToSend);
-    } catch (error) {
+      } catch (error) {
         console.error("Mutation failed in submit handler:", error);
-    }
-  }, [mutation, groupId, isEditing, initialData?.id, onSaveSuccess, queryClient, showSnackbar]);
-
+      }
+    },
+    [
+      mutation,
+      groupId,
+      isEditing,
+      initialData?.id,
+      onSaveSuccess,
+      queryClient,
+      showSnackbar,
+    ]
+  );
 
   return (
     <GenericFormModal<ModifierFormInputs, Modifier>
@@ -104,23 +144,29 @@ const ModifierFormModal: React.FC<Props> = ({
       editingItem={initialData ?? null}
       isSubmitting={mutation.isPending}
       modalTitle={(isEditing) =>
-        isEditing ? 'Editar Modificador' : 'Crear Nuevo Modificador'
+        isEditing ? "Editar Modificador" : "Crear Nuevo Modificador"
       }
-      initialValues={useMemo(() => (initialData ? {
-          name: initialData.name,
-          description: initialData.description,
-          price: initialData.price,
-          sortOrder: initialData.sortOrder,
-          isDefault: initialData.isDefault,
-          isActive: initialData.isActive,
-      } : {
-          name: '',
-          description: null,
-          price: null,
-          sortOrder: 0,
-          isDefault: false,
-          isActive: true,
-      }), [initialData])}
+      initialValues={useMemo(
+        () =>
+          initialData
+            ? {
+                name: initialData.name,
+                description: initialData.description,
+                price: initialData.price,
+                sortOrder: initialData.sortOrder,
+                isDefault: initialData.isDefault,
+                isActive: initialData.isActive,
+              }
+            : {
+                name: "",
+                description: null,
+                price: null,
+                sortOrder: 0,
+                isDefault: false,
+                isActive: true,
+              },
+        [initialData]
+      )}
     />
   );
 };

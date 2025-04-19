@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useMemo } from "react";
+import { View, StyleSheet, ScrollView } from "react-native";
 import {
   Modal,
   Portal,
@@ -9,15 +9,15 @@ import {
   Switch,
   HelperText,
   ActivityIndicator,
-} from 'react-native-paper';
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+} from "react-native-paper";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { useAppTheme, AppTheme } from '@/app/styles/theme';
-import { useSnackbarStore } from '@/app/store/snackbarStore';
-import { getApiErrorMessage } from '@/app/lib/errorMapping';
-import { modifierGroupService } from '../services/modifierGroupService';
+import { useAppTheme, AppTheme } from "@/app/styles/theme";
+import { useSnackbarStore } from "@/app/store/snackbarStore";
+import { getApiErrorMessage } from "@/app/lib/errorMapping";
+import { modifierGroupService } from "../services/modifierGroupService";
 import {
   ModifierGroup,
   ModifierGroupFormInputs,
@@ -25,7 +25,7 @@ import {
   createModifierGroupSchema,
   CreateModifierGroupInput,
   UpdateModifierGroupInput,
-} from '../types/modifierGroup.types';
+} from "../schema/modifierGroup.schema";
 
 interface Props {
   visible: boolean;
@@ -34,7 +34,7 @@ interface Props {
   initialData?: ModifierGroup | null;
 }
 
-const QUERY_KEY_TO_INVALIDATE = ['modifierGroups'];
+const QUERY_KEY_TO_INVALIDATE = ["modifierGroups"];
 
 const getStyles = (theme: AppTheme) =>
   StyleSheet.create({
@@ -44,8 +44,8 @@ const getStyles = (theme: AppTheme) =>
       borderRadius: theme.roundness * 2,
       elevation: 4,
       backgroundColor: theme.colors.background,
-      maxHeight: '90%',
-      overflow: 'hidden',
+      maxHeight: "90%",
+      overflow: "hidden",
     },
     modalHeader: {
       backgroundColor: theme.colors.primary,
@@ -54,12 +54,12 @@ const getStyles = (theme: AppTheme) =>
     },
     modalTitle: {
       color: theme.colors.onPrimary,
-      fontWeight: '700',
-      textAlign: 'center',
+      fontWeight: "700",
+      textAlign: "center",
       fontSize: 20,
     },
     formContainer: {
-      maxHeight: '100%',
+      maxHeight: "100%",
     },
     scrollViewContent: {
       padding: theme.spacing.l,
@@ -70,7 +70,7 @@ const getStyles = (theme: AppTheme) =>
       backgroundColor: theme.colors.surfaceVariant,
     },
     row: {
-      flexDirection: 'row',
+      flexDirection: "row",
       marginHorizontal: -theme.spacing.xs,
       marginBottom: theme.spacing.m,
     },
@@ -79,9 +79,9 @@ const getStyles = (theme: AppTheme) =>
       paddingHorizontal: theme.spacing.xs,
     },
     switchComponentContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       marginBottom: theme.spacing.m,
       paddingVertical: theme.spacing.s,
     },
@@ -92,8 +92,8 @@ const getStyles = (theme: AppTheme) =>
       marginRight: theme.spacing.m,
     },
     modalActions: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
+      flexDirection: "row",
+      justifyContent: "flex-end",
       paddingVertical: theme.spacing.m,
       paddingHorizontal: theme.spacing.l,
       borderTopWidth: 1,
@@ -109,9 +109,9 @@ const getStyles = (theme: AppTheme) =>
     },
     loadingOverlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.3)",
+      justifyContent: "center",
+      alignItems: "center",
       zIndex: 10,
       borderRadius: theme.roundness * 2,
     },
@@ -148,7 +148,7 @@ const ModifierGroupFormModal: React.FC<Props> = ({
   } = useForm<ModifierGroupFormInputs>({
     resolver: zodResolver(modifierGroupSchema),
     defaultValues: {
-      name: '',
+      name: "",
       description: null,
       minSelections: 0,
       maxSelections: 2,
@@ -158,7 +158,7 @@ const ModifierGroupFormModal: React.FC<Props> = ({
     },
   });
 
-  const watchedAllowMultipleSelections = watch('allowMultipleSelections');
+  const watchedAllowMultipleSelections = watch("allowMultipleSelections");
 
   useEffect(() => {
     if (visible) {
@@ -174,7 +174,7 @@ const ModifierGroupFormModal: React.FC<Props> = ({
         });
       } else {
         reset({
-          name: '',
+          name: "",
           description: null,
           minSelections: 0,
           maxSelections: 2,
@@ -208,16 +208,16 @@ const ModifierGroupFormModal: React.FC<Props> = ({
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_TO_INVALIDATE });
       showSnackbar({
         message: `Grupo "${data.name}" ${
-          isEditing ? 'actualizado' : 'creado'
+          isEditing ? "actualizado" : "creado"
         } correctamente`,
-        type: 'success',
+        type: "success",
       });
       onSaveSuccess();
     },
     onError: (error) => {
       const message = getApiErrorMessage(error);
-      showSnackbar({ message, type: 'error' });
-      console.error('Error saving modifier group:', error);
+      showSnackbar({ message, type: "error" });
+      console.error("Error saving modifier group:", error);
     },
   });
 
@@ -236,7 +236,9 @@ const ModifierGroupFormModal: React.FC<Props> = ({
         <View style={styles.formContainer}>
           <View style={styles.modalHeader}>
             <Text variant="titleLarge" style={styles.modalTitle}>
-              {isEditing ? 'Editar Grupo de Modificadores' : 'Crear Nuevo Grupo'}
+              {isEditing
+                ? "Editar Grupo de Modificadores"
+                : "Crear Nuevo Grupo"}
             </Text>
           </View>
 
@@ -258,7 +260,11 @@ const ModifierGroupFormModal: React.FC<Props> = ({
               )}
             />
             {errors.name && (
-              <HelperText type="error" visible={!!errors.name} style={styles.helperText}>
+              <HelperText
+                type="error"
+                visible={!!errors.name}
+                style={styles.helperText}
+              >
                 {errors.name.message}
               </HelperText>
             )}
@@ -269,7 +275,7 @@ const ModifierGroupFormModal: React.FC<Props> = ({
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   label="Descripción (Opcional)"
-                  value={value ?? ''}
+                  value={value ?? ""}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   error={!!errors.description}
@@ -282,13 +288,19 @@ const ModifierGroupFormModal: React.FC<Props> = ({
               )}
             />
             {errors.description && (
-              <HelperText type="error" visible={!!errors.description} style={styles.helperText}>
+              <HelperText
+                type="error"
+                visible={!!errors.description}
+                style={styles.helperText}
+              >
                 {errors.description.message}
               </HelperText>
             )}
 
             <View style={styles.switchComponentContainer}>
-              <Text style={styles.switchLabel}>Permitir Múltiples Selecciones</Text>
+              <Text style={styles.switchLabel}>
+                Permitir Múltiples Selecciones
+              </Text>
               <Controller
                 name="allowMultipleSelections"
                 control={control}
@@ -301,14 +313,22 @@ const ModifierGroupFormModal: React.FC<Props> = ({
                 )}
               />
             </View>
-             {errors.allowMultipleSelections && (
-              <HelperText type="error" visible={!!errors.allowMultipleSelections} style={styles.helperText}>
+            {errors.allowMultipleSelections && (
+              <HelperText
+                type="error"
+                visible={!!errors.allowMultipleSelections}
+                style={styles.helperText}
+              >
                 {errors.allowMultipleSelections.message}
               </HelperText>
             )}
 
-
-            <View style={[styles.row, !watchedAllowMultipleSelections ? { opacity: 0.5 } : {}]}>
+            <View
+              style={[
+                styles.row,
+                !watchedAllowMultipleSelections ? { opacity: 0.5 } : {},
+              ]}
+            >
               <View style={styles.column}>
                 <Controller
                   name="minSelections"
@@ -328,7 +348,11 @@ const ModifierGroupFormModal: React.FC<Props> = ({
                   )}
                 />
                 {errors.minSelections && (
-                  <HelperText type="error" visible={!!errors.minSelections} style={styles.helperText}>
+                  <HelperText
+                    type="error"
+                    visible={!!errors.minSelections}
+                    style={styles.helperText}
+                  >
                     {errors.minSelections.message}
                   </HelperText>
                 )}
@@ -352,7 +376,11 @@ const ModifierGroupFormModal: React.FC<Props> = ({
                   )}
                 />
                 {errors.maxSelections && (
-                  <HelperText type="error" visible={!!errors.maxSelections} style={styles.helperText}>
+                  <HelperText
+                    type="error"
+                    visible={!!errors.maxSelections}
+                    style={styles.helperText}
+                  >
                     {errors.maxSelections.message}
                   </HelperText>
                 )}
@@ -374,11 +402,14 @@ const ModifierGroupFormModal: React.FC<Props> = ({
               />
             </View>
             {errors.isRequired && (
-              <HelperText type="error" visible={!!errors.isRequired} style={styles.helperText}>
+              <HelperText
+                type="error"
+                visible={!!errors.isRequired}
+                style={styles.helperText}
+              >
                 {errors.isRequired.message}
               </HelperText>
             )}
-
 
             <View style={styles.switchComponentContainer}>
               <Text style={styles.switchLabel}>Está Activo</Text>
@@ -394,12 +425,15 @@ const ModifierGroupFormModal: React.FC<Props> = ({
                 )}
               />
             </View>
-             {errors.isActive && (
-              <HelperText type="error" visible={!!errors.isActive} style={styles.helperText}>
+            {errors.isActive && (
+              <HelperText
+                type="error"
+                visible={!!errors.isActive}
+                style={styles.helperText}
+              >
                 {errors.isActive.message}
               </HelperText>
             )}
-
           </ScrollView>
 
           {isSubmitting && (
@@ -428,7 +462,7 @@ const ModifierGroupFormModal: React.FC<Props> = ({
               loading={isSubmitting}
               disabled={isSubmitting}
             >
-              {isEditing ? 'Actualizar' : 'Crear'}
+              {isEditing ? "Actualizar" : "Crear"}
             </Button>
           </View>
         </View>

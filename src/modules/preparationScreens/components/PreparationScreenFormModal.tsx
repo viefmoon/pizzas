@@ -1,43 +1,45 @@
-import React from 'react';
+import React from "react";
 import GenericFormModal, {
   FormFieldConfig,
-} from '../../../app/components/crud/GenericFormModal';
+} from "../../../app/components/crud/GenericFormModal";
 import {
   PreparationScreen,
   CreatePreparationScreenDto,
   UpdatePreparationScreenDto,
   CreatePreparationScreenSchema,
   UpdatePreparationScreenSchema,
-} from '../types/preparationScreen.types';
+} from "../schema/preparationScreen.schema";
 import {
   useCreatePreparationScreen,
   useUpdatePreparationScreen,
-} from '../hooks/usePreparationScreensQueries';
-import { z } from 'zod';
+} from "../hooks/usePreparationScreensQueries";
+import { z } from "zod";
 
 // Definición de los campos del formulario para Pantallas de Preparación
-const preparationScreenFormFields: FormFieldConfig<CreatePreparationScreenDto | UpdatePreparationScreenDto>[] = [
+const preparationScreenFormFields: FormFieldConfig<
+  CreatePreparationScreenDto | UpdatePreparationScreenDto
+>[] = [
   {
-    name: 'name',
-    label: 'Nombre de la Pantalla',
-    type: 'text',
-    placeholder: 'Ej: Cocina Principal, Barra Fría',
+    name: "name",
+    label: "Nombre de la Pantalla",
+    type: "text",
+    placeholder: "Ej: Cocina Principal, Barra Fría",
     required: true,
     // maxLength: 100, // Eliminado: La validación está en el schema Zod
   },
   {
-    name: 'description',
-    label: 'Descripción (Opcional)',
-    type: 'textarea',
-    placeholder: 'Ej: Pantalla para órdenes de cocina caliente',
+    name: "description",
+    label: "Descripción (Opcional)",
+    type: "textarea",
+    placeholder: "Ej: Pantalla para órdenes de cocina caliente",
     numberOfLines: 3,
     // maxLength: 255, // Eliminado: La validación está en el schema Zod
   },
   {
-    name: 'isActive',
-    label: '¿Está activa?',
-    type: 'switch',
-    switchLabel: 'Activa',
+    name: "isActive",
+    label: "¿Está activa?",
+    type: "switch",
+    switchLabel: "Activa",
     defaultValue: true,
   },
   // Nota: El campo 'productIds' no se incluye aquí por simplicidad.
@@ -65,7 +67,9 @@ const PreparationScreenFormModal: React.FC<PreparationScreenFormModalProps> = ({
   const updateScreen = useUpdatePreparationScreen();
 
   // Determinar el esquema y los valores iniciales según si se está editando o creando
-  const formSchema = isEditing ? UpdatePreparationScreenSchema : CreatePreparationScreenSchema;
+  const formSchema = isEditing
+    ? UpdatePreparationScreenSchema
+    : CreatePreparationScreenSchema;
   const initialValues = isEditing
     ? {
         name: editingItem?.name,
@@ -74,7 +78,7 @@ const PreparationScreenFormModal: React.FC<PreparationScreenFormModalProps> = ({
         // productIds: editingItem?.productIds ?? undefined, // Omitido del form
       }
     : {
-        name: '',
+        name: "",
         description: undefined,
         isActive: true,
         // productIds: undefined, // Omitido del form
@@ -84,10 +88,15 @@ const PreparationScreenFormModal: React.FC<PreparationScreenFormModalProps> = ({
   const isSubmitting = createScreen.isPending || updateScreen.isPending;
 
   // Función para manejar el envío del formulario
-  const handleSubmit = async (data: CreatePreparationScreenDto | UpdatePreparationScreenDto) => {
+  const handleSubmit = async (
+    data: CreatePreparationScreenDto | UpdatePreparationScreenDto
+  ) => {
     try {
       if (isEditing && editingItem) {
-        await updateScreen.mutateAsync({ id: editingItem.id, data: data as UpdatePreparationScreenDto });
+        await updateScreen.mutateAsync({
+          id: editingItem.id,
+          data: data as UpdatePreparationScreenDto,
+        });
       } else {
         await createScreen.mutateAsync(data as CreatePreparationScreenDto);
       }
@@ -95,23 +104,30 @@ const PreparationScreenFormModal: React.FC<PreparationScreenFormModalProps> = ({
       onDismiss(); // Cerrar el modal después del éxito
     } catch (error) {
       // El manejo de errores (snackbar) ya está en los hooks de mutación
-      console.error('Error submitting preparation screen form:', error);
+      console.error("Error submitting preparation screen form:", error);
     }
   };
 
   return (
-    <GenericFormModal<CreatePreparationScreenDto | UpdatePreparationScreenDto, PreparationScreen>
+    <GenericFormModal<
+      CreatePreparationScreenDto | UpdatePreparationScreenDto,
+      PreparationScreen
+    >
       visible={visible}
       onDismiss={onDismiss}
       // Pasamos una función wrapper para handleSubmit que no espera el segundo argumento (photoId)
       onSubmit={(data) => handleSubmit(data)}
-      formSchema={formSchema as z.ZodSchema<CreatePreparationScreenDto | UpdatePreparationScreenDto>}
+      formSchema={
+        formSchema as z.ZodSchema<
+          CreatePreparationScreenDto | UpdatePreparationScreenDto
+        >
+      }
       formFields={preparationScreenFormFields}
       initialValues={initialValues}
       editingItem={editingItem}
       isSubmitting={isSubmitting}
       modalTitle={(isEditing) =>
-        isEditing ? 'Editar Pantalla de Preparación' : 'Crear Nueva Pantalla'
+        isEditing ? "Editar Pantalla de Preparación" : "Crear Nueva Pantalla"
       }
       // No necesitamos pasar 'photoField' si no manejamos imágenes
     />

@@ -2,18 +2,15 @@ import React, { useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { TextInput, Button, HelperText, Checkbox, TouchableRipple } from "react-native-paper";
+import {
+  TextInput,
+  Button,
+  HelperText,
+  Checkbox,
+  TouchableRipple,
+} from "react-native-paper";
 import { useAppTheme } from "../../../app/styles/theme";
-
-const loginSchema = z.object({
-  emailOrUsername: z
-    .string()
-    .min(1, "El correo o nombre de usuario es requerido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
-});
-
-type LoginFormInputs = z.infer<typeof loginSchema>;
+import { loginSchema, LoginFormInputs } from "../schema/auth.schema";
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormInputs, rememberMe: boolean) => void;
@@ -26,8 +23,8 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({
   onSubmit,
   isLoading,
-  initialEmailOrUsername = '',
-  initialPassword = '',
+  initialEmailOrUsername = "",
+  initialPassword = "",
   initialRememberMe = false,
 }) => {
   const theme = useAppTheme();
@@ -48,44 +45,47 @@ const LoginForm: React.FC<LoginFormProps> = ({
   });
 
   React.useEffect(() => {
-     if (initialEmailOrUsername || initialPassword) {
-        reset({
-            emailOrUsername: initialEmailOrUsername || '',
-            password: initialPassword || ''
-        });
-     }
+    if (initialEmailOrUsername || initialPassword) {
+      reset({
+        emailOrUsername: initialEmailOrUsername || "",
+        password: initialPassword || "",
+      });
+    }
   }, [initialEmailOrUsername, initialPassword, reset]);
 
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
   };
 
-  const styles = React.useMemo(() => StyleSheet.create({
-    container: {
-      width: "100%",
-    },
-    input: {
-      marginBottom: 8,
-    },
-    button: {
-      marginTop: 16,
-    },
-    helperText: {
-      marginBottom: 8,
-    },
-    checkboxContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 8,
-      marginBottom: 8,
-    },
-    checkbox: {
-    },
-    checkboxLabel: {
-      color: theme.colors.onSurface,
-      marginLeft: 8,
-    },
-  }), [theme]);
+  const styles = React.useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          width: "100%",
+        },
+        input: {
+          marginBottom: 8,
+        },
+        button: {
+          marginTop: 16,
+        },
+        helperText: {
+          marginBottom: 8,
+        },
+        checkboxContainer: {
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: 8,
+          marginBottom: 8,
+        },
+        checkbox: {},
+        checkboxLabel: {
+          color: theme.colors.onSurface,
+          marginLeft: 8,
+        },
+      }),
+    [theme]
+  );
 
   return (
     <View style={styles.container}>
@@ -163,7 +163,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       >
         <>
           <Checkbox
-            status={rememberMe ? 'checked' : 'unchecked'}
+            status={rememberMe ? "checked" : "unchecked"}
             onPress={() => setRememberMe(!rememberMe)}
             disabled={isLoading}
           />

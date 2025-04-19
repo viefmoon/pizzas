@@ -27,9 +27,9 @@ import {
   ProductFormInputs,
   productSchema,
   ProductVariantInput,
-  Product, // Re-añadir la importación
-} from "../types/products.types";
-import { ModifierGroup } from "../../modifiers/types/modifierGroup.types";
+  Product,
+} from "../schema/products.schema";
+import { ModifierGroup } from "../../modifiers/schema/modifierGroup.schema";
 import { getApiErrorMessage } from "@/app/lib/errorMapping";
 import { useSnackbarStore } from "@/app/store/snackbarStore";
 import VariantFormModal from "./VariantFormModal";

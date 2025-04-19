@@ -6,9 +6,8 @@ import {
   CreateModifierInput,
   UpdateModifierInput,
   modifierApiSchema,
-} from "../types/modifier.types";
+} from "../schema/modifier.schema";
 import { z } from "zod";
-
 
 const modifiersListSchema = z.array(modifierApiSchema);
 
@@ -28,7 +27,10 @@ export const modifierService = {
       limit: params?.limit ?? 10,
       ...params,
     };
-    const response = await apiClient.get<unknown>(API_PATHS.MODIFIERS, queryParams);
+    const response = await apiClient.get<unknown>(
+      API_PATHS.MODIFIERS,
+      queryParams
+    );
 
     if (!response.ok || !response.data) {
       console.error(
@@ -54,7 +56,9 @@ export const modifierService = {
    * Obtiene un modificador por su ID.
    */
   async findOne(id: string): Promise<Modifier> {
-    const response = await apiClient.get<unknown>(`${API_PATHS.MODIFIERS}/${id}`);
+    const response = await apiClient.get<unknown>(
+      `${API_PATHS.MODIFIERS}/${id}`
+    );
 
     if (!response.ok || !response.data) {
       console.error(
@@ -79,12 +83,18 @@ export const modifierService = {
   /**
    * Obtiene todos los modificadores asociados a un grupo específico, con filtros opcionales.
    */
-  async findByGroupId(groupId: string, params: { isActive?: boolean; search?: string } = {}): Promise<Modifier[]> {
+  async findByGroupId(
+    groupId: string,
+    params: { isActive?: boolean; search?: string } = {}
+  ): Promise<Modifier[]> {
     const queryParams = {
-        ...(params.isActive !== undefined && { isActive: params.isActive }),
-        ...(params.search && { search: params.search }),
+      ...(params.isActive !== undefined && { isActive: params.isActive }),
+      ...(params.search && { search: params.search }),
     };
-    const response = await apiClient.get<unknown>(`${API_PATHS.MODIFIERS}/by-group/${groupId}`, queryParams);
+    const response = await apiClient.get<unknown>(
+      `${API_PATHS.MODIFIERS}/by-group/${groupId}`,
+      queryParams
+    );
 
     if (!response.ok || !response.data) {
       console.error(
@@ -138,7 +148,10 @@ export const modifierService = {
    * Actualiza un modificador existente.
    */
   async update(id: string, data: UpdateModifierInput): Promise<Modifier> {
-    const response = await apiClient.patch<unknown>(`${API_PATHS.MODIFIERS}/${id}`, data);
+    const response = await apiClient.patch<unknown>(
+      `${API_PATHS.MODIFIERS}/${id}`,
+      data
+    );
 
     if (!response.ok || !response.data) {
       console.error(

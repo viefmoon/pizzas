@@ -6,9 +6,8 @@ import {
   CreateModifierGroupInput,
   UpdateModifierGroupInput,
   modifierGroupApiSchema,
-} from "../types/modifierGroup.types";
+} from "../schema/modifierGroup.schema";
 import { z } from "zod";
-
 
 const modifierGroupsListSchema = z.array(modifierGroupApiSchema);
 
@@ -25,12 +24,15 @@ export const modifierGroupService = {
    */
   async findAll(params: FindAllParams = {}): Promise<ModifierGroup[]> {
     const queryParams = {
-        page: params.page ?? 1,
-        limit: params.limit ?? 10,
-        ...(params.isActive !== undefined && { isActive: params.isActive }),
-        ...(params.search && { search: params.search }),
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      ...(params.isActive !== undefined && { isActive: params.isActive }),
+      ...(params.search && { search: params.search }),
     };
-    const response = await apiClient.get<unknown>(API_PATHS.MODIFIER_GROUPS, queryParams);
+    const response = await apiClient.get<unknown>(
+      API_PATHS.MODIFIER_GROUPS,
+      queryParams
+    );
 
     if (!response.ok || !response.data) {
       console.error(
@@ -57,7 +59,9 @@ export const modifierGroupService = {
    * Obtiene un grupo de modificadores por su ID.
    */
   async findOne(id: string): Promise<ModifierGroup> {
-    const response = await apiClient.get<unknown>(`${API_PATHS.MODIFIER_GROUPS}/${id}`);
+    const response = await apiClient.get<unknown>(
+      `${API_PATHS.MODIFIER_GROUPS}/${id}`
+    );
 
     if (!response.ok || !response.data) {
       console.error(
@@ -83,7 +87,10 @@ export const modifierGroupService = {
    * Crea un nuevo grupo de modificadores.
    */
   async create(data: CreateModifierGroupInput): Promise<ModifierGroup> {
-    const response = await apiClient.post<unknown>(API_PATHS.MODIFIER_GROUPS, data);
+    const response = await apiClient.post<unknown>(
+      API_PATHS.MODIFIER_GROUPS,
+      data
+    );
 
     if (!response.ok || !response.data) {
       console.error(
@@ -114,7 +121,10 @@ export const modifierGroupService = {
     id: string,
     data: UpdateModifierGroupInput
   ): Promise<ModifierGroup> {
-    const response = await apiClient.patch<unknown>(`${API_PATHS.MODIFIER_GROUPS}/${id}`, data);
+    const response = await apiClient.patch<unknown>(
+      `${API_PATHS.MODIFIER_GROUPS}/${id}`,
+      data
+    );
 
     if (!response.ok || !response.data) {
       console.error(
@@ -142,7 +152,9 @@ export const modifierGroupService = {
    * Elimina un grupo de modificadores.
    */
   async remove(id: string): Promise<void> {
-    const response = await apiClient.delete(`${API_PATHS.MODIFIER_GROUPS}/${id}`);
+    const response = await apiClient.delete(
+      `${API_PATHS.MODIFIER_GROUPS}/${id}`
+    );
 
     if (!response.ok) {
       console.error(
