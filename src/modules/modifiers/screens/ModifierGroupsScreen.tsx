@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { ActivityIndicator, Text, Button, IconButton } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
+import { useDrawerStatus } from '@react-navigation/drawer';
 
 import { modifierGroupService } from '../services/modifierGroupService';
 import { ModifierGroup } from '../types/modifierGroup.types';
@@ -15,6 +15,7 @@ import { debounce } from 'lodash';
 import ModifierGroupFormModal from '../components/ModifierGroupFormModal';
 import GenericList, { RenderItemConfig, FilterOption } from '@/app/components/crud/GenericList';
 import GenericDetailModal, { DisplayFieldConfig } from '@/app/components/crud/GenericDetailModal';
+import { useCrudScreenLogic } from '@/app/hooks/useCrudScreenLogic';
 
 type NavigationProps = {
   navigate: (screen: string, params?: any) => void;
@@ -29,16 +30,8 @@ const ModifierGroupsScreen = () => {
   const navigation = useNavigation<NavigationProps>();
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
-  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
-  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
-
-  const [isFormModalVisible, setIsFormModalVisible] = useState(false);
-  const [selectedGroupForForm, setSelectedGroupForForm] = useState<ModifierGroup | null>(null);
-
-  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
-  const [selectedGroupForDetail, setSelectedGroupForDetail] = useState<ModifierGroup | null>(null);
-
-  const [isDeleting, setIsDeleting] = useState(false);
+  const drawerStatus = useDrawerStatus();
+  const isDrawerOpen = drawerStatus === 'open';
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,75 +63,29 @@ const ModifierGroupsScreen = () => {
     queryFn: () => modifierGroupService.findAll(queryParams),
   });
 
-  const deleteMutation = useMutation<void, Error, string>({
-    mutationFn: (id: string) => modifierGroupService.remove(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      showSnackbar({ message: 'Grupo eliminado correctamente', type: 'success' });
-      handleCloseDetailModal();
-    },
-    onError: (err) => {
-      const message = getApiErrorMessage(err);
-      showSnackbar({ message, type: 'error' });
-      console.error("Error deleting modifier group:", err);
-    },
-    onSettled: () => {
-      setIsDeleting(false);
-    }
+  const {
+    isFormModalVisible,
+    isDetailModalVisible,
+    editingItem,
+    selectedItem,
+    isDeleting,
+    handleOpenCreateModal,
+    handleOpenEditModal,
+    handleOpenDetailModal,
+    handleCloseModals,
+    handleDeleteItem,
+  } = useCrudScreenLogic<ModifierGroup, any, any>({
+    entityName: 'Grupo de Modificadores',
+    queryKey: [QUERY_KEY[0], queryParams],
+    deleteMutationFn: modifierGroupService.remove,
   });
 
-
-  const handleAdd = () => {
-    setSelectedGroupForForm(null);
-    setIsFormModalVisible(true);
-  };
-
-  const handleEditFromDetail = (group: ModifierGroup) => {
-    handleCloseDetailModal();
-    setSelectedGroupForForm(group);
-    setIsFormModalVisible(true);
-  };
-
-  const handleDeleteConfirm = (id: string) => {
-    Alert.alert(
-      "Confirmar Eliminación",
-      "¿Estás seguro de que deseas eliminar este grupo de modificadores? Esta acción no se puede deshacer.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: () => {
-            setIsDeleting(true);
-            deleteMutation.mutate(id);
-          },
-        },
-      ]
-    );
-  };
-
   const handleNavigateToModifiers = (groupId: string, groupName: string) => {
-    // Ya no se cierra el modal aquí, se llama desde la lista
     navigation.navigate('ModifiersScreen', { groupId, groupName });
   };
 
-  const handleOpenDetailModal = (group: ModifierGroup) => {
-    setSelectedGroupForDetail(group);
-    setIsDetailModalVisible(true);
-  };
-
-  const handleCloseDetailModal = () => {
-    setIsDetailModalVisible(false);
-    setSelectedGroupForDetail(null);
-  };
-
-  const handleCloseFormModal = () => {
-    setIsFormModalVisible(false);
-    setSelectedGroupForForm(null);
-  };
-
   const handleFormSaveSuccess = () => {
-    handleCloseFormModal();
+    handleCloseModals();
   };
 
   const handleFilterChange = (value: StatusFilter) => {
@@ -224,45 +171,47 @@ const ModifierGroupsScreen = () => {
         onFilterChange={handleFilterChange}
         filterOptions={filterOptions}
         showFab={true}
-        onFabPress={handleAdd}
+        onFabPress={handleOpenCreateModal}
         isModalOpen={isFormModalVisible || isDetailModalVisible}
         showImagePlaceholder={false}
-        isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
+        isDrawerOpen={isDrawerOpen}
         renderItemActions={(item) => (
           <IconButton
             icon="format-list-bulleted"
-            size={24} // Tamaño estándar para iconos
+            size={24}
             onPress={(e) => {
-              e.stopPropagation(); // Evitar que se abra el modal de detalle
+              e.stopPropagation();
               handleNavigateToModifiers(item.id, item.name);
             }}
-            // No necesita 'compact' ni 'mode' como el Button
           />
         )}
       />
 
       <ModifierGroupFormModal
             visible={isFormModalVisible}
-            onDismiss={handleCloseFormModal}
+            onDismiss={handleCloseModals}
             onSaveSuccess={handleFormSaveSuccess}
-            initialData={selectedGroupForForm}
+            initialData={editingItem}
           />
 
       <GenericDetailModal<ModifierGroup>
         visible={isDetailModalVisible}
-        onDismiss={handleCloseDetailModal}
-        item={selectedGroupForDetail}
+        onDismiss={handleCloseModals}
+        item={selectedItem}
         titleField="name"
         descriptionField="description"
         statusConfig={listRenderConfig.statusConfig}
         fieldsToDisplay={detailFields}
-        onEdit={handleEditFromDetail}
-        onDelete={handleDeleteConfirm}
+        onEdit={() => {
+            if (selectedItem) {
+                handleOpenEditModal(selectedItem);
+            }
+        }}
+        onDelete={handleDeleteItem}
         isDeleting={isDeleting}
         editButtonLabel="Editar"
         deleteButtonLabel="Eliminar"
       >
-        {/* El botón para ver modificadores se ha movido a la lista (renderItemActions) */}
       </GenericDetailModal>
 
     </SafeAreaView>

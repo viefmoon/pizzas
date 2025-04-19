@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { ActivityIndicator, Text, IconButton } from 'react-native-paper';
 import { useDrawerStatus } from '@react-navigation/drawer';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +15,7 @@ import {
 import { Area, CreateAreaDto, UpdateAreaDto } from '../types/area.types';
 import { AreasListScreenProps } from '../navigation/types';
 import { useAppTheme, AppTheme } from '../../../app/styles/theme';
+import { useCrudScreenLogic } from '../../../app/hooks/useCrudScreenLogic';
 
 const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
   const theme = useAppTheme();
@@ -22,12 +23,8 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
   const drawerStatus = useDrawerStatus();
   const isDrawerOpen = drawerStatus === 'open';
 
-  const [formModalVisible, setFormModalVisible] = useState(false);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedArea, setSelectedArea] = useState<Area | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [filterStatus, setFilterStatus] = React.useState<string>('all');
 
   const {
     data: areasData = [],
@@ -42,67 +39,41 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
 
   const createAreaMutation = useCreateArea();
   const updateAreaMutation = useUpdateArea();
-  const deleteAreaMutation = useDeleteArea();
+  const { mutateAsync: deleteArea } = useDeleteArea();
+
+  const {
+    isFormModalVisible,
+    isDetailModalVisible,
+    editingItem,
+    selectedItem,
+    isDeleting,
+    handleOpenCreateModal,
+    handleOpenEditModal,
+    handleOpenDetailModal,
+    handleCloseModals,
+    handleDeleteItem,
+  } = useCrudScreenLogic<Area, CreateAreaDto, UpdateAreaDto>({
+    entityName: 'Área',
+    queryKey: ['areas', { name: searchQuery || undefined, isActive: filterStatus === 'all' ? undefined : filterStatus === 'true' }],
+    deleteMutationFn: deleteArea,
+  });
 
   const isSubmitting = createAreaMutation.isPending || updateAreaMutation.isPending;
-  const isDeleting = deleteAreaMutation.isPending;
-
-  const handleOpenFormModal = (area: Area | null = null) => {
-    setSelectedArea(area);
-    setIsEditing(!!area);
-    setFormModalVisible(true);
-  };
-
-  const handleCloseFormModal = () => {
-    setFormModalVisible(false);
-    setSelectedArea(null);
-  };
-
-  const handleOpenDetailModal = (area: Area) => {
-    setSelectedArea(area);
-    setDetailModalVisible(true);
-  };
-
-  const handleCloseDetailModal = () => {
-    setDetailModalVisible(false);
-    setSelectedArea(null);
-  };
 
   const handleFormSubmit = async (
     data: CreateAreaDto | UpdateAreaDto,
     _photoId: string | null | undefined
   ) => {
     try {
-      if (isEditing && selectedArea) {
-        await updateAreaMutation.mutateAsync({ id: selectedArea.id, data });
+      if (editingItem) {
+        await updateAreaMutation.mutateAsync({ id: editingItem.id, data: data as UpdateAreaDto });
       } else {
         await createAreaMutation.mutateAsync(data as CreateAreaDto);
       }
-      handleCloseFormModal();
+      handleCloseModals();
     } catch (error) {
       console.error('Submit failed:', error);
     }
-  };
-
-  const handleDeleteArea = (id: string) => {
-    Alert.alert(
-      'Confirmar Eliminación',
-      '¿Estás seguro de que quieres eliminar esta área? Esta acción no se puede deshacer.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteAreaMutation.mutateAsync(id);
-              handleCloseDetailModal();
-            } catch (error) {
-            }
-          },
-        },
-      ]
-    );
   };
 
   const handleNavigateToTables = (area: Area) => {
@@ -196,33 +167,34 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
         filterValue={filterStatus}
         onFilterChange={handleFilterChange}
         showFab={true}
-        onFabPress={() => handleOpenFormModal()}
+        onFabPress={handleOpenCreateModal}
         renderItemActions={renderItemActions}
-        isModalOpen={formModalVisible || detailModalVisible}
+        isModalOpen={isFormModalVisible || isDetailModalVisible}
         isDrawerOpen={isDrawerOpen}
         showImagePlaceholder={false}
       />
 
       <AreaFormModal
-        visible={formModalVisible}
-        onDismiss={handleCloseFormModal}
+        visible={isFormModalVisible}
+        onDismiss={handleCloseModals}
         onSubmit={handleFormSubmit}
-        editingItem={isEditing ? selectedArea : null}
+        editingItem={editingItem}
         isSubmitting={isSubmitting}
       />
 
       <GenericDetailModal<Area>
-        visible={detailModalVisible}
-        onDismiss={handleCloseDetailModal}
-        item={selectedArea}
+        visible={isDetailModalVisible}
+        onDismiss={handleCloseModals}
+        item={selectedItem}
         titleField="name"
         statusConfig={areaDetailStatusConfig}
         fieldsToDisplay={areaDetailFields}
         onEdit={() => {
-          handleCloseDetailModal();
-          handleOpenFormModal(selectedArea);
+          if (selectedItem) {
+             handleOpenEditModal(selectedItem);
+          }
         }}
-        onDelete={handleDeleteArea}
+        onDelete={handleDeleteItem}
         isDeleting={isDeleting}
       />
     </SafeAreaView>

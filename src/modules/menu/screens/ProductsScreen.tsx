@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { ActivityIndicator, Text, Portal } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
-import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
+import { useDrawerStatus } from '@react-navigation/drawer';
 import { debounce } from "lodash";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -21,6 +21,7 @@ import GenericList, { FilterOption } from "@/app/components/crud/GenericList";
 import ProductFormModal from "../components/ProductFormModal";
 import { useSnackbarStore } from "@/app/store/snackbarStore";
 import { FileObject } from "@/app/components/common/CustomImagePicker";
+import { useCrudScreenLogic } from "@/app/hooks/useCrudScreenLogic";
 
 type ProductsScreenRouteProp = RouteProp<MenuStackParamList, "Products">;
 
@@ -31,8 +32,8 @@ function ProductsScreen(): JSX.Element {
   const route = useRoute<ProductsScreenRouteProp>();
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
-  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
-  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
+  const drawerStatus = useDrawerStatus();
+  const isDrawerOpen = drawerStatus === 'open';
 
   const { subCategoryId, subCategoryName } = route.params;
 
@@ -41,8 +42,6 @@ function ProductsScreen(): JSX.Element {
     "all" | "active" | "inactive"
   >("all");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [isFormModalVisible, setIsFormModalVisible] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const debouncedSetSearch = useCallback(
     debounce((query: string) => setDebouncedSearchQuery(query), 300),
@@ -79,7 +78,22 @@ function ProductsScreen(): JSX.Element {
 
   const createMutation = useCreateProductMutation();
   const updateMutation = useUpdateProductMutation();
-  const deleteMutation = useDeleteProductMutation();
+  const { mutateAsync: deleteProduct } = useDeleteProductMutation();
+
+  const {
+    isFormModalVisible,
+    editingItem,
+    isDeleting,
+    handleOpenCreateModal,
+    handleOpenEditModal,
+    handleCloseModals,
+    handleDeleteItem,
+  } = useCrudScreenLogic<Product, ProductFormInputs, ProductFormInputs>({
+    entityName: 'Producto',
+    queryKey: ["products", queryFilters],
+    deleteMutationFn: deleteProduct,
+  });
+
 
   const products = useMemo(() => {
     return (productsResponse?.[0] ?? []).map((p) => ({
@@ -94,44 +108,23 @@ function ProductsScreen(): JSX.Element {
 
   const totalProducts = productsResponse?.[1] ?? 0;
 
-  const handleOpenCreateModal = useCallback(() => {
-    setEditingProduct(null);
-    setIsFormModalVisible(true);
-  }, []);
-
-  const handleOpenEditModal = useCallback((product: Product) => {
-    setEditingProduct(product);
-    setIsFormModalVisible(true);
-  }, []);
-
-  const handleCloseFormModal = useCallback(() => {
-    setIsFormModalVisible(false);
-    setEditingProduct(null);
-  }, []);
-
   const handleFormSubmit = useCallback(
     async (
       formData: ProductFormInputs,
       photoId: string | null | undefined,
       _file?: FileObject | null
     ) => {
-      const isEditing = !!editingProduct;
+      const isEditing = !!editingItem;
 
-      // Preparar datos para la mutación, incluyendo modifierGroupIds
-      // imageUri se maneja internamente en el modal y no se envía directamente
       const { imageUri, ...dataToSend } = formData;
 
       const mutationData = {
         ...dataToSend,
-        modifierGroupIds: dataToSend.modifierGroupIds ?? [], // Asegurar que sea un array
-        // Ensure photoId is included correctly
+        modifierGroupIds: dataToSend.modifierGroupIds ?? [],
         ...(photoId !== undefined && { photoId: photoId }),
       };
 
-      // Logs de depuración eliminados
-
       try {
-        // Lógica simplificada: solo una llamada para crear/actualizar
         const handleMutationSuccess = (createdOrUpdatedProduct: Product) => {
           const message = isEditing
             ? "Producto actualizado con éxito"
@@ -139,12 +132,10 @@ function ProductsScreen(): JSX.Element {
 
           showSnackbar({ message, type: "success" });
 
-          // Cerrar modal e invalidar queries relevantes
-          handleCloseFormModal();
+          handleCloseModals();
           queryClient.invalidateQueries({
             queryKey: ["products", queryFilters],
-          }); // Invalidar lista
-          // Invalidar detalles del producto específico para refrescar datos (incluyendo grupos)
+          });
           if (createdOrUpdatedProduct?.id) {
             queryClient.invalidateQueries({
               queryKey: ["product", createdOrUpdatedProduct.id],
@@ -159,10 +150,9 @@ function ProductsScreen(): JSX.Element {
           });
         };
 
-        // Paso 1: Crear o Actualizar el producto
-        if (isEditing && editingProduct) {
+        if (isEditing && editingItem) {
           await updateMutation.mutateAsync(
-            { id: editingProduct.id, data: mutationData },
+            { id: editingItem.id, data: mutationData },
             {
               onSuccess: handleMutationSuccess,
               onError: handleMutationError,
@@ -175,48 +165,20 @@ function ProductsScreen(): JSX.Element {
           });
         }
       } catch (err) {
-        // Catch genérico por si algo más falla fuera de las mutaciones
         console.error("Unexpected error during form submission:", err);
         showSnackbar({ message: "Ocurrió un error inesperado", type: "error" });
       }
     },
     [
-      editingProduct,
+      editingItem,
       updateMutation,
       createMutation,
       showSnackbar,
-      handleCloseFormModal,
+      handleCloseModals,
       queryClient,
       queryFilters,
-      // assignGroupsMutation,
     ]
   );
-
-  // Deletion Handling
-  const handleDeleteProduct = useCallback(
-    (productId: string) => {
-      Alert.alert(
-        "Confirmar Eliminación",
-        "¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.",
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Eliminar",
-            style: "destructive",
-            onPress: async () => {
-              // TODO: Implement actual deletion logic using deleteMutation
-              // await deleteMutation.mutateAsync(productId, { ... });
-              showSnackbar({
-                message: "Funcionalidad de eliminar pendiente",
-                type: "info",
-              });
-            },
-          },
-        ]
-      );
-    },
-    [showSnackbar]
-  ); // Add deleteMutation here when implemented
 
   const listRenderConfig = {
     titleField: "name" as keyof Product,
@@ -297,17 +259,17 @@ function ProductsScreen(): JSX.Element {
         enableSort={false}
         contentContainerStyle={styles.contentContainer}
         showImagePlaceholder={true}
-        isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
+        isDrawerOpen={isDrawerOpen}
       />
 
       <Portal>
         <ProductFormModal
           visible={isFormModalVisible}
-          onDismiss={handleCloseFormModal}
+          onDismiss={handleCloseModals}
           onSubmit={handleFormSubmit}
-          initialData={editingProduct}
+          initialData={editingItem}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
-          productId={editingProduct?.id}
+          productId={editingItem?.id}
           subCategoryId={subCategoryId}
         />
       </Portal>

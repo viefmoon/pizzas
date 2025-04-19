@@ -1,14 +1,15 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Portal, Text, IconButton } from 'react-native-paper';
 import { useFocusEffect, useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
+import { useDrawerStatus } from '@react-navigation/drawer';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppTheme, AppTheme } from '../../../app/styles/theme';
 import GenericList from '../../../app/components/crud/GenericList';
 import GenericDetailModal from '../../../app/components/crud/GenericDetailModal';
 import GenericFormModal, { FormFieldConfig, ImagePickerConfig } from '../../../app/components/crud/GenericFormModal';
 import { FilterOption } from '../../../app/components/crud/GenericList';
+import { useCrudScreenLogic } from '../../../app/hooks/useCrudScreenLogic';
 
 import { ImageUploadService, FileObject } from '../../../app/lib/imageUploadService';
 import {
@@ -29,7 +30,6 @@ import { PaginatedResponse } from '../../../app/types/api.types';
 import { getImageUrl } from '../../../app/lib/imageUtils';
 import { MenuStackParamList } from '@/modules/menu/navigation/types';
 
-// Tipos de Navegación y Ruta usando MenuStackParamList
 type SubcategoriesScreenRouteProp = RouteProp<MenuStackParamList, 'SubCategoriesScreen'>;
 type SubcategoriesScreenNavigationProp = NativeStackNavigationProp<MenuStackParamList, 'SubCategoriesScreen'>;
 
@@ -41,17 +41,10 @@ const SubcategoriesScreen: React.FC = () => {
   const navigation = useNavigation<SubcategoriesScreenNavigationProp>();
   const { categoryId, categoryName } = route.params;
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
-  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
+  const drawerStatus = useDrawerStatus();
+  const isDrawerOpen = drawerStatus === 'open';
 
-  // Estado para filtros
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-
-  // Estado para modales y selección
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [formModalVisible, setFormModalVisible] = useState(false);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<SubCategory | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('all');
 
   const queryParams = useMemo((): FindAllSubCategoriesDto => {
     let isActive: boolean | undefined;
@@ -75,7 +68,24 @@ const SubcategoriesScreen: React.FC = () => {
 
   const createMutation = useCreateSubcategory();
   const updateMutation = useUpdateSubcategory();
-  const removeMutation = useRemoveSubcategory();
+  const { mutateAsync: removeSubcategory } = useRemoveSubcategory();
+
+  const {
+    isFormModalVisible,
+    isDetailModalVisible,
+    editingItem,
+    selectedItem,
+    isDeleting,
+    handleOpenCreateModal,
+    handleOpenEditModal,
+    handleOpenDetailModal,
+    handleCloseModals,
+    handleDeleteItem,
+  } = useCrudScreenLogic<SubCategory, SubCategoryFormInputs, UpdateSubCategoryFormInputs>({
+    entityName: 'Subcategoría',
+    queryKey: ['subcategories', queryParams],
+    deleteMutationFn: removeSubcategory,
+  });
 
   const handleRefresh = useCallback(() => {
     refetchList();
@@ -87,35 +97,6 @@ const SubcategoriesScreen: React.FC = () => {
     }, [refetchList])
   );
 
-  const handleItemPress = (item: SubCategory) => {
-    setSelectedSubcategory(item);
-    setDetailModalVisible(true);
-  };
-
-  const handleOpenCreateModal = () => {
-    setSelectedSubcategory(null);
-    setIsEditing(false);
-    setFormModalVisible(true);
-  };
-
-  const handleOpenEditModal = (item: SubCategory) => {
-    setSelectedSubcategory(item);
-    setIsEditing(true);
-    setDetailModalVisible(false);
-    setFormModalVisible(true);
-  };
-
-  const handleCloseDetailModal = () => {
-    setDetailModalVisible(false);
-    setSelectedSubcategory(null);
-  };
-
-  const handleCloseFormModal = () => {
-    setFormModalVisible(false);
-    setSelectedSubcategory(null);
-    setIsEditing(false);
-  };
-
   const handleFormSubmit = async (
     formData: SubCategoryFormInputs | UpdateSubCategoryFormInputs,
     photoId: string | null | undefined
@@ -126,31 +107,22 @@ const SubcategoriesScreen: React.FC = () => {
       ...(photoId !== undefined && { photoId }),
     };
 
-    if (finalData.photoId === undefined && !isEditing) {
+    if (finalData.photoId === undefined && !editingItem) {
         delete (finalData as any).photoId;
     }
 
     try {
-      if (isEditing && selectedSubcategory) {
+      if (editingItem) {
         await updateMutation.mutateAsync({
-          id: selectedSubcategory.id,
+          id: editingItem.id,
           data: finalData as UpdateSubCategoryFormInputs,
         });
       } else {
         await createMutation.mutateAsync(finalData as SubCategoryFormInputs);
       }
-      handleCloseFormModal();
+      handleCloseModals();
     } catch (error) {
       console.error("Error submitting form:", error);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await removeMutation.mutateAsync(id);
-      handleCloseDetailModal();
-    } catch (error) {
-      console.error("Error deleting subcategory:", error);
     }
   };
 
@@ -217,18 +189,16 @@ const SubcategoriesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* GenericList ahora maneja filtros y FAB */}
       <GenericList<SubCategory>
         items={subcategoriesData?.data ?? []}
         enableSort={true}
         enableSearch={true}
         searchPlaceholder="Buscar subcategorías..."
-        // Props de filtro
         filterValue={statusFilter}
         onFilterChange={setStatusFilter}
         filterOptions={filterOptions}
         renderConfig={listRenderConfig}
-        onItemPress={handleItemPress}
+        onItemPress={handleOpenDetailModal}
         onRefresh={handleRefresh}
         isRefreshing={isFetchingList && !isLoadingList}
         ListEmptyComponent={renderEmptyList}
@@ -236,47 +206,47 @@ const SubcategoriesScreen: React.FC = () => {
         contentContainerStyle={styles.listContentContainer}
         listStyle={styles.listStyle}
         renderItemActions={renderSubcategoryActions}
-        // Props para FAB integrado
         showFab={true}
         onFabPress={handleOpenCreateModal}
-        isModalOpen={detailModalVisible || formModalVisible}
+        isModalOpen={isDetailModalVisible || isFormModalVisible}
         showImagePlaceholder={true}
-        isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
+        isDrawerOpen={isDrawerOpen}
     />
 
-      {/* Portal para Modales */}
       <Portal>
-        {/* Modal de Detalles */}
         <GenericDetailModal<SubCategory>
-          visible={detailModalVisible}
-          onDismiss={handleCloseDetailModal}
-          item={selectedSubcategory}
+          visible={isDetailModalVisible}
+          onDismiss={handleCloseModals}
+          item={selectedItem}
           titleField="name"
           imageField="photo"
           descriptionField="description"
           statusConfig={listRenderConfig.statusConfig}
           fieldsToDisplay={detailFieldsToDisplay}
-          onEdit={handleOpenEditModal}
-          onDelete={handleDelete}
-          isDeleting={removeMutation.isPending}
+          onEdit={() => {
+              if (selectedItem) {
+                  handleOpenEditModal(selectedItem);
+              }
+          }}
+          onDelete={handleDeleteItem}
+          isDeleting={isDeleting}
         />
 
-        {/* Modal de Formulario */}
         <GenericFormModal<SubCategoryFormInputs | UpdateSubCategoryFormInputs, SubCategory>
-          visible={formModalVisible}
-          onDismiss={handleCloseFormModal}
+          visible={isFormModalVisible}
+          onDismiss={handleCloseModals}
           onSubmit={handleFormSubmit}
-          formSchema={isEditing ? updateSubCategoryDtoSchemaWithOptionalPhoto : createSubCategoryDtoSchema}
+          formSchema={editingItem ? updateSubCategoryDtoSchemaWithOptionalPhoto : createSubCategoryDtoSchema}
           formFields={formFields}
           imagePickerConfig={imagePickerConfig}
           initialValues={
-            isEditing && selectedSubcategory
+            editingItem
               ? {
-                  name: selectedSubcategory.name,
-                  description: selectedSubcategory.description ?? '',
-                  isActive: selectedSubcategory.isActive,
-                  categoryId: selectedSubcategory.categoryId,
-                  imageUri: selectedSubcategory.photo?.path ? getImageUrl(selectedSubcategory.photo.path) : null,
+                  name: editingItem.name,
+                  description: editingItem.description ?? '',
+                  isActive: editingItem.isActive,
+                  categoryId: editingItem.categoryId,
+                  imageUri: editingItem.photo?.path ? getImageUrl(editingItem.photo.path) : null,
                 }
               : {
                   name: '',
@@ -286,7 +256,7 @@ const SubcategoriesScreen: React.FC = () => {
                   imageUri: null,
                 }
           }
-          editingItem={selectedSubcategory}
+          editingItem={editingItem}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
           modalTitle={(editing) => editing ? 'Editar Subcategoría' : 'Crear Subcategoría'}
         />
@@ -301,7 +271,6 @@ const createStyles = (theme: AppTheme) =>
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-    // fab style eliminado
     emptyContainer: {
       flex: 1,
       justifyContent: 'center',
@@ -319,7 +288,6 @@ const createStyles = (theme: AppTheme) =>
     },
     listContentContainer: {
         paddingBottom: 80,
-        // paddingHorizontal eliminado para usar el ancho completo
    },
  });
 

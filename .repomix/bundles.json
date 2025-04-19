@@ -1,13 +1,22 @@
 {
   "bundles": {
-    "b": {
-      "name": "b",
-      "created": "2025-04-09T18:09:32.571Z",
-      "lastUsed": "2025-04-11T17:48:35.965Z",
+    "a-814": {
+      "name": "a",
+      "created": "2025-04-19T03:50:29.047Z",
+      "lastUsed": "2025-04-19T03:52:44.752Z",
       "tags": [],
       "files": [
-        ".cursor\\rules",
-        "src"
+        ".cursor",
+        "src",
+        ".env",
+        "app.json",
+        "App.tsx",
+        "babel.config.js",
+        "eas.json",
+        "index.ts",
+        "package-lock.json",
+        "package.json",
+        "tsconfig.json"
       ]
     }
   }

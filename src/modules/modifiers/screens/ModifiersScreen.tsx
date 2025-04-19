@@ -1,10 +1,10 @@
-import React, { useState, useLayoutEffect, useCallback, useMemo } from 'react';
+import React, { useLayoutEffect, useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { FAB, ActivityIndicator, Text, Portal, Button } from 'react-native-paper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { useDrawerStatus } from '@react-navigation/drawer'; // Importar hook
+import { useDrawerStatus } from '@react-navigation/drawer';
 
 import { modifierService } from '../services/modifierService';
 import { Modifier } from '../types/modifier.types';
@@ -12,6 +12,7 @@ import { useAppTheme } from '@/app/styles/theme';
 import { useSnackbarStore } from '@/app/store/snackbarStore';
 import { getApiErrorMessage } from '@/app/lib/errorMapping';
 import { debounce } from 'lodash';
+import { useCrudScreenLogic } from '@/app/hooks/useCrudScreenLogic';
 
 import ModifierFormModal from '@/modules/modifiers/components/ModifierFormModal';
 import GenericList, { RenderItemConfig, FilterOption } from '@/app/components/crud/GenericList';
@@ -37,16 +38,10 @@ const ModifiersScreen = () => {
   const route = useRoute<ModifiersScreenRouteProp>();
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
-  const drawerStatus = useDrawerStatus(); // Obtener estado del drawer
-  const isDrawerOpen = drawerStatus === 'open'; // Determinar si está abierto
+  const drawerStatus = useDrawerStatus();
+  const isDrawerOpen = drawerStatus === 'open';
 
   const { groupId, groupName } = route.params ?? {};
-
-  const [isFormModalVisible, setIsFormModalVisible] = useState(false);
-  const [selectedModifierForForm, setSelectedModifierForForm] = useState<Modifier | null>(null);
-
-  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
-  const [selectedModifierForDetail, setSelectedModifierForDetail] = useState<Modifier | null>(null);
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,69 +84,29 @@ const ModifiersScreen = () => {
     enabled: !!groupId,
   });
 
-  const deleteMutation = useMutation<void, Error, string>({
-    mutationFn: (id: string) => modifierService.remove(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      showSnackbar({ message: 'Modificador eliminado correctamente', type: 'success' });
-      handleCloseDetails(); // Cerrar modal de detalles si está abierto
-    },
-    onError: (err) => {
-      const message = getApiErrorMessage(err);
-      showSnackbar({ message, type: 'error' });
-      console.error("Error deleting modifier:", err);
-    },
+  const {
+    isFormModalVisible,
+    isDetailModalVisible,
+    editingItem,
+    selectedItem,
+    isDeleting,
+    handleOpenCreateModal,
+    handleOpenEditModal,
+    handleOpenDetailModal,
+    handleCloseModals,
+    handleDeleteItem,
+  } = useCrudScreenLogic<Modifier, any, any>({
+    entityName: 'Modificador',
+    queryKey: QUERY_KEY,
+    deleteMutationFn: modifierService.remove,
   });
 
-
-  const handleAdd = () => {
-    setSelectedModifierForForm(null);
-    setIsFormModalVisible(true);
-  };
-
-  const openEditModal = (modifier: Modifier) => {
-    setSelectedModifierForForm(modifier);
-    setIsFormModalVisible(true);
-  };
-
-  const handleFormModalClose = () => {
-    setIsFormModalVisible(false);
-    setSelectedModifierForForm(null);
-  };
-
   const handleFormModalSave = () => {
-    handleFormModalClose();
-  };
-
-  const handleShowDetails = (modifier: Modifier) => {
-    setSelectedModifierForDetail(modifier);
-    setIsDetailModalVisible(true);
-  };
-
-  const handleCloseDetails = () => {
-    setIsDetailModalVisible(false);
-    setSelectedModifierForDetail(null);
+    handleCloseModals();
   };
 
   const handleEditFromDetails = (modifier: Modifier) => {
-    handleCloseDetails();
-    setTimeout(() => openEditModal(modifier), 100);
-  };
-
-  const executeDelete = (id: string) => {
-    handleCloseDetails();
-    deleteMutation.mutate(id);
-  };
-
-  const handleDeleteRequest = (id: string) => {
-    Alert.alert(
-      "Confirmar Eliminación",
-      `¿Estás seguro de que deseas eliminar este modificador? (${selectedModifierForDetail?.name})`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Eliminar", style: "destructive", onPress: () => executeDelete(id) },
-      ]
-    );
+    handleOpenEditModal(modifier);
   };
 
   const handleFilterChange = (value: StatusFilter) => {
@@ -232,7 +187,7 @@ const ModifiersScreen = () => {
        <GenericList<Modifier>
          items={modifiers}
          renderConfig={listRenderConfig}
-         onItemPress={handleShowDetails}
+         onItemPress={handleOpenDetailModal}
          onRefresh={refetch}
          isRefreshing={isRefetching}
          ListEmptyComponent={ListEmptyComponent}
@@ -245,34 +200,34 @@ const ModifiersScreen = () => {
          onFilterChange={handleFilterChange}
          filterOptions={filterOptions}
          showFab={true}
-         onFabPress={handleAdd}
+         onFabPress={handleOpenCreateModal}
          fabLabel="Añadir Modificador"
-         fabVisible={!isFormModalVisible && !isDetailModalVisible} // fabVisible ya existe, no lo tocamos
+         isModalOpen={isFormModalVisible || isDetailModalVisible}
          showImagePlaceholder={false}
-         isDrawerOpen={isDrawerOpen} // Pasar estado del drawer
+         isDrawerOpen={isDrawerOpen}
        />
-
-      <Portal>
-          <ModifierFormModal
-            visible={isFormModalVisible}
-            onDismiss={handleFormModalClose}
-            onSaveSuccess={handleFormModalSave}
-            initialData={selectedModifierForForm}
-            groupId={groupId}
-          />
-
-          <GenericDetailModal<Modifier>
-            visible={isDetailModalVisible}
-            onDismiss={handleCloseDetails}
-            item={selectedModifierForDetail}
-            titleField="name"
-            descriptionField="description"
-            statusConfig={listRenderConfig.statusConfig}
-            fieldsToDisplay={detailFields}
-            onEdit={handleEditFromDetails}
-            onDelete={handleDeleteRequest}
-            isDeleting={deleteMutation.isPending}
-          />
+ 
+       <Portal>
+           <ModifierFormModal
+             visible={isFormModalVisible}
+             onDismiss={handleCloseModals}
+             onSaveSuccess={handleFormModalSave}
+             initialData={editingItem}
+             groupId={groupId}
+           />
+ 
+           <GenericDetailModal<Modifier>
+             visible={isDetailModalVisible}
+             onDismiss={handleCloseModals}
+             item={selectedItem}
+             titleField="name"
+             descriptionField="description"
+             statusConfig={listRenderConfig.statusConfig}
+             fieldsToDisplay={detailFields}
+             onEdit={handleEditFromDetails}
+             onDelete={handleDeleteItem}
+             isDeleting={isDeleting}
+           />
       </Portal>
     </SafeAreaView>
   );

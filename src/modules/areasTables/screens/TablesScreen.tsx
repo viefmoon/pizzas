@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import React, { useMemo, useCallback } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDrawerStatus } from '@react-navigation/drawer';
@@ -15,6 +15,7 @@ import {
 import { Table, CreateTableDto, UpdateTableDto } from '../types/table.types';
 import { TablesListScreenProps } from '../navigation/types';
 import { useAppTheme, AppTheme } from '../../../app/styles/theme';
+import { useCrudScreenLogic } from '../../../app/hooks/useCrudScreenLogic';
 
 const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) => {
   const theme = useAppTheme();
@@ -23,12 +24,8 @@ const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) =>
   const drawerStatus = useDrawerStatus();
   const isDrawerOpen = drawerStatus === 'open';
 
-  const [formModalVisible, setFormModalVisible] = useState(false);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [filterStatus, setFilterStatus] = React.useState<string>('all');
 
   const {
     data: tablesData = [],
@@ -40,31 +37,26 @@ const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) =>
 
   const createTableMutation = useCreateTable();
   const updateTableMutation = useUpdateTable();
-  const deleteTableMutation = useDeleteTable();
+  const { mutateAsync: deleteTable } = useDeleteTable();
+
+  const {
+    isFormModalVisible,
+    isDetailModalVisible,
+    editingItem,
+    selectedItem,
+    isDeleting,
+    handleOpenCreateModal,
+    handleOpenEditModal,
+    handleOpenDetailModal,
+    handleCloseModals,
+    handleDeleteItem,
+  } = useCrudScreenLogic<Table, CreateTableDto, UpdateTableDto>({
+    entityName: 'Mesa',
+    queryKey: ['tables', areaId],
+    deleteMutationFn: deleteTable,
+  });
 
   const isSubmitting = createTableMutation.isPending || updateTableMutation.isPending;
-  const isDeleting = deleteTableMutation.isPending;
-
-  const handleOpenFormModal = (table: Table | null = null) => {
-    setSelectedTable(table);
-    setIsEditing(!!table);
-    setFormModalVisible(true);
-  };
-
-  const handleCloseFormModal = () => {
-    setFormModalVisible(false);
-    setSelectedTable(null);
-  };
-
-  const handleOpenDetailModal = (table: Table) => {
-    setSelectedTable(table);
-    setDetailModalVisible(true);
-  };
-
-  const handleCloseDetailModal = () => {
-    setDetailModalVisible(false);
-    setSelectedTable(null);
-  };
 
   const handleFormSubmit = async (
     data: CreateTableDto | UpdateTableDto,
@@ -73,36 +65,15 @@ const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) =>
     try {
       const dataWithAreaId = { ...data, areaId: areaId };
 
-      if (isEditing && selectedTable) {
-        await updateTableMutation.mutateAsync({ id: selectedTable.id, data: dataWithAreaId });
+      if (editingItem) {
+        await updateTableMutation.mutateAsync({ id: editingItem.id, data: dataWithAreaId as UpdateTableDto });
       } else {
         await createTableMutation.mutateAsync(dataWithAreaId as CreateTableDto);
       }
-      handleCloseFormModal();
+      handleCloseModals();
     } catch (error) {
-      console.error('Submit failed:', error); // Mantener este log
+      console.error('Submit failed:', error);
     }
-  };
-
-  const handleDeleteTable = (id: string) => {
-    Alert.alert(
-      'Confirmar Eliminación',
-      '¿Estás seguro de que quieres eliminar esta mesa? Esta acción no se puede deshacer.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteTableMutation.mutateAsync(id);
-              handleCloseDetailModal();
-            } catch (error) {
-            }
-          },
-        },
-      ]
-    );
   };
 
 
@@ -207,33 +178,34 @@ const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) =>
         filterValue={filterStatus}
         onFilterChange={handleFilterChange}
         showFab={true}
-        onFabPress={() => handleOpenFormModal()}
-        isModalOpen={formModalVisible || detailModalVisible}
+        onFabPress={handleOpenCreateModal}
+        isModalOpen={isFormModalVisible || isDetailModalVisible}
         showImagePlaceholder={false}
         isDrawerOpen={isDrawerOpen}
       />
 
       <TableFormModal
-        visible={formModalVisible}
-        onDismiss={handleCloseFormModal}
+        visible={isFormModalVisible}
+        onDismiss={handleCloseModals}
         onSubmit={handleFormSubmit}
-        editingItem={isEditing ? selectedTable : null}
+        editingItem={editingItem}
         isSubmitting={isSubmitting}
         defaultAreaId={areaId}
       />
 
       <GenericDetailModal<Table>
-          visible={detailModalVisible}
-          onDismiss={handleCloseDetailModal}
-          item={selectedTable}
+          visible={isDetailModalVisible}
+          onDismiss={handleCloseModals}
+          item={selectedItem}
           titleField="name"
           statusConfig={tableDetailStatusConfig}
           fieldsToDisplay={tableDetailFields}
           onEdit={() => {
-              handleCloseDetailModal();
-              handleOpenFormModal(selectedTable);
+              if (selectedItem) {
+                  handleOpenEditModal(selectedItem);
+              }
           }}
-          onDelete={handleDeleteTable}
+          onDelete={handleDeleteItem}
           isDeleting={isDeleting}
       />
     </SafeAreaView>
