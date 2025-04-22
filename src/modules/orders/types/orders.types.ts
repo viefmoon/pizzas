@@ -18,7 +18,7 @@ export interface ModifierGroup {
   allowMultipleSelections?: boolean;
   isRequired?: boolean;
   isActive: boolean;
-  modifiers: Modifier[];
+  productModifiers: Modifier[]; // Cambiado de 'modifiers' a 'productModifiers'
 }
 
 /** Representa una variante de un producto (ej. Tamaño Pequeño, Mediano) */

@@ -8,14 +8,15 @@ import {
   RadioButton,
   Checkbox,
   Divider,
+  Appbar, // Importar Appbar
   Title,
   TouchableRipple,
   IconButton,
-  TextInput,
 } from "react-native-paper";
 import { Image } from "expo-image";
 import { useForm, Controller, FieldValues } from "react-hook-form";
 import { useAppTheme } from "@/app/styles/theme";
+import SpeechRecognitionInput from "@/app/components/common/SpeechRecognitionInput"; // Importar SpeechRecognitionInput
 import {
   Product,
   ProductVariant,
@@ -183,15 +184,17 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
         onDismiss={onDismiss}
         contentContainerStyle={styles.modalContent}
       >
-        <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            onPress={onDismiss}
-            style={styles.backButton}
-            size={24}
+        {/* Encabezado Refactorizado con Appbar */}
+        <Appbar.Header style={styles.appBar} elevated>
+          <Appbar.BackAction onPress={onDismiss} color={theme.colors.onSurface} />
+          <Appbar.Content
+            title={product?.name || "Producto"}
+            titleStyle={styles.appBarTitle}
+            style={styles.appBarContent}
           />
-          <Title style={styles.title}>{product?.name || "Producto"}</Title>
-        </View>
+          {/* Espaciador si no hay acción a la derecha */}
+          <View style={styles.appBarSpacer} />
+        </Appbar.Header>
 
         <ScrollView style={styles.scrollView}>
           {product.hasVariants &&
@@ -214,7 +217,8 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
                           position="leading"
                           style={styles.radioItem}
                         />
-                        <Text style={styles.modifierPrice}>
+                        {/* Aplicar color de precio consistente */}
+                        <Text style={styles.variantPrice}>
                           ${Number(variant.price).toFixed(2)}
                         </Text>
                       </View>
@@ -253,8 +257,8 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
 
                     {group.allowMultipleSelections ? (
                       <>
-                        {Array.isArray(group.modifiers) &&
-                          group.modifiers.map((modifier: Modifier) => {
+                        {Array.isArray(group.productModifiers) &&
+                          group.productModifiers.map((modifier: Modifier) => {
                             const groupModifiers =
                               selectedModifiersByGroup[group.id] || [];
                             const isSelected = groupModifiers.some(
@@ -283,16 +287,18 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
                                         }
                                       />
                                     </View>
+                                    {/* optionContent ahora solo contiene el título */}
                                     <View style={styles.optionContent}>
                                       <Text style={styles.modifierTitle}>
                                         {modifier.name}
                                       </Text>
-                                      {Number(modifier.price) > 0 && (
-                                        <Text style={styles.modifierPrice}>
-                                          +${Number(modifier.price).toFixed(2)}
-                                        </Text>
-                                      )}
                                     </View>
+                                    {/* Mover el precio fuera de optionContent y aplicar marginLeft: 'auto' */}
+                                    {Number(modifier.price) > 0 && (
+                                      <Text style={styles.modifierPrice}>
+                                        +${Number(modifier.price).toFixed(2)}
+                                      </Text>
+                                    )}
                                   </View>
                                 </TouchableRipple>
                                 <Divider style={styles.optionDivider} />
@@ -303,7 +309,7 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
                     ) : (
                       <RadioButton.Group
                         onValueChange={(value) => {
-                          const modifier = group.modifiers.find(
+                          const modifier = group.productModifiers.find(
                             (m: Modifier) => m.id === value
                           );
                           if (modifier) {
@@ -314,19 +320,20 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
                           selectedModifiersByGroup[group.id]?.[0]?.id || ""
                         }
                       >
-                        {Array.isArray(group.modifiers) &&
-                          group.modifiers.map((modifier: Modifier) => (
+                        {Array.isArray(group.productModifiers) &&
+                          group.productModifiers.map((modifier: Modifier) => (
                             <View
                               key={modifier.id}
                               style={styles.optionContainer}
                             >
+                              {/* Mover el precio fuera del RadioButton.Item y aplicar marginLeft: 'auto' */}
                               <View style={styles.optionRow}>
                                 <RadioButton.Item
                                   label={modifier.name}
                                   labelStyle={styles.modifierTitle}
                                   value={modifier.id}
                                   position="leading"
-                                  style={styles.radioItem}
+                                  style={styles.radioItem} // radioItem debe tener flex: 1 para empujar el precio
                                 />
                                 {Number(modifier.price) > 0 && (
                                   <Text style={styles.modifierPrice}>
@@ -344,48 +351,52 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
               </View>
             )}
 
+          {/* Sección Cantidad - Estilo OrderCartDetail */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Cantidad</Text>
             <View style={styles.quantityContainer}>
-              <Button
-                mode="outlined"
+              <IconButton
+                icon="minus-circle-outline"
+                size={32} // Tamaño similar a OrderCartDetail
                 onPress={decreaseQuantity}
-                style={styles.quantityButton}
-                labelStyle={styles.quantityButtonLabel}
-              >
-                -
-              </Button>
+                style={styles.quantityIconButton}
+                disabled={quantity <= 1} // Deshabilitar si la cantidad es 1
+              />
               <Text style={styles.quantityText}>{quantity}</Text>
-              <Button
-                mode="outlined"
+              <IconButton
+                icon="plus-circle-outline"
+                size={32} // Tamaño similar a OrderCartDetail
                 onPress={increaseQuantity}
-                style={styles.quantityButton}
-                labelStyle={styles.quantityButtonLabel}
-              >
-                +
-              </Button>
+                style={styles.quantityIconButton}
+              />
             </View>
           </View>
 
+          {/* Sección Notas de Preparación - Integrada como en OrderCartDetail */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notas de Preparación</Text>
+            {/* Eliminar título de sección separado */}
+            {/* <View style={styles.sectionTitleContainer}>...</View> */}
             <Controller
               control={control}
               name="preparationNotes"
               render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  mode="outlined"
+                <SpeechRecognitionInput
+                  // Usar el label del propio componente
+                  label="Notas de Preparación (Opcional)"
                   value={value}
-                  onBlur={onBlur}
                   onChangeText={onChange}
-                  multiline
-                  numberOfLines={3}
+                  // onBlur={onBlur}
+                  // multiline
+                  // numberOfLines={3}
                   style={styles.preparationInput}
+                  speechLang="es-MX"
+                  // placeholder="Ej. Sin cebolla, extra picante..." // Eliminar placeholder redundante
                 />
               )}
             />
           </View>
 
+          {/* Sección Resumen - Estilo OrderCartDetail */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Resumen</Text>
             <View style={styles.summaryRow}>
@@ -402,22 +413,26 @@ const ProductCustomizationModal: React.FC<ProductCustomizationModalProps> = ({
               <Text>Cantidad:</Text>
               <Text>{quantity}</Text>
             </View>
-            <Divider style={styles.divider} />
-            <View style={styles.summaryRow}>
-              <Text style={styles.totalText}>Total:</Text>
-              <Text style={styles.totalPrice}>${totalPrice.toFixed(2)}</Text>
+            {/* Divider opcional si se quiere separar el total */}
+            {/* <Divider style={styles.divider} /> */}
+            <View style={[styles.summaryRow, styles.totalRow]}>
+              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={styles.totalValue}>${totalPrice.toFixed(2)}</Text>
             </View>
           </View>
         </ScrollView>
 
-        <View style={styles.buttonsContainer}>
+        {/* Footer Button - Estilo OrderCartDetail */}
+        <View style={styles.footer}>
           <Button
             mode="contained"
             onPress={handleAddToCart}
-            style={styles.addButton}
+            style={styles.confirmButton} // Usar estilo de OrderCartDetail
             icon="cart-plus"
+            // Podrías agregar lógica de disabled si es necesario
+            // disabled={!isValidSelection()}
           >
-            Agregar al Carrito
+            Agregar al Carrito {/* Texto simplificado */}
           </Button>
         </View>
       </Modal>
@@ -436,19 +451,27 @@ const createStyles = (theme: AppTheme) =>
       top: 0,
       left: 0,
     },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: theme.spacing.m,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.outlineVariant,
-      position: "relative",
+    // Estilos del Appbar
+    appBar: {
+      backgroundColor: theme.colors.elevation.level2, // Coincidir con OrderHeader
     },
-    backButton: {
-      position: "absolute",
-      left: 8,
-      zIndex: 1,
+    appBarTitle: { // Estilo para el TÍTULO dentro de Appbar.Content
+      ...theme.fonts.titleMedium, // Fuente consistente con OrderHeader
+      color: theme.colors.onSurface,
+      fontWeight: 'bold', // Añadir negritas al título
+      // textAlign: 'center', // El centrado lo maneja appBarContent
+      // flex: 1, // Quitar flex para permitir centrado vertical por appBarContent
     },
+    appBarContent: { // Contenedor del título
+      flex: 1, // Ocupar espacio disponible para centrar
+      justifyContent: 'center', // Centrar verticalmente el contenido (título)
+      alignItems: 'center', // Centrar horizontalmente el contenido (título)
+      // marginLeft: -48, // Compensar el botón de back si es necesario (ajustar)
+    },
+    appBarSpacer: { // Espaciador para equilibrar el botón de retroceso
+      width: 48, // Ancho estándar de IconButton
+    },
+    // --- Fin estilos Appbar ---
     modifierGroup: {
       marginBottom: theme.spacing.s,
     },
@@ -483,14 +506,14 @@ const createStyles = (theme: AppTheme) =>
       marginBottom: theme.spacing.xs,
       fontStyle: "italic",
     },
-    title: {
-      flex: 1,
-      fontSize: 22,
-      textAlign: "center",
-      fontWeight: "bold",
-      color: theme.colors.primary,
-      marginHorizontal: 40,
-    },
+    // title: { // Estilo obsoleto, reemplazado por appBarTitle
+    //   flex: 1,
+    //   fontSize: 22,
+    //   textAlign: "center",
+    //   fontWeight: "bold",
+    //   color: theme.colors.primary,
+    //   marginHorizontal: 40,
+    // },
     productImage: {
       height: 150,
       borderRadius: theme.roundness,
@@ -530,12 +553,12 @@ const createStyles = (theme: AppTheme) =>
       paddingHorizontal: 8,
       paddingVertical: 8,
     },
-    optionContent: {
-      flex: 1,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingRight: 8,
+    optionContent: { // Contenedor solo para el título del modificador (Checkbox)
+      flex: 1, // Ocupa el espacio restante
+      justifyContent: "center", // Centra verticalmente el texto si es necesario
+      // Quitar justifyContent: 'space-between'
+      // alignItems: "center", // Ya está en optionRow
+      // paddingRight: 8, // No necesario si el precio está fuera
     },
     checkbox: {
       marginRight: 8,
@@ -551,59 +574,89 @@ const createStyles = (theme: AppTheme) =>
     modifierTitle: {
       fontSize: 16,
       fontWeight: "500",
+      color: theme.colors.onSurface, // Color estándar para texto
     },
-    modifierPrice: {
+    variantPrice: { // Estilo específico para precio de variante
       fontSize: 14,
       fontWeight: "bold",
-      color: theme.colors.primary,
+      color: theme.colors.onSurfaceVariant, // Color secundario consistente
       marginLeft: "auto",
       marginRight: 8,
+    },
+    modifierPrice: { // Estilo para precio de modificador (Checkbox y Radio)
+      fontSize: 14,
+      fontWeight: "bold",
+      color: theme.colors.onSurfaceVariant, // Color secundario consistente
+      marginLeft: 'auto', // Empujar a la derecha
+      paddingHorizontal: 8, // Añadir padding similar a variantPrice
     },
     quantityContainer: {
       flexDirection: "row",
       justifyContent: "center",
-      alignItems: "center",
+      alignItems: "center", // Mantener una sola instancia
+      // alignItems: "center", // Eliminar duplicado
+      marginVertical: theme.spacing.s, // Añadir espacio vertical
     },
-    quantityButton: {
-      margin: 0,
+    quantityIconButton: { // Estilo para IconButton de cantidad
+      margin: 0, // Quitar margen por defecto
+      // backgroundColor: theme.colors.surfaceVariant, // Fondo sutil opcional - Eliminado para mayor consistencia si no se usa en OrderCartDetail
+      borderRadius: 18, // Hacerlo circular
     },
-    quantityButtonLabel: {
-      fontSize: 18,
+    quantityText: { // Estilo consistente con OrderCartDetail
+      fontSize: 18, // Tamaño de fuente
+      fontWeight: 'bold',
+      minWidth: 40, // Ancho mínimo
+      textAlign: 'center',
+      marginHorizontal: theme.spacing.s, // Margen horizontal
+      color: theme.colors.onSurface,
     },
-    quantityText: {
-      fontSize: 18,
-      fontWeight: "bold",
-      paddingHorizontal: theme.spacing.m,
-    },
+    // Estilos de Resumen - Consistentes con OrderCartDetail
     summaryRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.xs, // Añadir padding horizontal
     },
-    divider: {
-      marginVertical: theme.spacing.s,
+    totalRow: { // Estilo adicional para la fila del total
+      marginTop: theme.spacing.s,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.outlineVariant,
+      paddingTop: theme.spacing.s,
     },
-    totalText: {
+    totalLabel: { // Estilo consistente con OrderCartDetail
       fontWeight: "bold",
-      fontSize: 16,
+      fontSize: 18,
+      color: theme.colors.onSurface,
     },
-    totalPrice: {
+    totalValue: { // Estilo consistente con OrderCartDetail para el TOTAL FINAL
       fontWeight: "bold",
-      fontSize: 16,
-      color: theme.colors.primary,
+      fontSize: 18,
+      color: theme.colors.primary, // Color primario para el total final
     },
-    buttonsContainer: {
+    // Estilos de Footer y Botón - Consistentes con OrderCartDetail
+    footer: {
       padding: theme.spacing.m,
       borderTopWidth: 1,
       borderTopColor: theme.colors.outlineVariant,
+      backgroundColor: theme.colors.surface, // Fondo consistente
     },
-    addButton: {
-      width: "100%",
-      paddingVertical: 8,
+    confirmButton: { // Reemplaza addButton
+      paddingVertical: theme.spacing.s, // Padding consistente
+      // width: "100%", // Ya es el comportamiento por defecto del botón en un View
     },
+    // Estilo para SpeechRecognitionInput (una sola línea)
     preparationInput: {
-      backgroundColor: theme.colors.surfaceVariant,
+      // backgroundColor: theme.colors.surfaceVariant, // Opcional: mantener fondo
       marginVertical: theme.spacing.xs,
+      textAlignVertical: 'center', // Intentar centrar verticalmente el placeholder/texto
+      // minHeight: 80, // Eliminar altura mínima, ya no es multilínea
+    },
+    // Eliminar estilos no usados
+    // sectionTitleContainer: { ... },
+    // sectionTitleOptional: { ... },
+    divider: { // Estilo de Divider si se usa
+      marginVertical: theme.spacing.s,
+      backgroundColor: theme.colors.outlineVariant,
     },
   });
 

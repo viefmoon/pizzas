@@ -17,7 +17,7 @@ import { OrderType } from "../types/orders.types";
 import { useGetAreas } from "@/modules/areasTables/services/areaService";
 import OrderHeader from "./OrderHeader";
 import AnimatedLabelSelector from "@/app/components/common/AnimatedLabelSelector";
-import AnimatedLabelInput from "@/app/components/common/AnimatedLabelInput";
+import SpeechRecognitionInput from "@/app/components/common/SpeechRecognitionInput";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import ConfirmationModal from "@/app/components/common/ConfirmationModal";
 import { format } from 'date-fns';
@@ -28,7 +28,15 @@ import { useCart } from "../context/CartContext";
 
 interface OrderCartDetailProps {
   visible: boolean;
-  onConfirmOrder: (details: { orderType: OrderType; tableId?: string; scheduledAt?: Date; phoneNumber?: string; notes?: string }) => void;
+  onConfirmOrder: (details: {
+    orderType: OrderType;
+    tableId?: string;
+    scheduledAt?: Date;
+    customerName?: string; // Optional now
+    phoneNumber?: string;
+    deliveryAddress?: string;
+    notes?: string;
+  }) => void;
   onClose?: () => void;
 }
 
@@ -41,6 +49,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { items, removeItem, updateItemQuantity, subtotal, total, isCartVisible } = useCart();
 
+
   const [orderType, setOrderType] = useState<OrderType>(OrderType.DINE_IN);
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
@@ -49,8 +58,12 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
   const [areaError, setAreaError] = useState<string | null>(null);
   const [tableError, setTableError] = useState<string | null>(null);
   const [scheduledTime, setScheduledTime] = useState<Date | null>(null);
+  const [customerName, setCustomerName] = useState<string>('');
+  const [customerNameError, setCustomerNameError] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState<string>('');
+  const [addressError, setAddressError] = useState<string | null>(null);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [orderNotes, setOrderNotes] = useState<string>('');
   const [isTimeAlertVisible, setTimeAlertVisible] = useState(false);
@@ -67,19 +80,41 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
   } = useGetTablesByArea(selectedAreaId);
 
   useEffect(() => {
+    // Reset fields based on order type
+    setAreaError(null);
+    setTableError(null);
+    setCustomerNameError(null);
+    setPhoneError(null);
+    setAddressError(null);
+
     if (orderType !== OrderType.DINE_IN) {
-      setAreaError(null);
-      setTableError(null);
+      setSelectedAreaId(null);
+      setSelectedTableId(null);
     }
-    if (orderType !== OrderType.DELIVERY && orderType !== OrderType.TAKE_AWAY) {
-        setPhoneError(null);
+    if (orderType !== OrderType.TAKE_AWAY) {
+       // If switching away from take away, clear name if needed
+       // setCustomerName(''); // Uncomment if name should clear
     }
+     if (orderType !== OrderType.DELIVERY) {
+        setDeliveryAddress(''); // Clear address if not delivery
+     }
+     if (orderType === OrderType.DINE_IN) {
+        setCustomerName('');
+        setPhoneNumber('');
+        setDeliveryAddress('');
+     }
+     if (orderType === OrderType.TAKE_AWAY) {
+        setDeliveryAddress('');
+     }
+
   }, [orderType]);
 
   const handleConfirm = () => {
     setAreaError(null);
     setTableError(null);
+    setCustomerNameError(null);
     setPhoneError(null);
+    setAddressError(null);
 
     if (items.length === 0) {
       return;
@@ -96,17 +131,22 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
         setTableError("Debe seleccionar una mesa");
         isValid = false;
       }
-    }
-
-    
-    if (orderType === OrderType.DELIVERY) {
-      if (!phoneNumber || phoneNumber.trim() === '') {
-        setPhoneError("El teléfono es obligatorio para Domicilio");
-        isValid = false;
-      }
-      
     } else if (orderType === OrderType.TAKE_AWAY) {
-        
+        if (!customerName || customerName.trim() === '') {
+            setCustomerNameError("El nombre del cliente es obligatorio");
+            isValid = false;
+        }
+        // Phone is optional for take away
+    } else if (orderType === OrderType.DELIVERY) {
+        // Customer name not required for delivery as per new spec
+        if (!deliveryAddress || deliveryAddress.trim() === '') {
+            setAddressError("La dirección es obligatoria para Domicilio");
+            isValid = false;
+        }
+        if (!phoneNumber || phoneNumber.trim() === '') {
+            setPhoneError("El teléfono es obligatorio para Domicilio");
+            isValid = false;
+        }
     }
 
 
@@ -120,14 +160,16 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
       orderType,
       tableId: orderType === OrderType.DINE_IN ? selectedTableId ?? undefined : undefined,
       scheduledAt: scheduledTime ?? undefined,
-      phoneNumber: (orderType === OrderType.TAKE_AWAY || orderType === OrderType.DELIVERY) ? phoneNumber : undefined, 
-      notes: orderNotes || undefined, 
+      customerName: orderType === OrderType.TAKE_AWAY ? customerName : undefined, // Only for TAKE_AWAY
+      phoneNumber: (orderType === OrderType.TAKE_AWAY || orderType === OrderType.DELIVERY) ? phoneNumber : undefined,
+      deliveryAddress: orderType === OrderType.DELIVERY ? deliveryAddress : undefined,
+      notes: orderNotes || undefined,
     });
   };
 
   
   const selectedAreaName = useMemo(
-    () => areasData?.find((a: any) => a.id === selectedAreaId)?.name, 
+    () => areasData?.find((a: any) => a.id === selectedAreaId)?.name,
     [areasData, selectedAreaId]
   );
   const selectedTableName = useMemo(
@@ -162,6 +204,275 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
     }
   }, [scheduledTime]);
 
+  // Helper function to render fields in order
+  const renderFields = () => {
+    switch (orderType) {
+      case OrderType.DINE_IN:
+        return (
+          <>
+            {/* 1. Área */}
+            <View style={styles.dineInSelectorsRow}>
+              <View style={styles.dineInSelectorContainer}>
+                <Menu
+                  visible={areaMenuVisible}
+                  onDismiss={() => setAreaMenuVisible(false)}
+                  anchor={
+                    <AnimatedLabelSelector
+                      label="Área *"
+                      value={selectedAreaName}
+                      onPress={() => setAreaMenuVisible(true)}
+                      isLoading={isLoadingAreas}
+                      error={!!areaError || !!errorAreas}
+                      disabled={isLoadingAreas}
+                    />
+                  }
+                >
+                  {areasData?.map((area: any) => (
+                    <Menu.Item
+                      key={area.id}
+                      onPress={() => {
+                        setSelectedAreaId(area.id);
+                        setSelectedTableId(null);
+                        setAreaMenuVisible(false);
+                        setAreaError(null);
+                      }}
+                      title={area.name}
+                    />
+                  ))}
+                  {errorAreas && (
+                    <Menu.Item title="Error al cargar áreas" disabled />
+                  )}
+                </Menu>
+                {areaError && !errorAreas && (
+                  <HelperText type="error" visible={true} style={styles.helperTextFix}>
+                    {areaError}
+                  </HelperText>
+                )}
+                {errorAreas && (
+                  <HelperText type="error" visible={true} style={styles.helperTextFix}>
+                    Error al cargar áreas
+                  </HelperText>
+                )}
+              </View>
+
+              {/* 2. Mesa */}
+              <View style={styles.dineInSelectorContainer}>
+                <Menu
+                  visible={tableMenuVisible}
+                  onDismiss={() => setTableMenuVisible(false)}
+                  anchor={
+                    <AnimatedLabelSelector
+                      label="Mesa *"
+                      value={selectedTableName}
+                      onPress={() => setTableMenuVisible(true)}
+                      isLoading={isLoadingTables}
+                      error={!!tableError || !!errorTables}
+                      disabled={!selectedAreaId || isLoadingTables || isLoadingAreas}
+                    />
+                  }
+                >
+                  {tablesData?.map((table: Table) => (
+                    <Menu.Item
+                      key={table.id}
+                      onPress={() => {
+                        setSelectedTableId(table.id);
+                        setTableMenuVisible(false);
+                        setTableError(null);
+                      }}
+                      title={table.name}
+                    />
+                  ))}
+                  {selectedAreaId && tablesData?.length === 0 && !isLoadingTables && !errorTables && (
+                    <Menu.Item title="No hay mesas" disabled />
+                  )}
+                  {errorTables && (
+                    <Menu.Item title="Error al cargar mesas" disabled />
+                  )}
+                </Menu>
+                {tableError && !errorTables && (
+                  <HelperText type="error" visible={true} style={styles.helperTextFix}>
+                    {tableError}
+                  </HelperText>
+                )}
+                {errorTables && (
+                  <HelperText type="error" visible={true} style={styles.helperTextFix}>
+                    Error al cargar mesas
+                  </HelperText>
+                )}
+              </View>
+            </View>
+
+            {/* 3. Notas */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <SpeechRecognitionInput
+                label="Notas de la Orden (Opcional)"
+                value={orderNotes}
+                onChangeText={setOrderNotes}
+                multiline
+                speechLang="es-MX"
+              />
+            </View>
+
+            {/* 4. Programar Hora */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <AnimatedLabelSelector
+                label="Programar Hora (Opcional)"
+                value={formattedScheduledTime}
+                onPress={showTimePicker}
+                onClear={() => setScheduledTime(null)}
+              />
+            </View>
+          </>
+        );
+      case OrderType.TAKE_AWAY:
+        return (
+          <>
+            {/* 1. Nombre Cliente */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <SpeechRecognitionInput
+                label="Nombre del Cliente *"
+                value={customerName}
+                onChangeText={(text) => {
+                  setCustomerName(text);
+                  if (customerNameError) setCustomerNameError(null);
+                }}
+                error={!!customerNameError}
+                speechLang="es-MX"
+              />
+              {customerNameError && (
+                <HelperText type="error" visible={true} style={styles.helperTextFix}>
+                  {customerNameError}
+                </HelperText>
+              )}
+              {!customerNameError && (
+                 <HelperText type="info" visible={true} style={styles.helperTextFix}>
+                     Obligatorio para Llevar
+                 </HelperText>
+              )}
+            </View>
+
+            {/* 2. Teléfono */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <SpeechRecognitionInput
+                label="Teléfono (Opcional)"
+                value={phoneNumber}
+                onChangeText={(text) => {
+                  setPhoneNumber(text);
+                  if (phoneError) setPhoneError(null);
+                }}
+                keyboardType="phone-pad"
+                error={!!phoneError} // Aunque opcional, puede tener errores de formato si se ingresa
+                speechLang="es-MX"
+              />
+              {phoneError && (
+                <HelperText type="error" visible={true} style={styles.helperTextFix}>
+                  {phoneError}
+                </HelperText>
+              )}
+            </View>
+
+            {/* 3. Notas */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <SpeechRecognitionInput
+                label="Notas de la Orden (Opcional)"
+                value={orderNotes}
+                onChangeText={setOrderNotes}
+                multiline
+                speechLang="es-MX"
+              />
+            </View>
+
+            {/* 4. Programar Hora */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <AnimatedLabelSelector
+                label="Programar Hora Recolección (Opcional)"
+                value={formattedScheduledTime}
+                onPress={showTimePicker}
+                onClear={() => setScheduledTime(null)}
+              />
+            </View>
+          </>
+        );
+      case OrderType.DELIVERY:
+        return (
+          <>
+            {/* 1. Dirección */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <SpeechRecognitionInput
+                label="Dirección de Entrega *"
+                value={deliveryAddress}
+                onChangeText={(text) => {
+                  setDeliveryAddress(text);
+                  if (addressError) setAddressError(null);
+                }}
+                error={!!addressError}
+                speechLang="es-MX"
+                multiline
+              />
+              {addressError && (
+                <HelperText type="error" visible={true} style={styles.helperTextFix}>
+                  {addressError}
+                </HelperText>
+              )}
+              {!addressError && (
+                <HelperText type="info" visible={true} style={styles.helperTextFix}>
+                  Obligatorio para Domicilio
+                </HelperText>
+              )}
+            </View>
+
+            {/* 2. Teléfono */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <SpeechRecognitionInput
+                label="Teléfono *"
+                value={phoneNumber}
+                onChangeText={(text) => {
+                  setPhoneNumber(text);
+                  if (phoneError) setPhoneError(null);
+                }}
+                keyboardType="phone-pad"
+                error={!!phoneError}
+                speechLang="es-MX"
+              />
+              {phoneError && (
+                <HelperText type="error" visible={true} style={styles.helperTextFix}>
+                  {phoneError}
+                </HelperText>
+              )}
+               {!phoneError && (
+                  <HelperText type="info" visible={true} style={styles.helperTextFix}>
+                    Obligatorio para Domicilio
+                  </HelperText>
+                )}
+            </View>
+
+            {/* 3. Notas */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <SpeechRecognitionInput
+                label="Notas de la Orden (Opcional)"
+                value={orderNotes}
+                onChangeText={setOrderNotes}
+                multiline
+                speechLang="es-MX"
+              />
+            </View>
+
+            {/* 4. Programar Hora */}
+            <View style={[styles.sectionCompact, styles.fieldContainer]}>
+              <AnimatedLabelSelector
+                label="Programar Hora Entrega (Opcional)"
+                value={formattedScheduledTime}
+                onPress={showTimePicker}
+                onClear={() => setScheduledTime(null)}
+              />
+            </View>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Portal>
       <Modal
@@ -179,6 +490,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
           />
 
           <ScrollView style={styles.scrollView}>
+            {/* Order Type Selection */}
             <View style={styles.sectionCompact}>
               <RadioButton.Group
                 onValueChange={(newValue) =>
@@ -212,203 +524,89 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
               </RadioButton.Group>
             </View>
 
-            {orderType === OrderType.DINE_IN && (
-              <View style={styles.dineInSelectorsRow}>
-                <View style={styles.dineInSelectorContainer}>
-                  <Menu
-                    visible={areaMenuVisible}
-                    onDismiss={() => setAreaMenuVisible(false)}
-                    anchor={
-                      <AnimatedLabelSelector
-                        label="Área"
-                        value={selectedAreaName}
-                        onPress={() => setAreaMenuVisible(true)}
-                        isLoading={isLoadingAreas}
-                        error={!!areaError || !!errorAreas} 
-                        disabled={isLoadingAreas} 
-                      />
-                    }
-                  >
-                    {areasData?.map((area: any) => ( 
-                      <Menu.Item
-                        key={area.id}
-                        onPress={() => {
-                          setSelectedAreaId(area.id);
-                          setSelectedTableId(null); 
-                          setAreaMenuVisible(false);
-                          setAreaError(null); 
-                        }}
-                        title={area.name}
-                      />
-                    ))}
-                    {errorAreas && (
-                      <Menu.Item title="Error al cargar áreas" disabled />
-                    )}
-                  </Menu>
-                  {areaError && !errorAreas && (
-                    <HelperText type="error" visible={true} style={styles.helperTextFix}>
-                      {areaError}
-                    </HelperText>
-                  )}
-                  {errorAreas && (
-                    <HelperText type="error" visible={true} style={styles.helperTextFix}>
-                      Error al cargar áreas
-                    </HelperText>
-                  )}
-                </View>
-
-                <View style={styles.dineInSelectorContainer}>
-                  <Menu
-                    visible={tableMenuVisible}
-                    onDismiss={() => setTableMenuVisible(false)}
-                    anchor={
-                      <AnimatedLabelSelector
-                        label="Mesa"
-                        value={selectedTableName}
-                        onPress={() => setTableMenuVisible(true)}
-                        isLoading={isLoadingTables}
-                        error={!!tableError || !!errorTables}
-                        disabled={!selectedAreaId || isLoadingTables || isLoadingAreas} 
-                      />
-                    }
-                  >
-                    {tablesData?.map((table: Table) => (
-                      <Menu.Item
-                        key={table.id}
-                        onPress={() => {
-                          setSelectedTableId(table.id);
-                          setTableMenuVisible(false);
-                          setTableError(null); 
-                        }}
-                        title={table.name}
-                      />
-                    ))}
-                    {selectedAreaId && tablesData?.length === 0 && !isLoadingTables && !errorTables && (
-                      <Menu.Item title="No hay mesas" disabled />
-                    )}
-                    {errorTables && (
-                      <Menu.Item title="Error al cargar mesas" disabled />
-                    )}
-                  </Menu>
-                  {tableError && !errorTables && (
-                    <HelperText type="error" visible={true} style={styles.helperTextFix}>
-                      {tableError}
-                    </HelperText>
-                  )}
-                  {errorTables && (
-                    <HelperText type="error" visible={true} style={styles.helperTextFix}>
-                      Error al cargar mesas
-                    </HelperText>
-                  )}
-                </View>
-              </View>
-            )}
-
-            <View style={styles.sectionCompact}>
-              <AnimatedLabelSelector
-                label="Programar Hora (Opcional)"
-                value={formattedScheduledTime}
-                onPress={showTimePicker}
-                onClear={() => setScheduledTime(null)}
-              />
-            </View>
-
-            {(orderType === OrderType.TAKE_AWAY || orderType === OrderType.DELIVERY) && (
-              <View style={styles.sectionCompact}>
-                <AnimatedLabelInput
-                  label={`Teléfono${orderType === OrderType.DELIVERY ? ' *' : ''}`}
-                  value={phoneNumber}
-                  onChangeText={(text) => {
-                      setPhoneNumber(text);
-                      if (phoneError) setPhoneError(null);
-                  }}
-                  keyboardType="phone-pad"
-                  error={!!phoneError}
-                />
-                {phoneError && (
-                  <HelperText type="error" visible={true} style={styles.helperTextFix}>
-                    {phoneError}
-                  </HelperText>
-                )}
-                {!phoneError && orderType === OrderType.DELIVERY && (
-                  <HelperText type="info" visible={true} style={styles.helperTextFix}>
-                    Obligatorio para Domicilio
-                  </HelperText>
-                )}
-              </View>
-            )}
-
-            <View style={styles.sectionCompact}>
-                <AnimatedLabelInput
-                  label="Notas de la Orden (Opcional)"
-                  value={orderNotes}
-                  onChangeText={setOrderNotes}
-                />
-            </View>
+            {/* Render fields based on order type */}
+            {renderFields()}
 
             <Divider style={styles.divider} />
 
+            {/* Cart Items */}
             <List.Section>
               {items.map((item) => {
                 return (
                   <List.Item
                     key={item.id}
-                    title={`${item.quantity}x ${String(item.productName ?? "")}${item.variantName ? ` (${String(item.variantName ?? "")})` : ""}`}
-                    description={() => {
-                      const modifierString =
-                        item.modifiers && item.modifiers.length > 0
-                          ? item.modifiers.map((mod) => mod.name).join(", ")
-                          : "";
-                      const notesString = item.preparationNotes
-                        ? `Notas: ${item.preparationNotes}`
-                        : "";
+                    // Mover title y description a un View contenedor para controlar el ancho
+                    title={() => (
+                      <View style={styles.itemTextContainer}>
+                        {/* Eliminar numberOfLines para permitir expansión */}
+                        <Text style={styles.itemTitleText}>
+                          {`${item.quantity}x ${String(item.productName ?? "")}${item.variantName ? ` (${String(item.variantName ?? "")})` : ""}`}
+                        </Text>
+                        {(() => { // Render description condicionalmente
+                          const modifierString =
+                            item.modifiers && item.modifiers.length > 0
+                              ? item.modifiers.map((mod) => mod.name).join(", ")
+                              : "";
+                          const notesString = item.preparationNotes
+                            ? `Notas: ${item.preparationNotes}`
+                            : "";
 
-                      if (modifierString && notesString) {
-                        return (
-                          <Text numberOfLines={3}>
-                            {modifierString}\n{notesString}
-                          </Text>
-                        );
-                      } else if (modifierString) {
-                        return <Text numberOfLines={2}>{modifierString}</Text>;
-                      } else if (notesString) {
-                        return <Text numberOfLines={2}>{notesString}</Text>;
-                      } else {
-                        return null;
-                      }
-                    }}
-                    right={() => {
-                      return (
-                        <View style={styles.itemActionsContainer}>
-                          <View style={styles.quantityActions}>
-                            <IconButton
-                              icon="minus"
-                              size={16}
-                              onPress={() =>
-                                updateItemQuantity(item.id, item.quantity - 1)
-                              }
-                            />
-                            <Text>{item.quantity}</Text>
-                            <IconButton
-                              icon="plus"
-                              size={16}
-                              onPress={() =>
-                                updateItemQuantity(item.id, item.quantity + 1)
-                              }
-                            />
-                          </View>
-                          <Text style={styles.itemPrice}>
-                            ${item.totalPrice.toFixed(2)}
-                          </Text>
+                          if (modifierString && notesString) {
+                            return (
+                              // Comentario eliminado o corregido si es necesario
+                              <Text style={styles.itemDescription}>
+                                {/* Usar template literal para interpretar \n */}
+                                {`${modifierString}\n${notesString}`}
+                              </Text>
+                            );
+                          } else if (modifierString) {
+                            // Comentario eliminado o corregido si es necesario
+                            return <Text style={styles.itemDescription}>{modifierString}</Text>;
+                          } else if (notesString) {
+                            // Comentario eliminado o corregido si es necesario
+                            return <Text style={styles.itemDescription}>{notesString}</Text>;
+                          } else {
+                            return null;
+                          }
+                        })()}
+                      </View>
+                    )}
+                    // titleNumberOfLines y description ya no se usan directamente aquí
+                    right={() => ( // Usar paréntesis para retorno implícito si es una sola expresión
+                      <View style={styles.itemActionsContainer}>
+                        <View style={styles.quantityActions}>
                           <IconButton
-                            icon="delete"
-                            size={16}
-                            onPress={() => removeItem(item.id)}
-                            style={styles.deleteButton}
+                            icon="minus-circle-outline"
+                            size={24} // Reducir tamaño
+                            onPress={() =>
+                              updateItemQuantity(item.id, item.quantity - 1)
+                            }
+                            style={styles.quantityButton}
+                            disabled={item.quantity <= 1} // Deshabilitar si es 1
+                          />
+                          <Text style={styles.quantityText}>{item.quantity}</Text>
+                          <IconButton
+                            icon="plus-circle-outline"
+                            size={24} // Reducir tamaño
+                            onPress={() =>
+                              updateItemQuantity(item.id, item.quantity + 1)
+                            }
+                            style={styles.quantityButton}
                           />
                         </View>
-                      );
-                    }}
+                        <Text style={styles.itemPrice}>
+                          ${item.totalPrice.toFixed(2)}
+                        </Text>
+                        <IconButton
+                          icon="delete-outline"
+                          size={24} // Reducir tamaño
+                          onPress={() => removeItem(item.id)}
+                          style={styles.deleteButton}
+                          iconColor={theme.colors.error}
+                        />
+                      </View>
+                    )}
+                    style={styles.listItem}
                   />
                 );
               })}
@@ -416,6 +614,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
 
             <Divider style={styles.divider} />
 
+            {/* Totals */}
             <View style={styles.totalsContainer}>
               <Text style={styles.totalsText}>Subtotal:</Text>
               <Text style={styles.totalsValue}>${subtotal.toFixed(2)}</Text>
@@ -428,14 +627,16 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
             </View>
           </ScrollView>
 
+          {/* Footer Button */}
           <View style={styles.footer}>
             <Button
               mode="contained"
               onPress={handleConfirm}
               disabled={
                 items.length === 0 ||
-                (orderType === OrderType.DINE_IN &&
-                  (!selectedAreaId || !selectedTableId)) ||
+                (orderType === OrderType.DINE_IN && (!selectedAreaId || !selectedTableId)) ||
+                (orderType === OrderType.TAKE_AWAY && (!customerName || customerName.trim() === '')) ||
+                (orderType === OrderType.DELIVERY && (!deliveryAddress || deliveryAddress.trim() === '')) ||
                 (orderType === OrderType.DELIVERY && (!phoneNumber || phoneNumber.trim() === ''))
               }
               style={styles.confirmButton}
@@ -445,6 +646,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
           </View>
         </View>
 
+        {/* Modals */}
         <DateTimePickerModal
           isVisible={isTimePickerVisible}
           mode="time"
@@ -487,128 +689,190 @@ const createStyles = (theme: ReturnType<typeof useAppTheme>) =>
     },
     scrollView: {
       flex: 1,
-      paddingHorizontal: theme.spacing.m,
+      paddingHorizontal: theme.spacing.s, // Restaurar padding pequeño
     },
     divider: {
       marginVertical: theme.spacing.s,
     },
-    itemActionsContainer: {
+    // List Item Styles
+    listItem: {
+      flexDirection: 'row',           // 1) Fila
+      alignItems: 'center',
+      justifyContent: 'space-between',// 2) Separar título y acciones
+      paddingVertical: theme.spacing.s,
+      paddingHorizontal: theme.spacing.s, // controla el “gap” desde el borde
+    },
+
+    itemTextContainer: { // Contenedor para título y descripción
+      flex: 1,                        // que el texto ocupe todo lo que pueda
+      // paddingHorizontal: theme.spacing.m, // Eliminar padding interno, usar el del ScrollView/List.Item
+      justifyContent: 'center', // Centrar texto verticalmente
+      // backgroundColor: 'lightyellow', // Debug
+    },
+    itemTitleText: { // Estilo para el texto del título
+      fontSize: 14, // Ajustar tamaño si es necesario
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+    },
+    itemDescription: {
+      fontSize: 12,
+      color: theme.colors.onSurfaceVariant,
+      marginTop: 2,
+    },
+    itemActionsContainer: { // Contenedor para acciones (cantidad, precio, borrar)
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "flex-end",    // empuja hijos al extremo derecho
+      flex: 1,                        // ocupa el espacio sobrante
+      // marginLeft: 'auto', // Quitar
+      // paddingRight: theme.spacing.m, // Eliminar padding interno
+      // backgroundColor: 'lightblue', // Debug
     },
     quantityActions: {
       flexDirection: "row",
       alignItems: "center",
-      marginRight: theme.spacing.s,
-    },
+      // marginRight: theme.spacing.s, // Adjust spacing as needed
+    }, // <<< COMA RESTAURADA
+    // quantityButton: { // <<< ESTILO DUPLICADO/INCORRECTO ELIMINADO
+    //    margin: 0,
+    //    // backgroundColor: 'lightgreen',
+    // },
+    //   flexDirection: "row", // <<< CÓDIGO INCORRECTO ELIMINADO
+    //   alignItems: "center",
+    //   // marginRight: theme.spacing.xs,
+    // },
+    quantityButton: { // <<< ESTILO CORRECTO
+        marginHorizontal: 0, // Sin margen horizontal extra en los botones
+        // backgroundColor: 'lightgreen', // Debug
+    }, // <<< COMA RESTAURADA
+    quantityText: {
+        fontSize: 14, // Reducir tamaño
+        fontWeight: 'bold',
+        minWidth: 20, // Reducir ancho mínimo
+        textAlign: 'center',
+        marginHorizontal: 2, // Reducir margen horizontal mínimo para el número
+        // backgroundColor: 'pink', // Debug
+    }, // <<< COMA RESTAURADA
     itemPrice: {
       alignSelf: "center",
-      marginRight: theme.spacing.s,
+      // marginHorizontal: 4, // Reemplazar con marginRight específico
+      marginRight: theme.spacing.s, // Añadir espacio a la derecha del precio
       color: theme.colors.onSurfaceVariant,
-      width: 60,
+      fontSize: 14,
+      fontWeight: 'bold',
+      minWidth: 55, // Reducir ancho mínimo
       textAlign: "right",
-    },
+      // backgroundColor: 'lightcoral', // Debug
+    }, // <<< COMA RESTAURADA
     deleteButton: {
-      margin: 0,
-    },
+      margin: 0, // Asegurar sin margen vertical
+      marginLeft: theme.spacing.s,    // opcional: un gap extra sobre el precio
+      // marginRight : 0, // No es necesario si el contenedor ya está a la derecha
+      // backgroundColor: 'gold', // Debug
+    }, // <<< COMA RESTAURADA
+    // End List Item Styles
     totalsContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       marginBottom: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.xs, 
-    },
+      paddingHorizontal: theme.spacing.xs,
+    }, // <<< COMA RESTAURADA
     totalsText: {
       fontSize: 16,
-    },
+    }, // <<< COMA RESTAURADA
     totalsValue: {
       fontSize: 16,
       fontWeight: "bold",
-    },
+    }, // <<< COMA RESTAURADA
     totalLabel: {
       fontWeight: "bold",
       fontSize: 18,
-    },
+    }, // <<< COMA RESTAURADA
     totalValue: {
       fontSize: 18,
       color: theme.colors.primary,
-    },
+    }, // <<< COMA RESTAURADA
     section: {
       marginBottom: theme.spacing.m,
       marginTop: theme.spacing.s,
-    },
+    }, // <<< COMA RESTAURADA
     sectionCompact: {
       marginBottom: 0,
-      paddingBottom: theme.spacing.s,
-    },
+      paddingBottom: 0,
+    }, // <<< COMA RESTAURADA
     dineInSelectorsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginBottom: 0,
       gap: theme.spacing.s,
-    },
+      marginTop: theme.spacing.s,
+    }, // <<< COMA RESTAURADA
     dineInSelectorContainer: {
       flex: 1,
-    },
+    }, // <<< COMA RESTAURADA
     selectorLoader: {
-    },
+    }, // <<< COMA RESTAURADA
     sectionTitleContainer: {
       flexDirection: 'row',
       alignItems: 'baseline',
       marginBottom: theme.spacing.xs,
-    },
+    }, // <<< COMA RESTAURADA
     sectionTitle: {
       fontSize: 16,
       fontWeight: "bold",
       marginBottom: theme.spacing.xs,
-    },
+    }, // <<< COMA RESTAURADA
     sectionTitleOptional: {
       ...theme.fonts.bodySmall,
       color: theme.colors.onSurfaceVariant,
       marginLeft: theme.spacing.xs,
-    },
+    }, // <<< COMA RESTAURADA
     radioGroupHorizontal: {
       flexDirection: "row",
       justifyContent: "space-around",
       alignItems: "center",
       width: "100%",
       paddingVertical: theme.spacing.xs,
-    },
+    }, // <<< COMA RESTAURADA
     radioLabel: {
       marginLeft: 0,
       fontSize: 11,
       textTransform: "uppercase",
       textAlign: 'center',
-    },
+    }, // <<< COMA RESTAURADA
     radioButtonItem: {
       paddingHorizontal: 0,
       paddingVertical: 4,
       flexShrink: 1,
       flex: 1,
       marginHorizontal: 2,
-    },
+    }, // <<< COMA RESTAURADA
     dropdownAnchor: {
-    },
+    }, // <<< COMA RESTAURADA
     dropdownContent: {
-    },
+    }, // <<< COMA RESTAURADA
     dropdownLabel: {
-    },
+    }, // <<< COMA RESTAURADA
     helperTextFix: {
       marginTop: -6,
-      marginBottom: theme.spacing.s,
+      marginBottom: 0,
       paddingHorizontal: 12,
-    },
+    }, // <<< COMA RESTAURADA
     errorText: {
-    },
+    }, // <<< COMA RESTAURADA
     footer: {
       padding: theme.spacing.m,
       borderTopWidth: 1,
       borderTopColor: theme.colors.outlineVariant,
       backgroundColor: theme.colors.surface,
-    },
+    }, // <<< COMA RESTAURADA
     confirmButton: {
       paddingVertical: theme.spacing.xs,
-    },
+    }, // <<< COMA RESTAURADA
     input: {
-    },
+    }, // <<< COMA RESTAURADA
+    fieldContainer: {
+      marginTop: theme.spacing.s,
+    }, // <<< COMA RESTAURADA (Último estilo antes del cierre)
   });
 export default OrderCartDetail;
