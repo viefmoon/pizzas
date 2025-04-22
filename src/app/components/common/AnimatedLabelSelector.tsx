@@ -10,7 +10,6 @@ import {
   ViewStyle,
   TextStyle,
   ActivityIndicator,
-  TouchableOpacity as RNTouchableOpacity,
 } from 'react-native';
 import { useAppTheme } from '@/app/styles/theme';
 import { Icon, IconButton } from 'react-native-paper';
@@ -102,7 +101,6 @@ const AnimatedLabelSelector: React.FC<AnimatedLabelSelectorProps> = ({
       paddingHorizontal: 12,
       paddingTop: 18,
       paddingBottom: 6,
-      marginBottom: 8,
       position: 'relative',
       backgroundColor: theme.colors.background,
       minHeight: 58,
@@ -112,7 +110,6 @@ const AnimatedLabelSelector: React.FC<AnimatedLabelSelectorProps> = ({
     outerContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 8,
     },
     label: {
       position: 'absolute',

@@ -8,7 +8,6 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
-  Platform,
 } from 'react-native';
 import { useAppTheme } from '@/app/styles/theme';
 
@@ -41,6 +40,7 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
   activeBorderColor: focusedBorderColor,
   error = false,
   errorColor: customErrorColor,
+  multiline,
   ...rest
 }) => {
   const theme = useAppTheme();
@@ -75,12 +75,12 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
 
   const labelTranslateY = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -26],
+    outputRange: [0, -28],
   });
 
   const labelScale = animation.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 0.8],
+    outputRange: [1, 0.75],
   });
 
   const labelColor = animation.interpolate({
@@ -92,43 +92,59 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
     ? finalErrorColor
     : isFocused
       ? finalActiveBorderColor
-      : isActive
-        ? finalBorderColor
-        : finalBorderColor;
+      : finalBorderColor;
 
   const styles = StyleSheet.create({
     container: {
       borderWidth: 1,
       borderRadius: theme.roundness,
       paddingHorizontal: 12,
-      paddingTop: 18,
-      paddingBottom: 6,
-      marginBottom: 8,
       position: 'relative',
       backgroundColor: theme.colors.background,
+      minHeight: 58,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: multiline ? 'flex-start' : 'center',
+      paddingTop: 18,
+      paddingBottom: 6,
+      minHeight: 40,
     },
     label: {
-      position: 'absolute',
-      left: 12,
-      top: 12,
       fontSize: 16,
       color: finalInactiveLabelColor,
     },
     input: {
+      flex: 1,
       fontSize: 16,
       color: theme.colors.onSurface,
-      paddingVertical: Platform.OS === 'ios' ? 8 : 4,
+      paddingVertical: 0,
       paddingHorizontal: 0,
       margin: 0,
       borderWidth: 0,
       backgroundColor: 'transparent',
-      minHeight: 24,
+      textAlignVertical: multiline ? 'top' : 'center',
     },
   });
 
+  const animatedTranslateY = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -28],
+  });
+
+  const animatedTranslateX = animation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, -4],
+  });
+
   const animatedLabelStyle = {
+    position: 'absolute' as 'absolute',
+    top: 18,
+    left: 12,
+    zIndex: 1,
     transform: [
-      { translateY: labelTranslateY },
+      { translateX: animatedTranslateX },
+      { translateY: animatedTranslateY },
       { scale: labelScale },
     ],
     color: labelColor,
@@ -140,6 +156,7 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
         inputRange: [0, 1],
         outputRange: [0, 4]
     }),
+    maxWidth: '90%' as `${number}%`,
   };
 
   return (
@@ -147,16 +164,20 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
       <Animated.Text style={[styles.label, labelStyle, animatedLabelStyle]}>
         {label}
       </Animated.Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        style={[styles.input, inputStyle, style]}
-        placeholder=""
-        underlineColorAndroid="transparent"
-        {...rest}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={value}
+          onChangeText={onChangeText}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          style={[styles.input, inputStyle, style]}
+          placeholder=""
+          underlineColorAndroid="transparent"
+          placeholderTextColor={finalInactiveLabelColor}
+          multiline={multiline}
+          {...rest}
+        />
+      </View>
     </View>
   );
 };
