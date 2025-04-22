@@ -1,19 +1,24 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { StyleSheet, View, FlatList, TouchableOpacity } from "react-native";
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+  useEffect,
+} from "react";
+import { StyleSheet, View, FlatList } from "react-native";
 import {
   Text,
   Portal,
-  Button,
   ActivityIndicator,
   Card,
   Title,
-  Snackbar,
-  IconButton,
+  Appbar,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native"; 
 import { useGetFullMenu } from "../hooks/useMenuQueries";
 import { useCart, CartProvider } from "../context/CartContext";
+import { CartItemModifier } from "../context/CartContext";
 import {
   OrderType,
   Product,
@@ -26,22 +31,34 @@ import { getImageUrl } from "@/app/lib/imageUtils";
 import OrderCartDetail from "../components/OrderCartDetail";
 import ProductCustomizationModal from "../components/ProductCustomizationModal";
 import CartButton from "../components/CartButton";
+import ConfirmationModal from "@/app/components/common/ConfirmationModal";
 
 import { useAppTheme } from "@/app/styles/theme";
 
+interface CartButtonHandle {
+  animate: () => void;
+}
+
 const CreateOrderScreen = () => {
   const theme = useAppTheme();
-  const { colors } = theme;
+  const { colors, fonts } = theme;
   const navigation = useNavigation();
   const {
     items,
-    addItem,
-    removeItem,
-    updateItemQuantity,
+    
+    
+    
     isCartEmpty,
-    subtotal,
-    total,
+    
+    
+    addItem: originalAddItem,
+    isCartVisible,
+    showCart,
+    hideCart,
+    clearCart,
   } = useCart();
+
+  const cartButtonRef = useRef<CartButtonHandle>(null);
 
   const [navigationLevel, setNavigationLevel] = useState<
     "categories" | "subcategories" | "products"
@@ -52,12 +69,12 @@ const CreateOrderScreen = () => {
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<
     string | null
   >(null);
-  const [isCartVisible, setIsCartVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [showExitConfirmationModal, setShowExitConfirmationModal] = useState(false);
+  const [pendingNavigationAction, setPendingNavigationAction] = useState<(() => void) | null>(null);
 
-  const { data: menu, isLoading, error } = useGetFullMenu();
+
+  const { data: menu, isLoading } = useGetFullMenu(); 
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
@@ -88,18 +105,16 @@ const CreateOrderScreen = () => {
     if (productNeedsCustomization(product)) {
       setSelectedProduct(product);
     } else {
-      addItem(product, 1);
-      setSnackbarMessage(`${product.name} añadido al carrito`);
-      setSnackbarVisible(true);
+      handleAddItem(product, 1);
     }
   };
 
-  const handleCloseProductModal = React.useCallback(() => {
+  const handleCloseProductModal = useCallback(() => {
     setSelectedProduct(null);
   }, []);
 
-  const handleGoBack = () => {
-    if (navigationLevel === "products") {
+  const handleGoBackInternal = () => {
+     if (navigationLevel === "products") {
       setNavigationLevel("subcategories");
       setSelectedSubCategoryId(null);
     } else if (navigationLevel === "subcategories") {
@@ -108,20 +123,64 @@ const CreateOrderScreen = () => {
     }
   };
 
-  const handleViewCart = React.useCallback(() => {
-    setIsCartVisible(true);
-  }, []);
-
-  const handleCloseCart = () => {
-    setIsCartVisible(false);
+  const handleAttemptExit = (goBackAction: () => void) => {
+    if (isCartEmpty) {
+      goBackAction();
+    } else {
+      setPendingNavigationAction(() => goBackAction);
+      setShowExitConfirmationModal(true);
+    }
   };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (isCartEmpty || e.data.action.type !== 'GO_BACK' && e.data.action.type !== 'RESET') {
+        return;
+      }
+
+      e.preventDefault();
+      setPendingNavigationAction(() => () => navigation.dispatch(e.data.action));
+      setShowExitConfirmationModal(true);
+    });
+
+    return unsubscribe;
+  }, [navigation, isCartEmpty]);
+
+
+  const handleViewCart = useCallback(() => {
+    showCart();
+  }, [showCart]);
+
+  const handleCloseCart = useCallback(() => {
+    hideCart();
+  }, [hideCart]);
 
   const handleConfirmOrder = (details: {
     orderType: OrderType;
     tableId?: string;
+    scheduledAt?: Date; 
+    phoneNumber?: string; 
+    notes?: string; 
   }) => {
-    console.log("Confirmar orden con detalles:", details);
-    setIsCartVisible(false);
+    console.log("Confirmar orden con detalles:", details); 
+    hideCart();
+  };
+
+  const handleAddItem = (
+    product: Product,
+    quantity: number,
+    selectedVariantId?: string,
+    selectedModifiers?: CartItemModifier[],
+    preparationNotes?: string
+  ) => {
+    originalAddItem(
+      product,
+      quantity,
+      selectedVariantId,
+      selectedModifiers,
+      preparationNotes
+    );
+    cartButtonRef.current?.animate();
   };
 
   const getCategories = () => {
@@ -153,17 +212,9 @@ const CreateOrderScreen = () => {
         )
       : null;
 
-  const toggleCartVisibility = () => {
-    setIsCartVisible(!isCartVisible);
-  };
-
-  const getNavTitle = React.useCallback(() => {
+  const getNavTitle = useCallback(() => {
     if (selectedProduct) {
-      if (navigationLevel === "products") {
-        return selectedSubCategory?.name
-          ? `Subcategoría: ${selectedSubCategory.name}`
-          : "Productos";
-      }
+      return selectedProduct.name;
     }
     switch (navigationLevel) {
       case "categories":
@@ -181,43 +232,6 @@ const CreateOrderScreen = () => {
     }
   }, [navigationLevel, selectedCategory, selectedSubCategory, selectedProduct]);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerTitle: getNavTitle(),
-      headerLeft: () => {
-        if (selectedProduct) {
-          return (
-            <IconButton
-              icon="arrow-left"
-              size={24}
-              onPress={handleCloseProductModal}
-            />
-          );
-        } else if (navigationLevel !== "categories") {
-          return (
-            <IconButton icon="arrow-left" size={24} onPress={handleGoBack} />
-          );
-        }
-        return undefined;
-      },
-      headerRight: () =>
-        !isCartVisible && !selectedProduct ? (
-          <CartButton itemCount={items.length} onPress={handleViewCart} />
-        ) : null,
-      gestureEnabled: navigationLevel === "categories",
-    });
-  }, [
-    navigation,
-    navigationLevel,
-    selectedCategory,
-    selectedSubCategory,
-    items,
-    isCartVisible,
-    selectedProduct,
-    handleViewCart,
-    handleCloseProductModal,
-    getNavTitle,
-  ]);
 
   const styles = useMemo(
     () =>
@@ -231,10 +245,10 @@ const CreateOrderScreen = () => {
         },
         content: {
           flex: 1,
-          padding: 12,
         },
         gridContainer: {
-          padding: 4,
+          padding: 12,
+          paddingBottom: 60,
         },
         row: {
           justifyContent: "flex-start",
@@ -287,18 +301,61 @@ const CreateOrderScreen = () => {
           justifyContent: "center",
           alignItems: "center",
         },
+        appBar: {
+          backgroundColor: colors.elevation.level2,
+          alignItems: 'center',
+        },
+        appBarTitle: {
+          ...fonts.titleMedium,
+          color: colors.onSurface,
+          fontWeight: "bold",
+          textAlign: "center",
+        },
+        appBarContent: {
+          
+        },
+        spacer: {
+          width: 48,
+        },
       }),
-    [theme]
+    [colors, fonts]
   );
+
+  
+  const handleConfirmExit = () => {
+    clearCart();
+    if (pendingNavigationAction) {
+      pendingNavigationAction();
+    }
+    setShowExitConfirmationModal(false);
+    setPendingNavigationAction(null);
+  };
+
+  const handleCancelExit = () => {
+    setShowExitConfirmationModal(false);
+    setPendingNavigationAction(null);
+  };
+  
 
   const renderContent = () => {
     if (isCartVisible) {
       return (
-        <OrderCartDetail
-          visible={isCartVisible}
-          onClose={handleCloseCart}
-          onConfirmOrder={handleConfirmOrder}
-        />
+        <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
+           <Appbar.Header style={styles.appBar}>
+             <Appbar.BackAction onPress={handleCloseCart} />
+             <Appbar.Content
+               title="Carrito de Compras"
+               titleStyle={styles.appBarTitle}
+               style={styles.appBarContent}
+             />
+             <View style={styles.spacer} />
+           </Appbar.Header>
+           <OrderCartDetail
+             visible={isCartVisible}
+             onClose={handleCloseCart}
+             onConfirmOrder={handleConfirmOrder}
+           />
+        </SafeAreaView>
       );
     }
 
@@ -383,10 +440,35 @@ const CreateOrderScreen = () => {
     };
 
     const itemsToDisplay = getItemsToDisplay();
+    const showCartButton = !isCartVisible && !selectedProduct;
+
+    const backAction = selectedProduct
+      ? handleCloseProductModal
+      : navigationLevel === 'categories'
+      ? () => handleAttemptExit(() => navigation.goBack())
+      : handleGoBackInternal;
 
     return (
-      <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
-        <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
+        <Appbar.Header style={styles.appBar} elevated>
+          <Appbar.BackAction onPress={backAction} />
+          <Appbar.Content
+            title={getNavTitle()}
+            titleStyle={styles.appBarTitle}
+            style={styles.appBarContent}
+          />
+          {showCartButton ? (
+            <CartButton
+              ref={cartButtonRef}
+              itemCount={items.length}
+              onPress={handleViewCart}
+            />
+          ) : (
+            <View style={styles.spacer} />
+          )}
+        </Appbar.Header>
+
+        <View style={styles.content}>
           {isLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#2e7d32" />
@@ -415,28 +497,26 @@ const CreateOrderScreen = () => {
           )}
         </View>
 
+        <ConfirmationModal
+          visible={showExitConfirmationModal}
+          title="¿Descartar Orden?"
+          message="Tienes artículos en el carrito. Si sales, se perderán. ¿Estás seguro?"
+          confirmText="Salir y Descartar"
+          cancelText="Cancelar"
+          onConfirm={handleConfirmExit}
+          onCancel={handleCancelExit}
+        />
+
         <Portal>
           {selectedProduct && productNeedsCustomization(selectedProduct) && (
             <ProductCustomizationModal
               visible={true}
               product={selectedProduct}
-              onAddToCart={addItem}
+              onAddToCart={handleAddItem}
               onDismiss={handleCloseProductModal}
             />
           )}
         </Portal>
-
-        <Snackbar
-          visible={snackbarVisible}
-          onDismiss={() => setSnackbarVisible(false)}
-          duration={2000}
-          action={{
-            label: "OK",
-            onPress: () => setSnackbarVisible(false),
-          }}
-        >
-          {snackbarMessage}
-        </Snackbar>
       </SafeAreaView>
     );
   };

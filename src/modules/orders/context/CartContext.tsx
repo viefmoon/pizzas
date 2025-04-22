@@ -2,11 +2,10 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
   useMemo,
-} from "react";
-import { OrderItem } from "../types/orders.types";
-import { Product } from "../../menu/types/products.types";
+  useCallback,
+} from "react"; 
+import { Product } from "../types/orders.types";
 
 const generateId = () => {
   return (
@@ -32,6 +31,7 @@ export interface CartItem {
   modifiers: CartItemModifier[];
   variantId?: string;
   variantName?: string;
+  preparationNotes?: string;
 }
 
 interface CartContextType {
@@ -40,7 +40,8 @@ interface CartContextType {
     product: Product,
     quantity?: number,
     variantId?: string,
-    modifiers?: CartItemModifier[]
+    modifiers?: CartItemModifier[],
+    preparationNotes?: string
   ) => void;
   removeItem: (itemId: string) => void;
   updateItemQuantity: (itemId: string, quantity: number) => void;
@@ -48,6 +49,9 @@ interface CartContextType {
   isCartEmpty: boolean;
   subtotal: number;
   total: number;
+  isCartVisible: boolean;
+  showCart: () => void;
+  hideCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -64,12 +68,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartVisible, setIsCartVisible] = useState(false);
 
   const subtotal = useMemo(() => {
     return items.reduce((sum, item: CartItem) => sum + item.totalPrice, 0);
   }, [items]);
 
   const total = useMemo(() => {
+    
     return subtotal * 1.16;
   }, [subtotal]);
 
@@ -79,7 +85,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     product: Product,
     quantity: number = 1,
     variantId?: string,
-    modifiers: CartItemModifier[] = []
+    modifiers: CartItemModifier[] = [],
+    preparationNotes?: string
   ) => {
     const variantToAdd = variantId
       ? product.variants?.find((v) => v.id === variantId)
@@ -99,6 +106,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       modifiers,
       variantId,
       variantName: variantToAdd?.name,
+      preparationNotes,
     };
 
     setItems((currentItems) => [...currentItems, newItem]);
@@ -119,14 +127,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setItems((currentItems) =>
       currentItems.map((item) => {
         if (item.id === itemId) {
-          const basePrice = item.unitPrice;
+          const modifiersPrice = item.modifiers.reduce(
+            (sum, mod) => sum + mod.price,
+            0
+          );
+          const newTotalPrice = (item.unitPrice + modifiersPrice) * quantity;
           return {
             ...item,
             quantity,
-            totalPrice:
-              basePrice * quantity +
-              item.modifiers.reduce((sum, mod) => sum + mod.price, 0) *
-                quantity,
+            totalPrice: newTotalPrice,
           };
         }
         return item;
@@ -137,6 +146,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const clearCart = () => {
     setItems([]);
   };
+  const showCart = useCallback(() => {
+    setIsCartVisible(true);
+  }, []);
+
+  const hideCart = useCallback(() => {
+    setIsCartVisible(false);
+  }, []);
 
   const value = {
     items,
@@ -147,6 +163,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     isCartEmpty,
     subtotal,
     total,
+    isCartVisible,
+    showCart,
+    hideCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

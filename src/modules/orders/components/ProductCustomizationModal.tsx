@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import {
   Modal,
   Portal,
