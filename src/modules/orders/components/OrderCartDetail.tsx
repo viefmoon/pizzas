@@ -67,45 +67,26 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
   } = useGetTablesByArea(selectedAreaId);
 
   useEffect(() => {
-    if (orderType === OrderType.DINE_IN) {
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-    } else {
-      
+    if (orderType !== OrderType.DINE_IN) {
       setAreaError(null);
       setTableError(null);
     }
-    
     if (orderType !== OrderType.DELIVERY && orderType !== OrderType.TAKE_AWAY) {
         setPhoneError(null);
     }
-
-  }, [orderType]); 
+  }, [orderType]);
 
   const handleConfirm = () => {
-    
     setAreaError(null);
     setTableError(null);
     setPhoneError(null);
 
-    
     if (items.length === 0) {
-      
       return;
     }
 
     let isValid = true;
 
-    
     if (orderType === OrderType.DINE_IN) {
       if (!selectedAreaId) {
         setAreaError("Debe seleccionar un área");
@@ -125,10 +106,6 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
       }
       
     } else if (orderType === OrderType.TAKE_AWAY) {
-        
-        
-        
-        
         
     }
 
@@ -150,7 +127,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
 
   
   const selectedAreaName = useMemo(
-    () => areasData?.find((a: any) => a.id === selectedAreaId)?.name, // Assuming Area type was removed, using any
+    () => areasData?.find((a: any) => a.id === selectedAreaId)?.name, 
     [areasData, selectedAreaId]
   );
   const selectedTableName = useMemo(
@@ -158,40 +135,32 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
     [tablesData, selectedTableId]
   );
 
-  
   const showTimePicker = () => setTimePickerVisible(true);
   const hideTimePicker = () => setTimePickerVisible(false);
   const handleTimeConfirm = (date: Date) => {
     const now = new Date();
-    
+
     now.setSeconds(0, 0);
     date.setSeconds(0, 0);
 
     if (date < now) {
-      
-      
       hideTimePicker();
-      
       setTimeAlertVisible(true);
-      
     } else {
-      
       setScheduledTime(date);
       hideTimePicker();
     }
   };
-  
+
   const formattedScheduledTime = useMemo(() => {
     if (!scheduledTime) return null;
     try {
-      
       return format(scheduledTime, "p", { locale: es });
     } catch (error) {
       console.error("Error formatting time:", error);
       return "Hora inválida";
     }
   }, [scheduledTime]);
-  
 
   return (
     <Portal>
@@ -201,33 +170,29 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
         contentContainerStyle={styles.modalContent}
       >
         <View style={styles.container}>
-          
           <OrderHeader
             title="Resumen de Orden"
-            onBackPress={onClose} 
-            itemCount={items.length} 
-            onCartPress={() => {}} 
-            isCartVisible={isCartVisible} 
+            onBackPress={onClose}
+            itemCount={items.length}
+            onCartPress={() => {}}
+            isCartVisible={isCartVisible}
           />
 
           <ScrollView style={styles.scrollView}>
-            
             <View style={styles.sectionCompact}>
-              
               <RadioButton.Group
                 onValueChange={(newValue) =>
                   setOrderType(newValue as OrderType)
                 }
                 value={orderType}
               >
-                
                 <View style={styles.radioGroupHorizontal}>
                   <RadioButton.Item
                     label="COMER AQUÍ"
                     value={OrderType.DINE_IN}
                     style={styles.radioButtonItem}
                     labelStyle={styles.radioLabel}
-                    position="leading" 
+                    position="leading"
                   />
                   <RadioButton.Item
                     label="PARA LLEVAR"
@@ -247,10 +212,8 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
               </RadioButton.Group>
             </View>
 
-            
             {orderType === OrderType.DINE_IN && (
               <View style={styles.dineInSelectorsRow}>
-                
                 <View style={styles.dineInSelectorContainer}>
                   <Menu
                     visible={areaMenuVisible}
@@ -266,7 +229,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                       />
                     }
                   >
-                    {areasData?.map((area: any) => ( // Assuming Area type was removed, using any
+                    {areasData?.map((area: any) => ( 
                       <Menu.Item
                         key={area.id}
                         onPress={() => {
@@ -282,20 +245,18 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                       <Menu.Item title="Error al cargar áreas" disabled />
                     )}
                   </Menu>
-                  
-                  {areaError && !errorAreas && ( 
+                  {areaError && !errorAreas && (
                     <HelperText type="error" visible={true} style={styles.helperTextFix}>
                       {areaError}
                     </HelperText>
                   )}
-                  {errorAreas && ( 
+                  {errorAreas && (
                     <HelperText type="error" visible={true} style={styles.helperTextFix}>
                       Error al cargar áreas
                     </HelperText>
                   )}
                 </View>
 
-                
                 <View style={styles.dineInSelectorContainer}>
                   <Menu
                     visible={tableMenuVisible}
@@ -329,7 +290,6 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                       <Menu.Item title="Error al cargar mesas" disabled />
                     )}
                   </Menu>
-                  
                   {tableError && !errorTables && (
                     <HelperText type="error" visible={true} style={styles.helperTextFix}>
                       {tableError}
@@ -344,18 +304,15 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
               </View>
             )}
 
-            
             <View style={styles.sectionCompact}>
               <AnimatedLabelSelector
                 label="Programar Hora (Opcional)"
-                value={formattedScheduledTime} 
+                value={formattedScheduledTime}
                 onPress={showTimePicker}
-                onClear={() => setScheduledTime(null)} 
+                onClear={() => setScheduledTime(null)}
               />
-              
             </View>
 
-            
             {(orderType === OrderType.TAKE_AWAY || orderType === OrderType.DELIVERY) && (
               <View style={styles.sectionCompact}>
                 <AnimatedLabelInput
@@ -363,20 +320,16 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                   value={phoneNumber}
                   onChangeText={(text) => {
                       setPhoneNumber(text);
-                      if (phoneError) setPhoneError(null); 
+                      if (phoneError) setPhoneError(null);
                   }}
                   keyboardType="phone-pad"
-                  
-                  
-                  error={!!phoneError} 
+                  error={!!phoneError}
                 />
-                
                 {phoneError && (
                   <HelperText type="error" visible={true} style={styles.helperTextFix}>
                     {phoneError}
                   </HelperText>
                 )}
-                
                 {!phoneError && orderType === OrderType.DELIVERY && (
                   <HelperText type="info" visible={true} style={styles.helperTextFix}>
                     Obligatorio para Domicilio
@@ -385,26 +338,21 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
               </View>
             )}
 
-            
             <View style={styles.sectionCompact}>
                 <AnimatedLabelInput
                   label="Notas de la Orden (Opcional)"
                   value={orderNotes}
                   onChangeText={setOrderNotes}
-                  
                 />
             </View>
 
-            
             <Divider style={styles.divider} />
 
-            
             <List.Section>
               {items.map((item) => {
                 return (
                   <List.Item
                     key={item.id}
-                    
                     title={`${item.quantity}x ${String(item.productName ?? "")}${item.variantName ? ` (${String(item.variantName ?? "")})` : ""}`}
                     description={() => {
                       const modifierString =
@@ -430,7 +378,6 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                       }
                     }}
                     right={() => {
-                      
                       return (
                         <View style={styles.itemActionsContainer}>
                           <View style={styles.quantityActions}>
@@ -467,10 +414,8 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
               })}
             </List.Section>
 
-            
             <Divider style={styles.divider} />
 
-            
             <View style={styles.totalsContainer}>
               <Text style={styles.totalsText}>Subtotal:</Text>
               <Text style={styles.totalsValue}>${subtotal.toFixed(2)}</Text>
@@ -483,16 +428,15 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
             </View>
           </ScrollView>
 
-          
           <View style={styles.footer}>
             <Button
               mode="contained"
               onPress={handleConfirm}
               disabled={
-                items.length === 0 || 
+                items.length === 0 ||
                 (orderType === OrderType.DINE_IN &&
-                  (!selectedAreaId || !selectedTableId)) || 
-                (orderType === OrderType.DELIVERY && (!phoneNumber || phoneNumber.trim() === '')) 
+                  (!selectedAreaId || !selectedTableId)) ||
+                (orderType === OrderType.DELIVERY && (!phoneNumber || phoneNumber.trim() === ''))
               }
               style={styles.confirmButton}
             >
@@ -501,29 +445,23 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
           </View>
         </View>
 
-        
         <DateTimePickerModal
           isVisible={isTimePickerVisible}
           mode="time"
-          minimumDate={new Date()} 
+          minimumDate={new Date()}
           onConfirm={handleTimeConfirm}
           onCancel={hideTimePicker}
-          date={scheduledTime || new Date()} 
-          locale="es_ES" 
-          
-          
-          
-          minuteInterval={15} 
+          date={scheduledTime || new Date()}
+          locale="es_ES"
+          minuteInterval={15}
         />
 
-        
         <ConfirmationModal
           visible={isTimeAlertVisible}
           title="Hora Inválida"
           message="No puedes seleccionar una hora que ya ha pasado. Por favor, elige una hora futura."
           confirmText="Entendido"
           onConfirm={() => setTimeAlertVisible(false)}
-          
         />
       </Modal>
     </Portal>
@@ -547,13 +485,12 @@ const createStyles = (theme: ReturnType<typeof useAppTheme>) =>
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-    
     scrollView: {
       flex: 1,
       paddingHorizontal: theme.spacing.m,
     },
     divider: {
-      marginVertical: theme.spacing.s, 
+      marginVertical: theme.spacing.s,
     },
     itemActionsContainer: {
       flexDirection: "row",
@@ -595,108 +532,83 @@ const createStyles = (theme: ReturnType<typeof useAppTheme>) =>
       fontSize: 18,
       color: theme.colors.primary,
     },
-    section: { 
-      marginBottom: theme.spacing.m, 
+    section: {
+      marginBottom: theme.spacing.m,
       marginTop: theme.spacing.s,
     },
-    sectionCompact: { 
-      marginBottom: 0, 
-      
-      
-      paddingBottom: theme.spacing.s, 
+    sectionCompact: {
+      marginBottom: 0,
+      paddingBottom: theme.spacing.s,
     },
-    dineInSelectorsRow: { 
+    dineInSelectorsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 0, 
-      gap: theme.spacing.s, 
+      marginBottom: 0,
+      gap: theme.spacing.s,
     },
-    dineInSelectorContainer: { 
-      flex: 1, 
-      
-      
+    dineInSelectorContainer: {
+      flex: 1,
     },
-    selectorLoader: { 
-      
+    selectorLoader: {
     },
-    sectionTitleContainer: { 
+    sectionTitleContainer: {
       flexDirection: 'row',
       alignItems: 'baseline',
       marginBottom: theme.spacing.xs,
     },
-    sectionTitle: { 
+    sectionTitle: {
       fontSize: 16,
       fontWeight: "bold",
-      marginBottom: theme.spacing.xs, 
+      marginBottom: theme.spacing.xs,
     },
-    sectionTitleOptional: { 
-      ...theme.fonts.bodySmall, 
-      color: theme.colors.onSurfaceVariant, 
-      marginLeft: theme.spacing.xs, 
-      
+    sectionTitleOptional: {
+      ...theme.fonts.bodySmall,
+      color: theme.colors.onSurfaceVariant,
+      marginLeft: theme.spacing.xs,
     },
     radioGroupHorizontal: {
       flexDirection: "row",
-      justifyContent: "space-around", 
+      justifyContent: "space-around",
       alignItems: "center",
       width: "100%",
-      paddingVertical: theme.spacing.xs, 
+      paddingVertical: theme.spacing.xs,
     },
-    
-    radioLabel: { 
-      marginLeft: 0, 
+    radioLabel: {
+      marginLeft: 0,
       fontSize: 11,
       textTransform: "uppercase",
-      
-      textAlign: 'center', 
+      textAlign: 'center',
     },
-    radioButtonItem: { 
-      paddingHorizontal: 0, 
-      paddingVertical: 4, 
-      flexShrink: 1, 
-      
-      flex: 1, 
-      marginHorizontal: 2, 
+    radioButtonItem: {
+      paddingHorizontal: 0,
+      paddingVertical: 4,
+      flexShrink: 1,
+      flex: 1,
+      marginHorizontal: 2,
     },
-    dropdownAnchor: { 
-      
-      
-      
-      
+    dropdownAnchor: {
     },
-    dropdownContent: { 
-      
-      
+    dropdownContent: {
     },
-    dropdownLabel: { 
-      
-      
-      
+    dropdownLabel: {
     },
-    helperTextFix: { 
-      marginTop: -6, 
-      marginBottom: theme.spacing.s, 
-      paddingHorizontal: 12, 
+    helperTextFix: {
+      marginTop: -6,
+      marginBottom: theme.spacing.s,
+      paddingHorizontal: 12,
     },
-    errorText: { 
-      
-      
-      
+    errorText: {
     },
     footer: {
       padding: theme.spacing.m,
       borderTopWidth: 1,
       borderTopColor: theme.colors.outlineVariant,
-      backgroundColor: theme.colors.surface, 
+      backgroundColor: theme.colors.surface,
     },
     confirmButton: {
-      
-      paddingVertical: theme.spacing.xs, 
+      paddingVertical: theme.spacing.xs,
     },
-    input: { 
-      
+    input: {
     },
-    
   });
-
 export default OrderCartDetail;
