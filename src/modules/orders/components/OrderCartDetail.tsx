@@ -24,19 +24,40 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useGetTablesByArea } from "@/modules/areasTables/services/tableService";
 import type { Table } from "@/modules/areasTables/types/areasTables.types";
-import { useCart } from "../context/CartContext";
+import { useCart, CartItem } from "../context/CartContext"; // Importar CartItem
+import { useAuthStore } from "@/app/store/authStore"; // Importar authStore
+
+// Definir la estructura esperada para los items en el DTO de backend
+interface OrderItemDtoForBackend {
+  productId: string;
+  productVariantId?: string | null;
+  quantity: number;
+  basePrice: number;
+  finalPrice: number;
+  preparationNotes?: string | null;
+  // Modifiers might need a different structure for backend, adjust if needed
+  // modifiers?: { modifierId: string; modifierOptionId?: string; quantity: number; price: number }[];
+}
+
+// Definir la estructura completa del payload para onConfirmOrder (y exportarla)
+export interface OrderDetailsForBackend {
+  userId: string; // Añadido
+  orderType: OrderType;
+  subtotal: number; // Añadido
+  total: number; // Añadido
+  items: OrderItemDtoForBackend[]; // Añadido
+  tableId?: string;
+  scheduledAt?: Date;
+  customerName?: string;
+  phoneNumber?: string;
+  deliveryAddress?: string;
+  notes?: string;
+}
 
 interface OrderCartDetailProps {
   visible: boolean;
-  onConfirmOrder: (details: {
-    orderType: OrderType;
-    tableId?: string;
-    scheduledAt?: Date;
-    customerName?: string; // Optional now
-    phoneNumber?: string;
-    deliveryAddress?: string;
-    notes?: string;
-  }) => void;
+  // Actualizar la firma de onConfirmOrder
+  onConfirmOrder: (details: OrderDetailsForBackend) => void;
   onClose?: () => void;
 }
 
@@ -47,7 +68,8 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
 }) => {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { items, removeItem, updateItemQuantity, subtotal, total, isCartVisible } = useCart();
+  const { items, removeItem, updateItemQuantity, subtotal, total, isCartVisible, clearCart } = useCart(); // Añadir clearCart
+  const { user } = useAuthStore(); // Obtener usuario autenticado
 
 
   const [orderType, setOrderType] = useState<OrderType>(OrderType.DINE_IN);
@@ -156,15 +178,44 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
     }
 
     
-    onConfirmOrder({
+    // Mapear items del carrito al formato esperado por el DTO del backend
+    const itemsForBackend: OrderItemDtoForBackend[] = items.map((item: CartItem) => ({
+      productId: item.productId,
+      productVariantId: item.variantId || null,
+      quantity: item.quantity,
+      basePrice: Number(item.unitPrice), // Asegurar que sea número
+      finalPrice: Number(item.totalPrice / item.quantity), // Asegurar que sea número
+      preparationNotes: item.preparationNotes || null,
+      // Mapear modifiers si es necesario y la estructura del backend es diferente
+    }));
+
+    // Construir el payload completo
+    const orderDetails: OrderDetailsForBackend = {
+      userId: user?.id || '', // Asegurarse de tener un userId
       orderType,
+      subtotal,
+      total,
+      items: itemsForBackend,
       tableId: orderType === OrderType.DINE_IN ? selectedTableId ?? undefined : undefined,
       scheduledAt: scheduledTime ?? undefined,
       customerName: orderType === OrderType.TAKE_AWAY ? customerName : undefined, // Only for TAKE_AWAY
       phoneNumber: (orderType === OrderType.TAKE_AWAY || orderType === OrderType.DELIVERY) ? phoneNumber : undefined,
       deliveryAddress: orderType === OrderType.DELIVERY ? deliveryAddress : undefined,
       notes: orderNotes || undefined,
-    });
+    };
+
+    // Validar userId antes de enviar
+    if (!orderDetails.userId) {
+        console.error("Error: Falta el ID del usuario al confirmar la orden.");
+        // Opcional: Mostrar un snackbar de error al usuario
+        // showSnackbar({ message: "Error: No se pudo identificar al usuario.", type: "error" });
+        return; // Detener el proceso si falta el userId
+    }
+
+
+    onConfirmOrder(orderDetails);
+    // Opcional: Limpiar el carrito después de confirmar (depende del flujo deseado)
+    // clearCart();
   };
 
   
@@ -344,11 +395,6 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                   {customerNameError}
                 </HelperText>
               )}
-              {!customerNameError && (
-                 <HelperText type="info" visible={true} style={styles.helperTextFix}>
-                     Obligatorio para Llevar
-                 </HelperText>
-              )}
             </View>
 
             {/* 2. Teléfono */}
@@ -414,21 +460,19 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                   {addressError}
                 </HelperText>
               )}
-              {!addressError && (
-                <HelperText type="info" visible={true} style={styles.helperTextFix}>
-                  Obligatorio para Domicilio
-                </HelperText>
-              )}
             </View>
 
             {/* 2. Teléfono */}
             <View style={[styles.sectionCompact, styles.fieldContainer]}>
               <SpeechRecognitionInput
+                key="phone-input-delivery" // Key única y específica
                 label="Teléfono *"
                 value={phoneNumber}
-                onChangeText={(text) => {
+                onChangeText={(text) => { // Asegurar que la función esté bien definida aquí
                   setPhoneNumber(text);
-                  if (phoneError) setPhoneError(null);
+                  if (phoneError) {
+                    setPhoneError(null);
+                  }
                 }}
                 keyboardType="phone-pad"
                 error={!!phoneError}
@@ -439,16 +483,12 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                   {phoneError}
                 </HelperText>
               )}
-               {!phoneError && (
-                  <HelperText type="info" visible={true} style={styles.helperTextFix}>
-                    Obligatorio para Domicilio
-                  </HelperText>
-                )}
             </View>
 
             {/* 3. Notas */}
             <View style={[styles.sectionCompact, styles.fieldContainer]}>
               <SpeechRecognitionInput
+                key="notes-input-delivery" // Key única y específica
                 label="Notas de la Orden (Opcional)"
                 value={orderNotes}
                 onChangeText={setOrderNotes}

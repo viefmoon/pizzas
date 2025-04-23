@@ -86,7 +86,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
           marginVertical: theme.spacing.s,
           marginHorizontal: theme.spacing.m,
         },
-        // Estilo para el subheader de configuración
+
         configSubheader: {
           ...theme.fonts.labelLarge, // Usar fuente más grande (igual a items)
           color: theme.colors.onSurfaceVariant,
@@ -194,7 +194,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                     index: 0, // Índice para OrdersStack
                     routes: [
                       {
-                        // Mantener el orden lógico de las rutas aunque el índice cambie
+
                         name: "OrdersStack",
                         state: {
                           routes: [{ name: "Orders" }],
@@ -217,7 +217,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
           <PaperDrawer.Section style={styles.drawerSection}>
             <Text style={styles.configSubheader}>Configuración</Text>
             {renderDrawerItem("MenuStack", "Menú", "menu", 1, () => {
-              // Nuevo índice 1
+
               props.navigation.dispatch(
                 CommonActions.reset({
                   index: 1, // Índice para MenuStack
@@ -243,7 +243,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               "tune",
               2,
               () => {
-                // Nuevo índice 2
+
                 props.navigation.dispatch(
                   CommonActions.reset({
                     index: 2, // Índice para ModifiersStack
@@ -315,6 +315,35 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                 );
               }
             )}
+
+
+            {renderDrawerItem(
+              "PrintersStack",
+              "Impresoras",
+              "printer",
+              5, // Nuevo índice 5
+              () => {
+                props.navigation.dispatch(
+                  CommonActions.reset({
+                    index: 5, // Índice para PrintersStack
+                    routes: [
+                      { name: "OrdersStack" }, // Mantener el orden lógico
+                      { name: "MenuStack" },
+                      { name: "ModifiersStack" },
+                      { name: "PreparationScreensStack" },
+                      { name: "AreasTablesStack" },
+                      {
+                        name: "PrintersStack",
+                        state: {
+                          routes: [{ name: "PrintersList" }], // Estado inicial
+                        },
+                      },
+                    ],
+                  })
+                );
+              }
+            )}
+
           </PaperDrawer.Section>
         </View>
       </DrawerContentScrollView>

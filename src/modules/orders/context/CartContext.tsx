@@ -75,8 +75,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [items]);
 
   const total = useMemo(() => {
-    
-    return subtotal * 1.16;
+    // Por ahora, el total es igual al subtotal. Se añadirán impuestos/descuentos después.
+    return subtotal;
   }, [subtotal]);
 
   const isCartEmpty = items.length === 0;

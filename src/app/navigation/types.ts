@@ -1,20 +1,22 @@
+
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { DrawerScreenProps as NavigationDrawerScreenProps } from "@react-navigation/drawer";
 import type { NavigatorScreenParams } from "@react-navigation/native";
 import type { MenuStackParamList } from "../../modules/menu/navigation/types";
-import type { PreparationScreensStackParamList } from "../../modules/preparationScreens/navigation/types"; // Corregido: Importar desde types.ts
-import type { AreasTablesStackParamList } from "../../modules/areasTables/navigation/types"; // Importar los tipos del nuevo stack
+import type { PreparationScreensStackParamList } from "../../modules/preparationScreens/navigation/types";
+import type { AreasTablesStackParamList } from "../../modules/areasTables/navigation/types";
+import type { PrintersStackParamList } from '../../modules/printers/navigation/types'; // Importar tipos de impresoras
+
 export type AuthStackParamList = {
   Login: undefined;
-  // Register: undefined; // Comentado si no se usa
+
 };
 
-// Tipos para el Stack de Órdenes
 export type OrdersStackParamList = {
   Orders: undefined; // Pantalla principal del módulo de órdenes
   CreateOrder: undefined; // Pantalla para crear una nueva orden
-  // Add other screens for the orders module here, e.g.:
-  // OrderDetail: { orderId: string };
+
+
 };
 
 export type OrdersStackScreenProps<T extends keyof OrdersStackParamList> =
@@ -38,7 +40,9 @@ export type AppDrawerParamList = {
   PreparationScreensStack: NavigatorScreenParams<PreparationScreensStackParamList>; // Renombrado para consistencia
   AreasTablesStack: NavigatorScreenParams<AreasTablesStackParamList>; // Añadir el nuevo stack al Drawer
   OrdersStack: NavigatorScreenParams<OrdersStackParamList>; // Añadir el stack de órdenes al Drawer
+  PrintersStack: NavigatorScreenParams<PrintersStackParamList>; // Añadir el stack de impresoras DENTRO del bloque
 };
+
 
 export type DrawerScreenProps<T extends keyof AppDrawerParamList> =
   NavigationDrawerScreenProps<AppDrawerParamList, T>;
@@ -51,6 +55,7 @@ declare global {
         ModifiersStackParamList,
         PreparationScreensStackParamList,
         AreasTablesStackParamList,
-        OrdersStackParamList {} // Añadir los parámetros del stack de órdenes a RootParamList
- }
+        OrdersStackParamList,
+        PrintersStackParamList {} 
+  }
 }

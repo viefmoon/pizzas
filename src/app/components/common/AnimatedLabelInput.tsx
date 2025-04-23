@@ -22,6 +22,7 @@ interface AnimatedLabelInputProps extends TextInputProps {
   activeBorderColor?: string;
   error?: boolean;
   errorColor?: string;
+  disabled?: boolean; 
 }
 
 const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
@@ -41,6 +42,7 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
   error = false,
   errorColor: customErrorColor,
   multiline,
+  disabled = false, // Añadir disabled a las props destructuradas
   ...rest
 }) => {
   const theme = useAppTheme();
@@ -117,7 +119,7 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
     input: {
       flex: 1,
       fontSize: 16,
-      color: theme.colors.onSurface,
+      color: disabled ? theme.colors.onSurfaceDisabled : theme.colors.onSurface, // Aplicar color si está deshabilitado
       paddingVertical: 0,
       paddingHorizontal: 0,
       margin: 0,
@@ -175,6 +177,7 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
           underlineColorAndroid="transparent"
           placeholderTextColor={finalInactiveLabelColor}
           multiline={multiline}
+          editable={!disabled}
           {...rest}
         />
       </View>

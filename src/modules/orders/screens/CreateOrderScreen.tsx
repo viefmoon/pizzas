@@ -15,8 +15,10 @@ import {
   Appbar,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native"; 
+import { useNavigation } from "@react-navigation/native";
 import { useGetFullMenu } from "../hooks/useMenuQueries";
+// Importar el hook de mutación para crear órdenes
+import { useCreateOrderMutation } from "@/modules/orders/hooks/useOrdersQueries"; // Usar ruta absoluta
 import { useCart, CartProvider } from "../context/CartContext";
 import { CartItemModifier } from "../context/CartContext";
 import {
@@ -24,6 +26,7 @@ import {
   Product,
   Category,
   SubCategory,
+  Order, // Importar el tipo Order
 } from "../types/orders.types";
 import { Image } from "expo-image";
 import { getImageUrl } from "@/app/lib/imageUtils";
@@ -32,8 +35,13 @@ import OrderCartDetail from "../components/OrderCartDetail";
 import ProductCustomizationModal from "../components/ProductCustomizationModal";
 import CartButton from "../components/CartButton";
 import ConfirmationModal from "@/app/components/common/ConfirmationModal";
+import { useSnackbarStore } from "@/app/store/snackbarStore"; // Importar snackbar
+import { getApiErrorMessage } from "@/app/lib/errorMapping"; // Importar mapeo de errores
 
 import { useAppTheme } from "@/app/styles/theme";
+// Importar el tipo completo para el payload de confirmación
+import type { OrderDetailsForBackend } from "../components/OrderCartDetail";
+
 
 interface CartButtonHandle {
   animate: () => void;
@@ -57,6 +65,10 @@ const CreateOrderScreen = () => {
     hideCart,
     clearCart,
   } = useCart();
+  const showSnackbar = useSnackbarStore((state) => state.showSnackbar); // Hook para snackbar
+
+  // Instanciar la mutación para crear la orden
+  const createOrderMutation = useCreateOrderMutation();
 
   const cartButtonRef = useRef<CartButtonHandle>(null);
 
@@ -155,15 +167,34 @@ const CreateOrderScreen = () => {
     hideCart();
   }, [hideCart]);
 
-  const handleConfirmOrder = (details: {
-    orderType: OrderType;
-    tableId?: string;
-    scheduledAt?: Date; 
-    phoneNumber?: string; 
-    notes?: string; 
-  }) => {
-    console.log("Confirmar orden con detalles:", details); 
-    hideCart();
+  // Actualizar handleConfirmOrder para usar la mutación
+  const handleConfirmOrder = async (details: OrderDetailsForBackend) => {
+    console.log("Intentando confirmar orden con detalles:", details);
+    try {
+      // Llamar a la mutación para enviar la orden al backend
+      await createOrderMutation.mutateAsync(details, {
+        onSuccess: (createdOrder: Order) => { // Añadir tipo explícito Order
+          // Usar 'orderNumber' en lugar de 'dailyNumber'
+          showSnackbar({ message: `Orden #${createdOrder.orderNumber} creada con éxito`, type: "success" });
+          hideCart();
+          clearCart(); // Limpiar carrito después de éxito
+          // Opcional: Navegar a otra pantalla, por ejemplo, la lista de órdenes
+          // navigation.navigate('Orders'); // Asegúrate de que 'Orders' exista en tu stack
+          navigation.goBack(); // O simplemente volver atrás
+        },
+        onError: (error: Error) => { // Añadir tipo explícito Error
+          // El manejo de errores con snackbar ya debería estar en el hook useCreateOrderMutation
+          // Si no, puedes añadirlo aquí:
+           const message = getApiErrorMessage(error);
+           showSnackbar({ message: `Error al crear orden: ${message}`, type: "error" });
+          console.error("Error al crear la orden:", error);
+        },
+      });
+    } catch (error) {
+      // Captura errores si mutateAsync lanza (aunque onError del hook es preferible)
+      console.error("Error inesperado al llamar a mutateAsync:", error);
+      showSnackbar({ message: "Error inesperado al enviar la orden.", type: "error" });
+    }
   };
 
   const handleAddItem = (

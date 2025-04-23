@@ -5,7 +5,9 @@ import { MenuStackNavigator } from "../../modules/menu/navigation/MenuStackNavig
 import ModifiersStackNavigator from "../../modules/modifiers/navigation/ModifiersStackNavigator";
 import PreparationScreensStackNavigator from "../../modules/preparationScreens/navigation/PreparationScreensStackNavigator";
 import AreasTablesStackNavigator from "../../modules/areasTables/navigation/AreasTablesStackNavigator";
-import OrdersStackNavigator from "./OrdersStackNavigator"; // Importar el nuevo Stack Navigator
+import OrdersStackNavigator from "./OrdersStackNavigator";
+import PrintersStackNavigator from "../../modules/printers/navigation/PrintersStackNavigator";
+
 import { CustomDrawerContent } from "./components/CustomDrawerContent";
 import { useAppTheme } from "../styles/theme";
 import { Icon, Surface } from "react-native-paper";
@@ -101,6 +103,10 @@ export function AppDrawerNavigator() {
               case "OrdersStack":
                 title = "Órdenes";
                 break;
+              case "PrintersStack":
+                title = "Impresoras";
+                break;
+
               default:
                 title = children?.toString() || "";
             }
@@ -171,6 +177,18 @@ export function AppDrawerNavigator() {
             ),
           }}
         />
+
+        <Drawer.Screen
+          name="PrintersStack"
+          component={PrintersStackNavigator}
+          options={{
+            title: "Impresoras",
+            drawerIcon: ({ color, size }) => (
+              <Icon source="printer" color={color} size={size} />
+            ),
+          }}
+        />
+
       </Drawer.Navigator>
     </>
   );

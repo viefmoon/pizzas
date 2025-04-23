@@ -33,7 +33,7 @@ export const authEmailLoginDtoSchema = z.object({
 export type AuthEmailLoginDto = z.infer<typeof authEmailLoginDtoSchema>;
 
 export const userSchema = z.object({
-  id: z.number(),
+  id: z.string().uuid("El ID de usuario debe ser un UUID válido"), // Cambiado a string().uuid()
   email: z.string().email().nullable(),
   username: z.string().nullable(),
   firstName: z.string().nullable(),
