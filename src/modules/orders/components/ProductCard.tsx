@@ -3,7 +3,8 @@ import { StyleSheet, View } from "react-native";
 import { Card, Title, Paragraph, Text, useTheme } from "react-native-paper";
 import { Image } from "expo-image";
 import { getImageUrl } from "@/app/lib/imageUtils";
-import type { Product, ProductVariant } from "../types/orders.types"; // Añadir ProductVariant
+import type { Product } from "../../../app/types/domain/product.types";
+import type { ProductVariant } from "../../../app/types/domain/product-variant.types";
 import { useAppTheme } from "@/app/styles/theme";
 
 interface ProductCardProps {

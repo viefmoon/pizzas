@@ -16,7 +16,9 @@ export const API_PATHS = {
   MODIFIER_GROUPS: "/api/v1/modifier-groups",
 
 
-  ORDERS: "/api/v1/orders", // Añadir ruta para órdenes
+  ORDERS: "/api/v1/orders",
+  ORDERS_OPEN_TODAY: "/api/v1/orders/open-today",
+  PRINT_ORDER_TICKET: "/api/v1/print/order", // Ruta para solicitar impresión de ticket
 
   THERMAL_PRINTERS: "/api/v1/thermal-printers",
 

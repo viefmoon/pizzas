@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet } from 'react-native'; // FlatList eliminado
+import { FlashList, ListRenderItemInfo } from "@shopify/flash-list"; // Importar FlashList y tipo
 import {
   Modal,
   Portal,
@@ -59,7 +60,7 @@ const PrinterDiscoveryModal: React.FC<PrinterDiscoveryModalProps> = ({
     discoverMutation.mutate(undefined); // Volver a escanear con duración por defecto
   };
 
-  const renderPrinterItem = ({ item }: { item: DiscoveredPrinter }) => (
+  const renderPrinterItem = ({ item }: ListRenderItemInfo<DiscoveredPrinter>) => ( // Añadir tipo
     <List.Item
       title={item.name || item.ip} // Mostrar nombre o IP si no hay nombre
       description={`IP: ${item.ip}:${item.port}${item.mac ? ` | MAC: ${item.mac}` : ''}${item.model ? ` (${item.model})` : ''}`}
@@ -124,10 +125,11 @@ const PrinterDiscoveryModal: React.FC<PrinterDiscoveryModalProps> = ({
                 <>
                   {/* Texto estilizado */}
                   <Text style={styles.foundText}>Impresoras encontradas:</Text>
-                  <FlatList
+                  <FlashList
                     data={discoverMutation.data}
                     renderItem={renderPrinterItem}
-                    keyExtractor={(item) => `${item.ip}:${item.port}`} // Clave única
+                    keyExtractor={(item: DiscoveredPrinter) => `${item.ip}:${item.port}`} // Añadir tipo y clave única
+                    estimatedItemSize={70} // Añadir tamaño estimado
                     ItemSeparatorComponent={() => <Divider style={styles.divider} />}
                     style={styles.list}
                   />

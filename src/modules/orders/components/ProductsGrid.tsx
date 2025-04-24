@@ -2,11 +2,11 @@ import React from "react";
 import {
   StyleSheet,
   View,
-  FlatList,
   ActivityIndicator,
   Text,
 } from "react-native";
-import type { Product } from "../types/orders.types";
+import type { Product } from "../../../app/schemas/domain/product.schema"; // Ruta corregida
+import { FlashList, ListRenderItemInfo } from "@shopify/flash-list"; // Importar FlashList y tipo
 import ProductCard from "./ProductCard";
 import { useAppTheme } from "@/app/styles/theme";
 
@@ -80,12 +80,13 @@ const ProductsGrid = ({
   }
 
   return (
-    <FlatList
+    <FlashList
       data={products}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <ProductCard product={item} onPress={onProductPress} />
+      keyExtractor={(item: Product) => item.id} // Añadir tipo Product
+      renderItem={({ item }: ListRenderItemInfo<Product>) => ( // Añadir tipo Product
+        <ProductCard product={item} onPress={() => onProductPress(item)} /> // Asegurar que onProductPress reciba el item
       )}
+      estimatedItemSize={250} // Añadir tamaño estimado
       contentContainerStyle={{ paddingBottom: 80 }}
     />
   );

@@ -13,8 +13,7 @@ function OrdersScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<OrdersStackParamList>>(); // Hook de navegación
 
   const handleOpenOrders = () => {
-    // TODO: Implementar navegación a pantalla de órdenes abiertas
-    console.log('Navegar a Órdenes Abiertas');
+    navigation.navigate('OpenOrders'); // Navegar a la pantalla de órdenes abiertas
   };
 
   const handleCreateOrder = () => {

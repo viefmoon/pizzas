@@ -1,18 +1,8 @@
 import { z } from "zod";
+// Importar el tipo de dominio centralizado
+import type { Table } from "../../../app/schemas/domain/table.schema";
 
-export const TableSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  areaId: z.string().uuid(),
-  capacity: z.number().int().nullable().optional(),
-  isActive: z.boolean(),
-  isAvailable: z.boolean(),
-  isTemporary: z.boolean(),
-  temporaryIdentifier: z.string().nullable().optional(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
-});
-
+// Schemas específicos para DTOs (Create, Update, FindAll) permanecen aquí
 export const CreateTableSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   capacity: z.preprocess(
@@ -25,6 +15,7 @@ export const CreateTableSchema = z.object({
       .optional()
   ),
   isActive: z.boolean().optional().default(true),
+  // areaId se añadirá en el servicio al crear, no viene del formulario directamente
 });
 
 export const UpdateTableSchema = z.object({
@@ -39,9 +30,9 @@ export const UpdateTableSchema = z.object({
       .optional()
   ),
   isActive: z.boolean().optional(),
+  // areaId no se suele actualizar, pero si fuera necesario, se añadiría aquí
 });
 
-export type Table = z.infer<typeof TableSchema>;
 export type CreateTableDto = z.infer<typeof CreateTableSchema>;
 export type UpdateTableDto = z.infer<typeof UpdateTableSchema>;
 
@@ -60,3 +51,6 @@ export const FindAllTablesSchema = z.object({
   isTemporary: z.preprocess(transformBoolean, z.boolean().optional()),
 });
 export type FindAllTablesDto = z.infer<typeof FindAllTablesSchema>;
+
+// Re-exportar el tipo de dominio para conveniencia del módulo
+export type { Table };

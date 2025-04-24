@@ -1,14 +1,8 @@
 import { z } from "zod";
+// Importar el tipo central
+import type { Area } from "../../../app/schemas/domain/area.schema";
 
-export const AreaSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  description: z.string().nullable().optional(),
-  isActive: z.boolean(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
-});
-
+// Schemas específicos para DTOs (Create, Update, FindAll) permanecen aquí
 export const CreateAreaSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().optional(),
@@ -21,7 +15,6 @@ export const UpdateAreaSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export type Area = z.infer<typeof AreaSchema>;
 export type CreateAreaDto = z.infer<typeof CreateAreaSchema>;
 export type UpdateAreaDto = z.infer<typeof UpdateAreaSchema>;
 
@@ -30,3 +23,6 @@ export const FindAllAreasSchema = z.object({
   isActive: z.boolean().optional(),
 });
 export type FindAllAreasDto = z.infer<typeof FindAllAreasSchema>;
+
+// Re-exportar el tipo de dominio si es conveniente para el módulo
+export type { Area };

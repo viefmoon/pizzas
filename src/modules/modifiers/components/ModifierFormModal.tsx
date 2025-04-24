@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback } from "react";
+import { z } from "zod"; // Importar z para la aserción de tipo
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SubmitHandler } from "react-hook-form";
 
@@ -12,7 +13,7 @@ import { modifierService } from "../services/modifierService";
 import { ModifierFormInputs } from "../types/modifier.types";
 import {
   Modifier,
-  modifierSchema,
+  modifierFormValidationSchema, // Cambiado de modifierSchema
   CreateModifierInput,
   UpdateModifierInput,
 } from "../schema/modifier.schema";
@@ -55,7 +56,11 @@ const formFields: FormFieldConfig<ModifierFormInputs>[] = [
   { name: "isActive", label: "Activo", type: "switch", defaultValue: true },
 ];
 
-const formSchema = modifierSchema.omit({ groupId: true });
+// Usar el schema de validación del formulario y omitir groupId si es necesario
+// Nota: modifierFormValidationSchema ya no incluye groupId, por lo que omit() no es estrictamente necesario aquí
+// Si necesitas omitir otros campos en el futuro, puedes hacerlo así:
+// const formSchema = modifierFormValidationSchema.omit({ /* otros campos */ });
+const formSchema = modifierFormValidationSchema; // Usar el schema directamente
 
 const ModifierFormModal: React.FC<Props> = ({
   visible,
@@ -139,7 +144,7 @@ const ModifierFormModal: React.FC<Props> = ({
       visible={visible}
       onDismiss={onDismiss}
       onSubmit={handleFormSubmit}
-      formSchema={formSchema}
+      formSchema={formSchema as z.ZodSchema<ModifierFormInputs>}
       formFields={formFields}
       editingItem={initialData ?? null}
       isSubmitting={mutation.isPending}

@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useIsFocused } from "@react-navigation/native";
 import {
-  FlatList,
   StyleSheet,
   RefreshControl,
   ViewStyle,
@@ -9,6 +8,7 @@ import {
   View,
   TextStyle,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list"; // Importar FlashList
 import {
   List,
   Chip,
@@ -434,13 +434,11 @@ const GenericList = <TItem extends { id: string }>({
     ]
   );
 
+  // Simplificado: contentContainerStyle solo debe tener padding/backgroundColor.
+  // El centrado del contenido vacío se maneja en el ListEmptyComponent.
   const finalContentContainerStyle = useMemo(() => {
-    const baseStyle =
-      processedItems.length === 0 && !currentSearchTerm
-        ? styles.emptyListContainer
-        : styles.defaultContentContainer;
-    return StyleSheet.flatten([baseStyle, contentContainerStyle]);
-  }, [processedItems, currentSearchTerm, styles, contentContainerStyle]);
+    return StyleSheet.flatten([styles.defaultContentContainer, contentContainerStyle]);
+  }, [styles.defaultContentContainer, contentContainerStyle]);
 
   return (
     <View style={styles.listContainer}>
@@ -497,10 +495,11 @@ const GenericList = <TItem extends { id: string }>({
         </View>
       )}
 
-      <FlatList
+      <FlashList
         data={processedItems}
         renderItem={renderGenericItem}
         keyExtractor={(item) => item.id}
+        estimatedItemSize={80} // Añadir tamaño estimado del item
         style={listStyle}
         contentContainerStyle={finalContentContainerStyle}
         ListEmptyComponent={

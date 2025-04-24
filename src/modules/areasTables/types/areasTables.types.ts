@@ -1,25 +1,11 @@
-/** Representa una mesa dentro de un área */
-export interface Table {
-  id: string; // o number, según tu backend
-  name: string; // Nombre o número de la mesa (ej. "Mesa 5", "Barra 1")
-  areaId: string; // ID del área a la que pertenece
-  capacity?: number | null; // Capacidad de la mesa (opcional, puede ser null)
-  isActive: boolean;
-  // Otros campos relevantes (ej. status: 'available' | 'occupied')
-}
+// Importar tipos de dominio centralizados
+import type { Area } from '../../../app/types/domain/area.types';
+import type { Table } from '../../../app/types/domain/table.types';
 
-/** Representa un área del local (ej. Salón Principal, Terraza) */
-export interface Area {
-  id: string; // o number
-  name: string;
-  isActive: boolean;
-  // Podría incluir una lista de mesas si la API las devuelve juntas,
-  // pero es más flexible cargarlas por separado.
-  // tables?: Table[];
-}
+// Re-exportar tipos de dominio para uso dentro del módulo
+export type { Area, Table };
 
-// Podrías añadir DTOs para Crear/Actualizar si es necesario
-// export interface CreateAreaDto { ... }
-// export interface UpdateAreaDto { ... }
-// export interface CreateTableDto { ... }
-// export interface UpdateTableDto { ... }
+// Los DTOs y tipos de formulario (CreateAreaDto, UpdateAreaDto, CreateTableDto, UpdateTableDto, etc.)
+// se definen y exportan desde los archivos de schema correspondientes:
+// - ../schema/area.schema.ts
+// - ../schema/table.schema.ts

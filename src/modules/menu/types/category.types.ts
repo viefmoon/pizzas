@@ -1,24 +1,9 @@
-/**
- * Representa la estructura de una foto asociada a una categoría.
- */
-export interface CategoryPhoto {
-  id: string;
-  path: string;
-}
-
-/**
- * Representa una categoría del menú.
- */
-export interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  isActive: boolean;
-  photo: CategoryPhoto | null;
-}
+// Tipos de dominio centralizados en src/app/types/domain/
+// import type { Category, CategoryPhoto } from '../../../app/types/domain/category.types';
 
 /**
  * Estructura genérica para respuestas paginadas de la API.
+ * TODO: Mover a un archivo de tipos comunes de API si se usa en más módulos.
  */
 export interface PaginatedResponse<T> {
   data: T[];
@@ -32,5 +17,6 @@ export interface PaginatedResponse<T> {
 
 export type ActiveFilter = "all" | "active" | "inactive";
 
-// Zod schemas (categoryPhotoSchema, categorySchema, CreateCategoryDto, etc.)
-// are defined in ../schema/category.schema.ts
+// Los tipos inferidos de Zod (CreateCategoryDto, UpdateCategoryDto, CategoryFormData)
+// se definen y exportan directamente desde ../schema/category.schema.ts
+// y se usan donde se necesiten los tipos específicos del schema/formulario.

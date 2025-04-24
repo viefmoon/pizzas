@@ -15,6 +15,7 @@ export type AuthStackParamList = {
 export type OrdersStackParamList = {
   Orders: undefined; // Pantalla principal del módulo de órdenes
   CreateOrder: undefined; // Pantalla para crear una nueva orden
+  OpenOrders: undefined; // Pantalla para ver órdenes abiertas
 
 
 };

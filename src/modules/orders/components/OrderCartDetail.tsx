@@ -13,7 +13,7 @@ import {
   Portal,
 } from "react-native-paper";
 import { useAppTheme } from "@/app/styles/theme";
-import { OrderType } from "../types/orders.types";
+import { OrderTypeEnum, type OrderType } from "../types/orders.types"; // Importar OrderTypeEnum y el tipo OrderType
 import { useGetAreas } from "@/modules/areasTables/services/areaService";
 import OrderHeader from "./OrderHeader";
 import AnimatedLabelSelector from "@/app/components/common/AnimatedLabelSelector";
@@ -72,7 +72,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
   const { user } = useAuthStore(); // Obtener usuario autenticado
 
 
-  const [orderType, setOrderType] = useState<OrderType>(OrderType.DINE_IN);
+  const [orderType, setOrderType] = useState<OrderType>(OrderTypeEnum.DINE_IN); // Usar Enum
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [areaMenuVisible, setAreaMenuVisible] = useState(false);
@@ -109,23 +109,23 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
     setPhoneError(null);
     setAddressError(null);
 
-    if (orderType !== OrderType.DINE_IN) {
+    if (orderType !== OrderTypeEnum.DINE_IN) { // Usar Enum
       setSelectedAreaId(null);
       setSelectedTableId(null);
     }
-    if (orderType !== OrderType.TAKE_AWAY) {
+    if (orderType !== OrderTypeEnum.TAKE_AWAY) { // Usar Enum
        // If switching away from take away, clear name if needed
        // setCustomerName(''); // Uncomment if name should clear
     }
-     if (orderType !== OrderType.DELIVERY) {
+     if (orderType !== OrderTypeEnum.DELIVERY) { // Usar Enum
         setDeliveryAddress(''); // Clear address if not delivery
      }
-     if (orderType === OrderType.DINE_IN) {
+     if (orderType === OrderTypeEnum.DINE_IN) { // Usar Enum
         setCustomerName('');
         setPhoneNumber('');
         setDeliveryAddress('');
      }
-     if (orderType === OrderType.TAKE_AWAY) {
+     if (orderType === OrderTypeEnum.TAKE_AWAY) { // Usar Enum
         setDeliveryAddress('');
      }
 
@@ -144,7 +144,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
 
     let isValid = true;
 
-    if (orderType === OrderType.DINE_IN) {
+    if (orderType === OrderTypeEnum.DINE_IN) { // Usar Enum
       if (!selectedAreaId) {
         setAreaError("Debe seleccionar un área");
         isValid = false;
@@ -153,13 +153,13 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
         setTableError("Debe seleccionar una mesa");
         isValid = false;
       }
-    } else if (orderType === OrderType.TAKE_AWAY) {
+    } else if (orderType === OrderTypeEnum.TAKE_AWAY) { // Usar Enum
         if (!customerName || customerName.trim() === '') {
             setCustomerNameError("El nombre del cliente es obligatorio");
             isValid = false;
         }
         // Phone is optional for take away
-    } else if (orderType === OrderType.DELIVERY) {
+    } else if (orderType === OrderTypeEnum.DELIVERY) { // Usar Enum
         // Customer name not required for delivery as per new spec
         if (!deliveryAddress || deliveryAddress.trim() === '') {
             setAddressError("La dirección es obligatoria para Domicilio");
@@ -196,11 +196,11 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
       subtotal,
       total,
       items: itemsForBackend,
-      tableId: orderType === OrderType.DINE_IN ? selectedTableId ?? undefined : undefined,
+      tableId: orderType === OrderTypeEnum.DINE_IN ? selectedTableId ?? undefined : undefined, // Usar Enum
       scheduledAt: scheduledTime ?? undefined,
-      customerName: orderType === OrderType.TAKE_AWAY ? customerName : undefined, // Only for TAKE_AWAY
-      phoneNumber: (orderType === OrderType.TAKE_AWAY || orderType === OrderType.DELIVERY) ? phoneNumber : undefined,
-      deliveryAddress: orderType === OrderType.DELIVERY ? deliveryAddress : undefined,
+      customerName: orderType === OrderTypeEnum.TAKE_AWAY ? customerName : undefined, // Only for TAKE_AWAY // Usar Enum
+      phoneNumber: (orderType === OrderTypeEnum.TAKE_AWAY || orderType === OrderTypeEnum.DELIVERY) ? phoneNumber : undefined, // Usar Enum
+      deliveryAddress: orderType === OrderTypeEnum.DELIVERY ? deliveryAddress : undefined, // Usar Enum
       notes: orderNotes || undefined,
     };
 
@@ -258,7 +258,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
   // Helper function to render fields in order
   const renderFields = () => {
     switch (orderType) {
-      case OrderType.DINE_IN:
+      case OrderTypeEnum.DINE_IN: // Usar Enum
         return (
           <>
             {/* 1. Área */}
@@ -375,7 +375,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
             </View>
           </>
         );
-      case OrderType.TAKE_AWAY:
+      case OrderTypeEnum.TAKE_AWAY: // Usar Enum
         return (
           <>
             {/* 1. Nombre Cliente */}
@@ -439,7 +439,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
             </View>
           </>
         );
-      case OrderType.DELIVERY:
+      case OrderTypeEnum.DELIVERY: // Usar Enum
         return (
           <>
             {/* 1. Dirección */}
@@ -541,21 +541,21 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
                 <View style={styles.radioGroupHorizontal}>
                   <RadioButton.Item
                     label="COMER AQUÍ"
-                    value={OrderType.DINE_IN}
+                    value={OrderTypeEnum.DINE_IN} // Usar Enum
                     style={styles.radioButtonItem}
                     labelStyle={styles.radioLabel}
                     position="leading"
                   />
                   <RadioButton.Item
                     label="PARA LLEVAR"
-                    value={OrderType.TAKE_AWAY}
+                    value={OrderTypeEnum.TAKE_AWAY} // Usar Enum
                     style={styles.radioButtonItem}
                     labelStyle={styles.radioLabel}
                     position="leading"
                   />
                   <RadioButton.Item
                     label="DOMICILIO"
-                    value={OrderType.DELIVERY}
+                    value={OrderTypeEnum.DELIVERY} // Usar Enum
                     style={styles.radioButtonItem}
                     labelStyle={styles.radioLabel}
                     position="leading"
@@ -674,10 +674,10 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
               onPress={handleConfirm}
               disabled={
                 items.length === 0 ||
-                (orderType === OrderType.DINE_IN && (!selectedAreaId || !selectedTableId)) ||
-                (orderType === OrderType.TAKE_AWAY && (!customerName || customerName.trim() === '')) ||
-                (orderType === OrderType.DELIVERY && (!deliveryAddress || deliveryAddress.trim() === '')) ||
-                (orderType === OrderType.DELIVERY && (!phoneNumber || phoneNumber.trim() === ''))
+                (orderType === OrderTypeEnum.DINE_IN && (!selectedAreaId || !selectedTableId)) || // Usar Enum
+                (orderType === OrderTypeEnum.TAKE_AWAY && (!customerName || customerName.trim() === '')) || // Usar Enum
+                (orderType === OrderTypeEnum.DELIVERY && (!deliveryAddress || deliveryAddress.trim() === '')) || // Usar Enum
+                (orderType === OrderTypeEnum.DELIVERY && (!phoneNumber || phoneNumber.trim() === '')) // Usar Enum
               }
               style={styles.confirmButton}
             >

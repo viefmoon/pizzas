@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import { Card, Text } from 'react-native-paper';
-import type { SubCategory } from '../types/orders.types';
+import type { SubCategory } from '../../../app/types/domain/subcategory.types';
 import { useAppTheme } from '@/app/styles/theme';
 
 interface SubCategorySelectorProps {

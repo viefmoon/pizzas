@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDrawerStatus } from '@react-navigation/drawer';
 
 import { modifierGroupService } from '../services/modifierGroupService';
-import { ModifierGroup } from '../types/modifierGroup.types';
+import { ModifierGroup } from '../schema/modifierGroup.schema'; // Corregir ruta de importación
 import { useAppTheme, AppTheme } from '@/app/styles/theme';
 import { useSnackbarStore } from '@/app/store/snackbarStore';
 import { getApiErrorMessage } from '@/app/lib/errorMapping';
@@ -88,8 +88,15 @@ const ModifierGroupsScreen = () => {
     handleCloseModals();
   };
 
-  const handleFilterChange = (value: StatusFilter) => {
-    setStatusFilter(value);
+  const handleFilterChange = (value: string | number) => {
+    // Validar que el valor sea uno de los StatusFilter esperados
+    if (value === 'all' || value === 'active' || value === 'inactive') {
+      setStatusFilter(value as StatusFilter);
+    } else {
+      // Opcional: manejar valor inesperado, por ahora default a 'all'
+      console.warn(`Valor de filtro inesperado recibido: ${value}, usando 'all'.`);
+      setStatusFilter('all');
+    }
   };
 
   const handleRefresh = () => {
@@ -162,7 +169,7 @@ const ModifierGroupsScreen = () => {
         onRefresh={handleRefresh}
         isRefreshing={isRefetching}
         ListEmptyComponent={ListEmptyComponent}
-        isLoading={isLoading && !isRefetching}
+        isLoading={isLoading} // Pasar directamente el estado de carga principal
         enableSearch={true}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
