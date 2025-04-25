@@ -75,11 +75,6 @@ const AnimatedLabelInput: React.FC<AnimatedLabelInputProps> = ({
     onBlur?.(e);
   };
 
-  const labelTranslateY = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -28],
-  });
-
   const labelScale = animation.interpolate({
     inputRange: [0, 1],
     outputRange: [1, 0.75],

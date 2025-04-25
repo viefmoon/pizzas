@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import EncryptedStorage from "react-native-encrypted-storage";
-import type { User } from "../../modules/auth/types/auth.types";
+import type { User } from "../../modules/auth/schema/auth.schema"; // Corregida ruta de importación
 
 const AUTH_TOKEN_KEY = "auth_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
@@ -38,7 +38,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  // Advertencia: setAccessToken no actualiza el user, usar con cuidado.
   setAccessToken: async (accessToken: string) => {
     try {
       await EncryptedStorage.setItem(AUTH_TOKEN_KEY, accessToken);
@@ -88,7 +87,6 @@ export const initializeAuthStore = async () => {
             await EncryptedStorage.removeItem(USER_INFO_KEY);
         }
     }
-    // console.log("[authStore] initializeAuthStore: User leído:", JSON.stringify(user, null, 2)); // Log opcional
 
     if (accessToken && refreshToken) {
       useAuthStore.setState({ accessToken, refreshToken, user, isAuthenticated: true });

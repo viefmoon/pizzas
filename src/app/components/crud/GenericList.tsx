@@ -19,7 +19,7 @@ import {
   FAB,
   Portal,
 } from "react-native-paper";
-import type { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon";
+// import type { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon"; // Eliminado: No usado
 import AutoImage from "../common/AutoImage";
 import { useAppTheme, AppTheme } from "../../styles/theme";
 import { getImageUrl } from "../../lib/imageUtils";
@@ -175,7 +175,7 @@ const GenericList = <TItem extends { id: string }>({
   onRefresh,
   isRefreshing,
   ListEmptyComponent,
-  isLoading = false,
+  // isLoading = false, // Eliminado: No usado
   listStyle,
   listItemStyle,
   contentContainerStyle,
@@ -327,7 +327,7 @@ const GenericList = <TItem extends { id: string }>({
           renderConfig.statusConfig;
         const isActive = item[field] === activeValue;
         const chipLabel = isActive ? activeLabel : inactiveLabel;
-        const chipIcon = isActive ? "check-circle" : "close-circle";
+        // const chipIcon = isActive ? "check-circle" : "close-circle"; // Eliminado: No usado
 
         statusChip = (props: {
           color: string;

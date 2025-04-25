@@ -22,7 +22,7 @@ import {
   Switch,
   HelperText,
   ActivityIndicator,
-  Divider,
+  // Divider, // Eliminado: No usado
 } from "react-native-paper";
 import {
   useForm,
@@ -37,7 +37,7 @@ import {
   FieldError, // Importar FieldError
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z, ZodSchema } from "zod";
+import { ZodSchema } from "zod"; // Eliminado 'z', no usado directamente
 import { useAppTheme, AppTheme } from "../../styles/theme";
 import CustomImagePicker, { FileObject } from "../common/CustomImagePicker";
 import {
@@ -66,7 +66,7 @@ export interface FormFieldConfig<TFormData extends FieldValues> {
   switchLabel?: string;
 }
 
-export interface ImagePickerConfig<TFormData extends FieldValues, TItem> {
+export interface ImagePickerConfig<TFormData extends FieldValues> { // Eliminado TItem no usado
   imageUriField: Path<TFormData>;
   onImageUpload: (file: FileObject) => Promise<{ id: string } | null>;
   determineFinalPhotoId?: (
@@ -88,7 +88,7 @@ interface GenericFormModalProps<
   ) => Promise<void>;
   formSchema: ZodSchema<TFormData>;
   formFields: FormFieldConfig<TFormData>[];
-  imagePickerConfig?: ImagePickerConfig<TFormData, TItem>;
+  imagePickerConfig?: ImagePickerConfig<TFormData>; // Corregido: Eliminado TItem no usado
   initialValues?: DeepPartial<TFormData>;
   editingItem: (TItem & Partial<EntityWithOptionalPhoto>) | null;
   isSubmitting: boolean;

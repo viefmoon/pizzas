@@ -88,10 +88,10 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
         },
 
         configSubheader: {
-          ...theme.fonts.labelLarge, // Usar fuente más grande (igual a items)
+          ...theme.fonts.labelLarge,
           color: theme.colors.onSurfaceVariant,
-          paddingLeft: 25, // Alinear con el inicio de los iconos (igual al paddingHorizontal del item)
-          paddingRight: 16, // Mantener padding derecho consistente
+          paddingLeft: 25,
+          paddingRight: 16,
           paddingTop: theme.spacing.m,
           paddingBottom: theme.spacing.xs,
         },
@@ -114,7 +114,6 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
     routeName: string,
     label: string,
     iconName: string,
-    index: number,
     navigateToScreen: () => void
   ) => {
     const isActive = getItemActive(routeName);
@@ -181,17 +180,15 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
           <Divider style={styles.divider} />
 
           <PaperDrawer.Section style={styles.drawerSection}>
-            {/* --- Sección Ventas --- */}
             <Text style={styles.configSubheader}>Ventas</Text>
             {renderDrawerItem(
               "OrdersStack",
               "Órdenes",
               "clipboard-list-outline",
-              0, // Nuevo índice 0
               () => {
                 props.navigation.dispatch(
                   CommonActions.reset({
-                    index: 0, // Índice para OrdersStack
+                    index: 0,
                     routes: [
                       {
 
@@ -213,16 +210,15 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
 
           <Divider style={styles.divider} />
 
-          {/* --- Sección Configuración --- */}
           <PaperDrawer.Section style={styles.drawerSection}>
             <Text style={styles.configSubheader}>Configuración</Text>
-            {renderDrawerItem("MenuStack", "Menú", "menu", 1, () => {
+            {renderDrawerItem("MenuStack", "Menú", "menu", () => {
 
               props.navigation.dispatch(
                 CommonActions.reset({
-                  index: 1, // Índice para MenuStack
+                  index: 1,
                   routes: [
-                    { name: "OrdersStack" }, // Mantener el orden lógico
+                    { name: "OrdersStack" },
                     {
                       name: "MenuStack",
                       state: {
@@ -241,14 +237,13 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               "ModifiersStack",
               "Modificadores",
               "tune",
-              2,
               () => {
 
                 props.navigation.dispatch(
                   CommonActions.reset({
-                    index: 2, // Índice para ModifiersStack
+                    index: 2,
                     routes: [
-                      { name: "OrdersStack" }, // Mantener el orden lógico
+                      { name: "OrdersStack" },
                       { name: "MenuStack" },
                       {
                         name: "ModifiersStack",
@@ -268,13 +263,12 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               "PreparationScreensStack",
               "Pantallas Preparación",
               "monitor-dashboard",
-              3, // Nuevo índice 3
               () => {
                 props.navigation.dispatch(
                   CommonActions.reset({
-                    index: 3, // Índice para PreparationScreensStack
+                    index: 3,
                     routes: [
-                      { name: "OrdersStack" }, // Mantener el orden lógico
+                      { name: "OrdersStack" },
                       { name: "MenuStack" },
                       { name: "ModifiersStack" },
                       {
@@ -294,13 +288,12 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               "AreasTablesStack",
               "Áreas y Mesas",
               "map-marker-radius-outline",
-              4, // Nuevo índice 4
               () => {
                 props.navigation.dispatch(
                   CommonActions.reset({
-                    index: 4, // Índice para AreasTablesStack
+                    index: 4,
                     routes: [
-                      { name: "OrdersStack" }, // Mantener el orden lógico
+                      { name: "OrdersStack" },
                       { name: "MenuStack" },
                       { name: "ModifiersStack" },
                       { name: "PreparationScreensStack" },
@@ -321,13 +314,12 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               "PrintersStack",
               "Impresoras",
               "printer",
-              5, // Nuevo índice 5
               () => {
                 props.navigation.dispatch(
                   CommonActions.reset({
-                    index: 5, // Índice para PrintersStack
+                    index: 5,
                     routes: [
-                      { name: "OrdersStack" }, // Mantener el orden lógico
+                      { name: "OrdersStack" },
                       { name: "MenuStack" },
                       { name: "ModifiersStack" },
                       { name: "PreparationScreensStack" },
@@ -335,7 +327,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                       {
                         name: "PrintersStack",
                         state: {
-                          routes: [{ name: "PrintersList" }], // Estado inicial
+                          routes: [{ name: "PrintersList" }],
                         },
                       },
                     ],

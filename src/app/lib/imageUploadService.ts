@@ -1,7 +1,7 @@
 import { uploadFile, FileUploadResponse } from '../../modules/menu/services/fileService';
 import { ApiError } from './errors';
 import { getImageUrl } from './imageUtils';
-import { API_URL } from '@env';
+// import { API_URL } from '@env'; // Eliminado: No usado
 
 export interface ImageUploadResult {
     success: boolean;

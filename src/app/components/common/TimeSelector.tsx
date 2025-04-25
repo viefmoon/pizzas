@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, Platform, StyleProp, ViewStyle } from 'react-native';
-import { Button, IconButton, Portal } from 'react-native-paper';
+import { Button, IconButton } from 'react-native-paper';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import InfoModal from './InfoModal';
 import { useAppTheme } from '@/app/styles/theme';

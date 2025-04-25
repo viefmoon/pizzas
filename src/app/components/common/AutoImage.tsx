@@ -1,6 +1,6 @@
  import React, { useState, useEffect } from 'react';
 import { StyleSheet, Platform, View, ActivityIndicator, StyleProp, ViewStyle, DimensionValue } from 'react-native';
-import { Image, ImageProps as ExpoImageProps, ImageStyle } from 'expo-image';
+import { Image, ImageProps as ExpoImageProps } from 'expo-image';
 import { getCachedImageUri } from '../../lib/imageCache';
 import { getImageUrl } from '../../lib/imageUtils';
 import { useAppTheme } from '../../styles/theme';
@@ -17,7 +17,7 @@ export interface AutoImageProps extends Omit<ExpoImageProps, 'source' | 'style'>
 }
 
 // Hook simplificado, ya que expo-image maneja el aspect ratio con contentFit
-function useAutoImageSize(uri?: string, maxWidth?: number, maxHeight?: number): { width?: number | string, height?: number | string } {
+function useAutoImageSize(maxWidth?: number, maxHeight?: number): { width?: number | string, height?: number | string } {
     // Si no se especifica tamaño, devolver '100%' para que ocupe el contenedor
     return {
         width: maxWidth ?? '100%',
@@ -39,14 +39,14 @@ export const AutoImage: React.FC<AutoImageProps> = ({
   const theme = useAppTheme();
   const [processedUri, setProcessedUri] = useState<string | null>(null);
   const [isLoadingUri, setIsLoadingUri] = useState(true);
-  const [isFromCache, setIsFromCache] = useState(false);
+  // const [isFromCache, setIsFromCache] = useState(false); // Eliminado estado no usado
 
-  const { width, height } = useAutoImageSize(processedUri ?? undefined, maxWidth, maxHeight);
+  const { width, height } = useAutoImageSize(maxWidth, maxHeight); // Eliminado argumento uri no usado
 
   useEffect(() => {
     let isMounted = true;
     setIsLoadingUri(true);
-    setIsFromCache(false);
+    // setIsFromCache(false); // Eliminado set de estado no usado
     setProcessedUri(null);
 
     if (!originalSourceProp) {
@@ -78,7 +78,7 @@ export const AutoImage: React.FC<AutoImageProps> = ({
             const cachedUri = await getCachedImageUri(fullRemoteUrl);
             if (isMounted) {
                 setProcessedUri(cachedUri ?? fullRemoteUrl);
-                setIsFromCache(!!cachedUri);
+                // setIsFromCache(!!cachedUri); // Eliminado set de estado no usado
                 setIsLoadingUri(false);
             }
         } catch (error) {
