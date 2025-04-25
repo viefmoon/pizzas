@@ -4,21 +4,17 @@ import { Alert } from 'react-native';
 import { useSnackbarStore } from '@/app/store/snackbarStore';
 import { getApiErrorMessage } from '@/app/lib/errorMapping';
 
-interface CrudLogicParams<TItem, TCreateDto, TUpdateDto> {
+interface CrudLogicParams {
   entityName: string;
   queryKey: QueryKey;
   deleteMutationFn: (id: string) => Promise<void>;
 }
 
-export function useCrudScreenLogic<
-  TItem extends { id: string },
-  TCreateDto = unknown,
-  TUpdateDto = unknown
->({
+export function useCrudScreenLogic<TItem extends { id: string }>({
   entityName,
   queryKey,
   deleteMutationFn,
-}: CrudLogicParams<TItem, TCreateDto, TUpdateDto>) {
+}: CrudLogicParams) { 
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((s) => s.showSnackbar);
   const [isFormModalVisible, setIsFormModalVisible] = useState(false);
@@ -28,7 +24,7 @@ export function useCrudScreenLogic<
 
   const deleteMutation = useMutation({
       mutationFn: deleteMutationFn,
-      onSuccess: (_, deletedId) => {
+      onSuccess: (_, _deletedId) => {
           queryClient.invalidateQueries({ queryKey });
           showSnackbar({ message: `${entityName} eliminado con éxito`, type: 'success' });
           handleCloseModals();

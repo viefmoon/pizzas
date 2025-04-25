@@ -131,7 +131,6 @@ const PrinterDiscoveryModal: React.FC<PrinterDiscoveryModalProps> = ({
                     keyExtractor={(item: DiscoveredPrinter) => `${item.ip}:${item.port}`} // Añadir tipo y clave única
                     estimatedItemSize={70} // Añadir tamaño estimado
                     ItemSeparatorComponent={() => <Divider style={styles.divider} />}
-                    style={styles.list}
                   />
                    {/* Botón eliminado, se usa el icono en Appbar */}
                 </>
