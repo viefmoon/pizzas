@@ -88,7 +88,6 @@ export function useSystemThemeDetector() {
   const systemColorScheme = useColorScheme();
   const setSystemDarkMode = useThemeStore((state) => state.setSystemDarkMode);
 
-  // const isInitialMount = React.useRef(true); // Eliminado: No usado
 
   React.useEffect(() => {
     const isDarkMode = systemColorScheme === "dark";

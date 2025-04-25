@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { initializeAuthStore } from "../store/authStore"; // Eliminado useAuthStore no usado
+import { initializeAuthStore } from "../store/authStore";
 
 export function useInitializeAuth() {
   const [isInitializing, setIsInitializing] = useState(true);

@@ -31,7 +31,7 @@ export function AuthStack() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
+      <Stack.Screen 
         name="Register"
         component={RegisterScreen}
         options={{

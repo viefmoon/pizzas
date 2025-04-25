@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from "axios";
-import { create as createApisauceInstance } from 'apisauce'; // Eliminado ApiResponse no usado
+import { create as createApisauceInstance } from 'apisauce';
 import { API_URL } from "@env";
 import EncryptedStorage from "react-native-encrypted-storage";
 import { useAuthStore } from "../store/authStore";
