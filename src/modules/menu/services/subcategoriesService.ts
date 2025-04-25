@@ -5,13 +5,13 @@ import {
   SubCategory,
   CreateSubCategoryDto,
   UpdateSubCategoryDto,
-  findAllSubCategoriesDtoSchema,
+  findAllSubcategoriesDtoSchema,
 } from "../schema/subcategories.schema";
 import { z } from 'zod';
 import { PaginatedResponse } from "../../../app/types/api.types";
 
 
-type FindAllSubCategoriesDto = z.infer<typeof findAllSubCategoriesDtoSchema>;
+type FindAllSubcategoriesDto = z.infer<typeof findAllSubcategoriesDtoSchema>;
 
 export const createSubcategory = async (
   data: CreateSubCategoryDto
@@ -24,7 +24,7 @@ export const createSubcategory = async (
 };
 
 export const findAllSubcategories = async (
-  params: FindAllSubCategoriesDto
+  params: FindAllSubcategoriesDto
 ): Promise<PaginatedResponse<SubCategory>> => {
   const queryParams = Object.entries(params).reduce(
     (acc, [key, value]) => {

@@ -20,7 +20,7 @@ export const updateSubCategoryDtoSchema = createSubCategoryDtoSchema.partial().e
 export type UpdateSubCategoryDto = z.infer<typeof updateSubCategoryDtoSchema>;
 
 
-export const findAllSubCategoriesDtoSchema = baseListQuerySchema.extend({
+export const findAllSubcategoriesDtoSchema = baseListQuerySchema.extend({
   categoryId: z.string().uuid().optional(),
   isActive: z.boolean().optional(),
 });

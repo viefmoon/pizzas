@@ -35,7 +35,7 @@ function ProductsScreen(): JSX.Element {
   const drawerStatus = useDrawerStatus();
   const isDrawerOpen = drawerStatus === 'open';
 
-  const { subCategoryId, subCategoryName } = route.params;
+  const { subcategoryId, subCategoryName } = route.params;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -64,13 +64,13 @@ function ProductsScreen(): JSX.Element {
 
   const queryFilters = useMemo(
     () => ({
-      subCategoryId: subCategoryId,
+      subcategoryId: subcategoryId,
       search: debouncedSearchQuery || undefined,
       limit: 20,
       page: 1,
       isActive: statusFilter === "all" ? undefined : statusFilter === "active",
     }),
-    [subCategoryId, debouncedSearchQuery, statusFilter]
+    [subcategoryId, debouncedSearchQuery, statusFilter]
   );
 
   const {
@@ -271,7 +271,7 @@ function ProductsScreen(): JSX.Element {
           initialData={editingItem}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
           productId={editingItem?.id}
-          subCategoryId={subCategoryId}
+          subcategoryId={subcategoryId}
         />
       </Portal>
     </SafeAreaView>

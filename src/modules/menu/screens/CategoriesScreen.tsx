@@ -38,7 +38,7 @@ import {
 
 type RootStackParamList = {
   Categories: undefined;
-  SubCategoriesScreen: { categoryId: string; categoryName?: string };
+  SubcategoriesScreen: { categoryId: string; categoryName?: string };
 };
 type CategoriesScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -350,7 +350,7 @@ const CategoriesScreen: React.FC = () => {
             icon="format-list-bulleted"
             size={24}
             onPress={() =>
-              navigation.navigate("SubCategoriesScreen", {
+              navigation.navigate("SubcategoriesScreen", {
                 categoryId: item.id,
                 categoryName: item.name,
               })

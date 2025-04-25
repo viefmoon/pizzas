@@ -24,17 +24,17 @@ import {
   updateSubCategoryDtoSchema,
   SubCategoryFormInputs,
   UpdateSubCategoryFormInputs,
-  findAllSubCategoriesDtoSchema,
+  findAllSubcategoriesDtoSchema,
 } from '../schema/subcategories.schema';
 import { z } from 'zod';
 import { getImageUrl } from '../../../app/lib/imageUtils';
 import { MenuStackParamList } from '@/modules/menu/navigation/types';
 
-type SubcategoriesScreenRouteProp = RouteProp<MenuStackParamList, 'SubCategoriesScreen'>;
-type SubcategoriesScreenNavigationProp = NativeStackNavigationProp<MenuStackParamList, 'SubCategoriesScreen'>;
+type SubcategoriesScreenRouteProp = RouteProp<MenuStackParamList, 'SubcategoriesScreen'>;
+type SubcategoriesScreenNavigationProp = NativeStackNavigationProp<MenuStackParamList, 'SubcategoriesScreen'>;
 
 type StatusFilter = 'all' | 'active' | 'inactive';
-type FindAllSubCategoriesDto = z.infer<typeof findAllSubCategoriesDtoSchema>;
+type FindAllSubcategoriesDto = z.infer<typeof findAllSubcategoriesDtoSchema>;
 
 const SubcategoriesScreen: React.FC = () => {
   const theme = useAppTheme();
@@ -47,12 +47,12 @@ const SubcategoriesScreen: React.FC = () => {
 
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>('all');
 
-  const queryParams = useMemo((): FindAllSubCategoriesDto => {
+  const queryParams = useMemo((): FindAllSubcategoriesDto => {
     let isActive: boolean | undefined;
     if (statusFilter === 'active') isActive = true;
     if (statusFilter === 'inactive') isActive = false;
 
-    const params: FindAllSubCategoriesDto = { categoryId, page: 1, limit: 100 };
+    const params: FindAllSubcategoriesDto = { categoryId, page: 1, limit: 100 };
     if (isActive !== undefined) {
         params.isActive = isActive;
     }
@@ -170,7 +170,7 @@ const SubcategoriesScreen: React.FC = () => {
     <IconButton
       icon="chevron-right"
       size={24}
-      onPress={() => navigation.navigate('Products', { subCategoryId: item.id, subCategoryName: item.name })}
+      onPress={() => navigation.navigate('Products', { subcategoryId: item.id, subCategoryName: item.name })}
     />
   );
 
