@@ -44,7 +44,6 @@ interface TableFormModalProps {
   ) => Promise<void>;
   editingItem: Table | null;
   isSubmitting: boolean;
-  // defaultAreaId?: string; // Eliminado: No usado
 }
 
 const TableFormModal: React.FC<TableFormModalProps> = ({
@@ -53,7 +52,6 @@ const TableFormModal: React.FC<TableFormModalProps> = ({
   onSubmit,
   editingItem,
   isSubmitting,
-  // defaultAreaId, // Eliminado: No usado
 }) => {
   const isEditing = !!editingItem;
 

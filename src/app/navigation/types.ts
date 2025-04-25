@@ -9,7 +9,7 @@ import type { PrintersStackParamList } from '../../modules/printers/navigation/t
 
 export type AuthStackParamList = {
   Login: undefined;
-  Register: undefined; // Añadida la ruta de registro
+  Register: undefined; 
 };
 
 export type OrdersStackParamList = {

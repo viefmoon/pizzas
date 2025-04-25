@@ -2,7 +2,6 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  QueryKey,
 } from '@tanstack/react-query';
 import * as tableService from '../services/tableService';
 import {
@@ -10,12 +9,11 @@ import {
   CreateTableDto,
   UpdateTableDto,
   FindAllTablesDto,
-} from '../types/table.types';
+} from '../schema/table.schema'; // Corregida ruta de importación
 import { BaseListQuery } from '../../../app/types/query.types';
 import { useSnackbarStore } from '../../../app/store/snackbarStore';
 import { getApiErrorMessage } from '../../../app/lib/errorMapping';
 
-// --- Query Keys ---
 const tablesQueryKeys = {
   all: ['tables'] as const,
   lists: () => [...tablesQueryKeys.all, 'list'] as const,
@@ -26,11 +24,6 @@ const tablesQueryKeys = {
   detail: (id: string) => [...tablesQueryKeys.details(), id] as const,
 };
 
-// --- Hooks ---
-
-/**
- * Hook to fetch a paginated list of tables with filters.
- */
 export const useGetTables = (
   filters: FindAllTablesDto = {},
   pagination: BaseListQuery = { page: 1, limit: 10 }
@@ -42,9 +35,6 @@ export const useGetTables = (
   });
 };
 
-/**
- * Hook to fetch all tables belonging to a specific area.
- */
 export const useGetTablesByAreaId = (areaId: string | null, options?: { enabled?: boolean }) => {
     const queryKey = tablesQueryKeys.listsByArea(areaId!);
     return useQuery<Table[], Error>({
@@ -55,9 +45,6 @@ export const useGetTablesByAreaId = (areaId: string | null, options?: { enabled?
 };
 
 
-/**
- * Hook to fetch a single table by its ID.
- */
 export const useGetTableById = (id: string | null, options?: { enabled?: boolean }) => {
   const queryKey = tablesQueryKeys.detail(id!);
   return useQuery<Table, Error>({
@@ -67,16 +54,13 @@ export const useGetTableById = (id: string | null, options?: { enabled?: boolean
   });
 };
 
-/**
- * Hook for creating a new table.
- */
 export const useCreateTable = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
   return useMutation<Table, Error, CreateTableDto>({
     mutationFn: tableService.createTable,
-    onSuccess: (newTable) => {
+    onSuccess: (_newTable) => { // Prefijado parámetro no usado
       queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
       showSnackbar({ message: 'Mesa creada con éxito', type: 'success' });
     },
@@ -88,9 +72,6 @@ export const useCreateTable = () => {
   });
 };
 
-/**
- * Hook for updating an existing table.
- */
 export const useUpdateTable = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
@@ -109,7 +90,7 @@ export const useUpdateTable = () => {
       const previousDetail = queryClient.getQueryData<Table>(detailQueryKey);
 
       if (previousDetail) {
-        queryClient.setQueryData<Table>(detailQueryKey, (old) =>
+        queryClient.setQueryData<Table>(detailQueryKey, (old: Table | undefined) => // Añadido tipo explícito
           old ? { ...old, ...data } : undefined
         );
       }
@@ -139,9 +120,6 @@ export const useUpdateTable = () => {
   });
 };
 
-/**
- * Hook for deleting a table.
- */
 export const useDeleteTable = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
@@ -173,7 +151,7 @@ export const useDeleteTable = () => {
       }
     },
 
-    onSettled: (data, error, deletedId, context) => {
+    onSettled: (_data, error, deletedId, context) => { // Prefijado parámetro no usado
       queryClient.invalidateQueries({ queryKey: tablesQueryKeys.lists() });
       if (context?.previousDetail?.areaId) {
           queryClient.invalidateQueries({ queryKey: tablesQueryKeys.listsByArea(context.previousDetail.areaId) });

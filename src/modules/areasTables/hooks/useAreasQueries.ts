@@ -2,7 +2,6 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
-  QueryKey,
 } from '@tanstack/react-query';
 import * as areaService from '../services/areaService';
 import {
@@ -10,12 +9,11 @@ import {
   CreateAreaDto,
   UpdateAreaDto,
   FindAllAreasDto,
-} from '../types/area.types';
+} from '../schema/area.schema'; // Corregida ruta de importación
 import { BaseListQuery } from '../../../app/types/query.types';
 import { useSnackbarStore } from '../../../app/store/snackbarStore';
 import { getApiErrorMessage } from '../../../app/lib/errorMapping';
 
-// --- Query Keys ---
 const areasQueryKeys = {
   all: ['areas'] as const,
   lists: () => [...areasQueryKeys.all, 'list'] as const,
@@ -25,11 +23,6 @@ const areasQueryKeys = {
   detail: (id: string) => [...areasQueryKeys.details(), id] as const,
 };
 
-// --- Hooks ---
-
-/**
- * Hook to fetch a paginated list of areas with filters.
- */
 export const useGetAreas = (
   filters: FindAllAreasDto = {},
   pagination: BaseListQuery = { page: 1, limit: 10 }
@@ -41,9 +34,6 @@ export const useGetAreas = (
   });
 };
 
-/**
- * Hook to fetch a single area by its ID.
- */
 export const useGetAreaById = (id: string | null, options?: { enabled?: boolean }) => {
   const queryKey = areasQueryKeys.detail(id!); // Use non-null assertion as it's enabled conditionally
   return useQuery<Area, Error>({
@@ -53,16 +43,13 @@ export const useGetAreaById = (id: string | null, options?: { enabled?: boolean 
   });
 };
 
-/**
- * Hook for creating a new area.
- */
 export const useCreateArea = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 
   return useMutation<Area, Error, CreateAreaDto>({
     mutationFn: areaService.createArea,
-    onSuccess: (newArea) => {
+    onSuccess: (_newArea) => { // Prefijado parámetro no usado
       queryClient.invalidateQueries({ queryKey: areasQueryKeys.lists() });
       showSnackbar({ message: 'Área creada con éxito', type: 'success' });
     },
@@ -74,9 +61,6 @@ export const useCreateArea = () => {
   });
 };
 
-/**
- * Hook for updating an existing area.
- */
 export const useUpdateArea = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
@@ -106,7 +90,7 @@ export const useUpdateArea = () => {
       }
 
       if (previousDetail) {
-        queryClient.setQueryData<Area>(detailQueryKey, (old) =>
+        queryClient.setQueryData<Area>(detailQueryKey, (old: Area | undefined) => // Añadido tipo explícito
           old ? { ...old, ...data } : undefined
         );
       }
@@ -127,7 +111,7 @@ export const useUpdateArea = () => {
       }
     },
 
-    onSettled: (data, error, variables, context) => {
+    onSettled: (data, error, variables, _context) => { // Prefijado parámetro no usado
       queryClient.invalidateQueries({ queryKey: areasQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: areasQueryKeys.detail(variables.id) });
 
@@ -138,9 +122,6 @@ export const useUpdateArea = () => {
   });
 };
 
-/**
- * Hook for deleting an area.
- */
 export const useDeleteArea = () => {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
@@ -172,7 +153,7 @@ export const useDeleteArea = () => {
       }
     },
 
-    onSettled: (data, error, deletedId) => {
+    onSettled: (_data, error, deletedId) => { // Prefijado parámetro no usado
       queryClient.invalidateQueries({ queryKey: areasQueryKeys.lists() });
       if (!error) {
           queryClient.removeQueries({ queryKey: areasQueryKeys.detail(deletedId) });

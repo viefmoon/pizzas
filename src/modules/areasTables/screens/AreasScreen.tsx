@@ -12,7 +12,7 @@ import {
   useUpdateArea,
   useDeleteArea,
 } from '../hooks/useAreasQueries';
-import { Area, CreateAreaDto, UpdateAreaDto } from '../types/area.types';
+import { Area, CreateAreaDto, UpdateAreaDto } from '../schema/area.schema';
 import { AreasListScreenProps } from '../navigation/types';
 import { useAppTheme, AppTheme } from '../../../app/styles/theme';
 import { useCrudScreenLogic } from '../../../app/hooks/useCrudScreenLogic';
@@ -102,8 +102,8 @@ const AreasScreen: React.FC<AreasListScreenProps> = ({ navigation }) => {
       { label: 'Inactivas', value: 'false' },
   ], []);
 
-  const handleFilterChange = (value: string) => {
-      setFilterStatus(value);
+  const handleFilterChange = (value: string | number) => {
+      setFilterStatus(String(value)); 
   };
 
   const handleSearchChange = (query: string) => {

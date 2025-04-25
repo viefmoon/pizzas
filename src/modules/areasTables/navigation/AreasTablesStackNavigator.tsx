@@ -1,7 +1,5 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { DrawerToggleButton } from '@react-navigation/drawer';
-import { Platform } from 'react-native';
 import { AreasTablesStackParamList } from './types';
 import AreasScreen from '../screens/AreasScreen';
 import TablesScreen from '../screens/TablesScreen';
