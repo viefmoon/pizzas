@@ -28,7 +28,7 @@ export const MenuStackNavigator: React.FC = () => {
         }}
       />
       <Stack.Screen
-        name="SubCategoriesScreen"
+        name="SubcategoriesScreen"
         component={SubcategoriesScreen}
         options={({ route }) => ({
           title: route.params?.categoryName

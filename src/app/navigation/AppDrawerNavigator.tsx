@@ -124,6 +124,16 @@ export function AppDrawerNavigator() {
         })}
       >
         <Drawer.Screen
+          name="OrdersStack"
+          component={OrdersStackNavigator}
+          options={{
+            title: "Órdenes",
+            drawerIcon: ({ color, size }) => (
+              <Icon source="clipboard-list-outline" color={color} size={size} />
+            ),
+          }}
+        />
+        <Drawer.Screen
           name="MenuStack"
           component={MenuStackNavigator}
           options={{
@@ -164,16 +174,6 @@ export function AppDrawerNavigator() {
                 color={color}
                 size={size}
               />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="OrdersStack"
-          component={OrdersStackNavigator}
-          options={{
-            title: "Órdenes",
-            drawerIcon: ({ color, size }) => (
-              <Icon source="clipboard-list-outline" color={color} size={size} />
             ),
           }}
         />

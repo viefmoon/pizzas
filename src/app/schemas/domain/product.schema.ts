@@ -22,7 +22,7 @@ export const productSchema = z.object({
     .nullable(),
   hasVariants: z.boolean(),
   isActive: z.boolean(),
-  subCategoryId: z.string().uuid("La subcategoría es requerida"),
+  subcategoryId: z.string().uuid("La subcategoría es requerida"),
   photo: photoSchema.optional().nullable(), // Usar schema centralizado
   estimatedPrepTime: z.number().min(1, "El tiempo debe ser al menos 1 minuto").optional(),
   preparationScreenId: z.string().uuid().optional().nullable(),

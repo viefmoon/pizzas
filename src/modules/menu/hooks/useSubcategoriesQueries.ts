@@ -10,7 +10,7 @@ import {
   SubCategory,
   CreateSubCategoryDto,
   UpdateSubCategoryDto,
-  findAllSubCategoriesDtoSchema, 
+  findAllSubcategoriesDtoSchema, 
 } from '../schema/subcategories.schema';
 import { z } from 'zod';
 import { PaginatedResponse } from '../../../app/types/api.types';
@@ -18,18 +18,18 @@ import { ApiError } from '../../../app/lib/errors';
 import { useSnackbarStore, type SnackbarState } from '../../../app/store/snackbarStore';
 import { getApiErrorMessage } from '../../../app/lib/errorMapping';
 
-type FindAllSubCategoriesDto = z.infer<typeof findAllSubCategoriesDtoSchema>;
+type FindAllSubcategoriesDto = z.infer<typeof findAllSubcategoriesDtoSchema>;
 
 const subcategoryKeys = {
   all: ['subcategories'] as const,
   lists: () => [...subcategoryKeys.all, 'list'] as const,
-  list: (filters: FindAllSubCategoriesDto) => [...subcategoryKeys.lists(), filters] as const,
+  list: (filters: FindAllSubcategoriesDto) => [...subcategoryKeys.lists(), filters] as const,
   details: () => [...subcategoryKeys.all, 'detail'] as const,
   detail: (id: string) => [...subcategoryKeys.details(), id] as const,
 };
 
 export const useFindAllSubcategories = (
-  params: FindAllSubCategoriesDto = { page: 1, limit: 10 },
+  params: FindAllSubcategoriesDto = { page: 1, limit: 10 },
   enabled: boolean = true,
 ): UseQueryResult<PaginatedResponse<SubCategory>, ApiError> => {
   const queryKey = subcategoryKeys.list(params);

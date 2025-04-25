@@ -58,7 +58,8 @@ export const orderSchema = z.object({
   tableId: z.string().uuid().nullable().optional(),
   notes: z.string().nullable().optional(),
   scheduledAt: z.union([z.string().datetime(), z.date()]).nullable().optional(),
-  // Añadir otros campos si existen en el dominio y son necesarios en el schema central
-  // userId: z.string().uuid().optional(),
+  customerName: z.string().nullable().optional(),
+  phoneNumber: z.string().nullable().optional(),
+  deliveryAddress: z.string().nullable().optional(),
 });
 export type Order = z.infer<typeof orderSchema>;

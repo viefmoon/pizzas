@@ -25,7 +25,7 @@ const productBaseSchema = z.object({
     .nullable(),
   hasVariants: z.boolean(),
   isActive: z.boolean(),
-  subCategoryId: z.string().uuid("La subcategoría es requerida"),
+  subcategoryId: z.string().uuid("La subcategoría es requerida"),
   photoId: z.string().uuid().optional().nullable(), // ID de la foto guardada en backend
   imageUri: z // Campo temporal para el formulario
     .string()
@@ -103,7 +103,7 @@ export type ProductsListResponse = z.infer<typeof productsListResponseSchema>;
 
 // Esquema para los parámetros de query de búsqueda
 export const findAllProductsQuerySchema = baseListQuerySchema.extend({
-  subCategoryId: z.string().uuid().optional(),
+  subcategoryId: z.string().uuid().optional(),
   hasVariants: z.boolean().optional(),
   isActive: z.boolean().optional(),
   search: z.string().optional(),

@@ -51,7 +51,7 @@ interface ProductFormModalProps {
   initialData?: Product | null;
   isSubmitting: boolean;
   productId?: string | null;
-  subCategoryId: string;
+  subcategoryId: string;
 }
 
 function ProductFormModal({
@@ -61,7 +61,7 @@ function ProductFormModal({
   initialData,
   isSubmitting,
   productId,
-  subCategoryId,
+  subcategoryId,
 }: ProductFormModalProps): JSX.Element {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -84,7 +84,7 @@ function ProductFormModal({
       price: null,
       hasVariants: false,
       isActive: true,
-      subCategoryId: subCategoryId,
+      subcategoryId: subcategoryId,
       photoId: null,
       estimatedPrepTime: 10,
       preparationScreenId: null,
@@ -93,7 +93,7 @@ function ProductFormModal({
       imageUri: null,
       modifierGroupIds: [],
     }),
-    [subCategoryId]
+    [subcategoryId]
   );
 
   const {
@@ -134,7 +134,7 @@ function ProductFormModal({
           price: parsedPrice,
           hasVariants: initialData.hasVariants,
           isActive: initialData.isActive,
-          subCategoryId: initialData.subCategoryId,
+          subcategoryId: initialData.subcategoryId,
           photoId: initialData.photo?.id ?? null,
           estimatedPrepTime: initialData.estimatedPrepTime,
           preparationScreenId: initialData.preparationScreenId,
@@ -149,7 +149,7 @@ function ProductFormModal({
         setLocalSelectedFile(null);
       }
     }
-  }, [visible, isEditing, initialData, reset, defaultValues, subCategoryId]);
+  }, [visible, isEditing, initialData, reset, defaultValues, subcategoryId]);
 
   const hasVariants = watch("hasVariants");
   const currentImageUri = watch("imageUri");
