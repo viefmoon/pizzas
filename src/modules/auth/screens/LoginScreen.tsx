@@ -14,7 +14,6 @@ import {
   IconButton,
   Surface,
   TouchableRipple,
-  // Button, // Eliminado: No usado
 } from "react-native-paper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import EncryptedStorage from 'react-native-encrypted-storage';
@@ -26,7 +25,7 @@ import { getApiErrorMessage } from "../../../app/lib/errorMapping";
 import { ApiError } from "../../../app/lib/errors";
 import { useThemeStore } from "../../../app/store/themeStore";
 import { useAuthStore } from "../../../app/store/authStore";
-import { LoginFormInputs, LoginResponseDto } from "../schema/auth.schema"; // Corregida ruta de importación
+import { LoginFormInputs, LoginResponseDto } from "../schema/auth.schema";
 import { authService } from "../services/authService";
 import LoginForm from "../components/LoginForm";
 
@@ -35,7 +34,7 @@ const LoginScreen = () => {
   const queryClient = useQueryClient();
   const navigation = useNavigation();
   const { showSnackbar } = useSnackbarStore();
-  const { setThemePreference } = useThemeStore(); // Eliminado themePreference no usado
+  const { setThemePreference } = useThemeStore(); 
   const setTokens = useAuthStore((state) => state.setTokens);
 
   const [initialEmailOrUsername, setInitialEmailOrUsername] = useState<string | undefined>(undefined);

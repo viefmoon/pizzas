@@ -6,7 +6,7 @@ import {
   FindAllProductsQuery,
   ProductsListResponse,
   AssignModifierGroupsInput,
-} from '../types/products.types';
+} from '../schema/products.schema';
 import { ApiError } from '@/app/lib/errors';
 import { useSnackbarStore } from '@/app/store/snackbarStore'; // Importar store de Snackbar
 import { getApiErrorMessage } from '@/app/lib/errorMapping'; // Importar mapeo de errores
@@ -18,11 +18,6 @@ const productKeys = {
   detailModifierGroups: (id: string) => [...productKeys.details(id), 'modifier-groups'] as const,
 };
 
-/**
- * Hook para obtener la lista de productos con filtros y paginación.
- * @param filters - Filtros y paginación (FindAllProductsQuery).
- * @param options - Opciones adicionales para useQuery.
- */
 export function useProductsQuery(
   filters: FindAllProductsQuery,
   options?: { enabled?: boolean }
@@ -34,11 +29,6 @@ export function useProductsQuery(
   });
 }
 
-/**
- * Hook para obtener los detalles de un producto por ID.
- * @param productId - ID del producto.
- * @param options - Opciones adicionales para useQuery.
- */
 export function useProductQuery(
   productId: string,
   options?: { enabled?: boolean }
@@ -50,9 +40,6 @@ export function useProductQuery(
   });
 }
 
-/**
- * Hook para crear un nuevo producto.
- */
 export function useCreateProductMutation(): UseMutationResult<Product, ApiError, ProductFormInputs> {
   const queryClient = useQueryClient();
   return useMutation<Product, ApiError, ProductFormInputs>({
@@ -63,9 +50,6 @@ export function useCreateProductMutation(): UseMutationResult<Product, ApiError,
   });
 }
 
-/**
- * Hook para actualizar un producto existente.
- */
 export function useUpdateProductMutation(): UseMutationResult<Product, ApiError, { id: string; data: Partial<ProductFormInputs> }, { previousProducts?: ProductsListResponse; previousDetail?: Product }> {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
@@ -84,7 +68,7 @@ export function useUpdateProductMutation(): UseMutationResult<Product, ApiError,
       const previousDetail = queryClient.getQueryData<Product>(detailQueryKey);
 
       if (previousDetail) {
-        queryClient.setQueryData<Product>(detailQueryKey, (old) => {
+        queryClient.setQueryData<Product>(detailQueryKey, (old: Product | undefined) => { // Añadido tipo explícito
           if (!old) return undefined;
           const { variants, modifierGroupIds, ...restOfData } = data;
           return { ...old, ...restOfData };
@@ -104,7 +88,7 @@ export function useUpdateProductMutation(): UseMutationResult<Product, ApiError,
       }
     },
 
-    onSettled: (data, error, variables) => {
+    onSettled: (data, error, _variables) => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
 
       if (!error && data) {
@@ -114,9 +98,6 @@ export function useUpdateProductMutation(): UseMutationResult<Product, ApiError,
   });
 }
 
-/**
- * Hook para eliminar (soft delete) un producto.
- */
 export function useDeleteProductMutation(): UseMutationResult<void, ApiError, string, { previousDetail?: Product }> {
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar); // Añadir Snackbar
@@ -148,7 +129,7 @@ export function useDeleteProductMutation(): UseMutationResult<void, ApiError, st
       }
     },
 
-    onSettled: (data, error, deletedId) => {
+    onSettled: (_data, error, deletedId) => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
 
       if (!error) {
@@ -159,9 +140,6 @@ export function useDeleteProductMutation(): UseMutationResult<void, ApiError, st
   });
 }
 
-/**
- * Hook para asignar grupos de modificadores a un producto.
- */
 export function useAssignModifierGroupsMutation(): UseMutationResult<Product, ApiError, { productId: string; data: AssignModifierGroupsInput }> {
     const queryClient = useQueryClient();
     return useMutation<Product, ApiError, { productId: string; data: AssignModifierGroupsInput }>({
@@ -173,12 +151,6 @@ export function useAssignModifierGroupsMutation(): UseMutationResult<Product, Ap
     });
 }
 
-/**
- * Hook para obtener los grupos de modificadores de un producto.
- * Podría integrarse en useProductQuery si el endpoint findOne ya los devuelve,
- * o usar un endpoint/queryKey específico si es necesario.
- * Este es un ejemplo si hubiera un endpoint dedicado o se quisiera separar la lógica.
- */
 export function useProductModifierGroupsQuery(
     productId: string,
     options?: { enabled?: boolean }
@@ -191,9 +163,6 @@ export function useProductModifierGroupsQuery(
 }
 
 
-/**
- * Hook para eliminar grupos de modificadores de un producto.
- */
 export function useRemoveModifierGroupsMutation(): UseMutationResult<Product, ApiError, { productId: string; data: AssignModifierGroupsInput }> {
     const queryClient = useQueryClient();
     return useMutation<Product, ApiError, { productId: string; data: AssignModifierGroupsInput }>({

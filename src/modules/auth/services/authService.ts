@@ -6,7 +6,7 @@ import {
   LoginResponseDto,
   LoginFormInputs,
   RegisterFormInputs,
-} from "../schema/auth.schema"; // Corregida ruta de importación
+} from "../schema/auth.schema";
 
 class AuthService {
   async login(loginData: LoginFormInputs): Promise<LoginResponseDto> {

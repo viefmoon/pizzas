@@ -20,13 +20,13 @@ import {
 } from '../hooks/useSubcategoriesQueries';
 import {
   SubCategory,
-  FindAllSubCategoriesDto,
   createSubCategoryDtoSchema,
-  updateSubCategoryDtoSchemaWithOptionalPhoto,
+  updateSubCategoryDtoSchema,
   SubCategoryFormInputs,
   UpdateSubCategoryFormInputs,
-} from '../types/subcategories.types';
-import { PaginatedResponse } from '../../../app/types/api.types';
+  findAllSubCategoriesDtoSchema,
+} from '../schema/subcategories.schema';
+import { z } from 'zod';
 import { getImageUrl } from '../../../app/lib/imageUtils';
 import { MenuStackParamList } from '@/modules/menu/navigation/types';
 
@@ -34,6 +34,7 @@ type SubcategoriesScreenRouteProp = RouteProp<MenuStackParamList, 'SubCategories
 type SubcategoriesScreenNavigationProp = NativeStackNavigationProp<MenuStackParamList, 'SubCategoriesScreen'>;
 
 type StatusFilter = 'all' | 'active' | 'inactive';
+type FindAllSubCategoriesDto = z.infer<typeof findAllSubCategoriesDtoSchema>;
 
 const SubcategoriesScreen: React.FC = () => {
   const theme = useAppTheme();
@@ -51,7 +52,7 @@ const SubcategoriesScreen: React.FC = () => {
     if (statusFilter === 'active') isActive = true;
     if (statusFilter === 'inactive') isActive = false;
 
-    const params: FindAllSubCategoriesDto = { categoryId };
+    const params: FindAllSubCategoriesDto = { categoryId, page: 1, limit: 100 };
     if (isActive !== undefined) {
         params.isActive = isActive;
     }
@@ -152,7 +153,7 @@ const SubcategoriesScreen: React.FC = () => {
     { name: 'isActive', label: 'Activo', type: 'switch', switchLabel: 'Activo', defaultValue: true },
   ];
 
-  const imagePickerConfig: ImagePickerConfig<SubCategoryFormInputs | UpdateSubCategoryFormInputs, SubCategory> = {
+  const imagePickerConfig: ImagePickerConfig<SubCategoryFormInputs | UpdateSubCategoryFormInputs> = { // Eliminado segundo tipo genérico
     imageUriField: 'imageUri',
     onImageUpload: async (file: FileObject) => {
       const result = await ImageUploadService.uploadImage(file);
@@ -185,7 +186,13 @@ const SubcategoriesScreen: React.FC = () => {
     </View>
   );
 
-  const screenTitle = categoryName ? `Subcategorías de ${categoryName}` : 'Subcategorías';
+  const handleFilterChange = (value: string | number) => { 
+      if (value === 'all' || value === 'active' || value === 'inactive') {
+          setStatusFilter(value);
+      } else {
+          setStatusFilter('all');
+      }
+  };
 
   return (
     <View style={styles.container}>
@@ -195,7 +202,7 @@ const SubcategoriesScreen: React.FC = () => {
         enableSearch={true}
         searchPlaceholder="Buscar subcategorías..."
         filterValue={statusFilter}
-        onFilterChange={setStatusFilter}
+        onFilterChange={handleFilterChange}
         filterOptions={filterOptions}
         renderConfig={listRenderConfig}
         onItemPress={handleOpenDetailModal}
@@ -236,7 +243,7 @@ const SubcategoriesScreen: React.FC = () => {
           visible={isFormModalVisible}
           onDismiss={handleCloseModals}
           onSubmit={handleFormSubmit}
-          formSchema={editingItem ? updateSubCategoryDtoSchemaWithOptionalPhoto : createSubCategoryDtoSchema}
+          formSchema={editingItem ? updateSubCategoryDtoSchema : createSubCategoryDtoSchema} // Corregido nombre de schema
           formFields={formFields}
           imagePickerConfig={imagePickerConfig}
           initialValues={

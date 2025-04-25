@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { ActivityIndicator, Text, Button, IconButton } from 'react-native-paper';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useDrawerStatus } from '@react-navigation/drawer';
@@ -9,7 +9,6 @@ import { useDrawerStatus } from '@react-navigation/drawer';
 import { modifierGroupService } from '../services/modifierGroupService';
 import { ModifierGroup } from '../schema/modifierGroup.schema'; // Corregir ruta de importación
 import { useAppTheme, AppTheme } from '@/app/styles/theme';
-import { useSnackbarStore } from '@/app/store/snackbarStore';
 import { getApiErrorMessage } from '@/app/lib/errorMapping';
 import { debounce } from 'lodash';
 import ModifierGroupFormModal from '../components/ModifierGroupFormModal';
@@ -28,9 +27,7 @@ const QUERY_KEY = ['modifierGroups'];
 const ModifierGroupsScreen = () => {
   const theme = useAppTheme();
   const navigation = useNavigation<NavigationProps>();
-  const queryClient = useQueryClient();
-  const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
-  const drawerStatus = useDrawerStatus();
+const drawerStatus = useDrawerStatus();
   const isDrawerOpen = drawerStatus === 'open';
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');

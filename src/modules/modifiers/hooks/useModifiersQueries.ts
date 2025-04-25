@@ -5,20 +5,17 @@ import {
   type UseQueryOptions,
   type UseQueryResult,
   type UseMutationResult,
-  type QueryKey,
 } from '@tanstack/react-query';
 import { modifierService } from "../services/modifierService";
 import {
   Modifier,
   CreateModifierInput,
   UpdateModifierInput,
-  // FindAllModifiersParams, // No se exporta desde types, se define localmente
-} from "../types/modifier.types";
+} from "../schema/modifier.schema";
 import { ApiError } from '@/app/lib/errors';
 import { useSnackbarStore, type SnackbarState } from '@/app/store/snackbarStore';
 import { getApiErrorMessage } from '@/app/lib/errorMapping';
 
-// --- Query Keys ---
 const modifierKeys = {
   all: ['modifiers'] as const,
   lists: () => [...modifierKeys.all, 'list'] as const,
@@ -37,9 +34,6 @@ interface FindAllModifiersParams {
 }
 
 
-/**
- * Hook para obtener la lista de modificadores (potencialmente filtrada/paginada).
- */
 export const useModifiersQuery = (
   filters: FindAllModifiersParams = {},
   options?: Omit<UseQueryOptions<Modifier[], ApiError>, 'queryKey' | 'queryFn'>
@@ -52,9 +46,6 @@ export const useModifiersQuery = (
   });
 };
 
-/**
- * Hook para obtener modificadores por ID de grupo.
- */
 export const useModifiersByGroupQuery = (
     groupId: string | undefined,
     options?: Omit<UseQueryOptions<Modifier[], ApiError>, 'queryKey' | 'queryFn'>
@@ -69,9 +60,6 @@ export const useModifiersByGroupQuery = (
 };
 
 
-/**
- * Hook para obtener un modificador por ID.
- */
 export const useModifierQuery = (
     id: string | undefined,
     options?: Omit<UseQueryOptions<Modifier, ApiError>, 'queryKey' | 'queryFn'>
@@ -90,9 +78,6 @@ type UpdateModifierContext = {
     previousDetail?: Modifier;
 };
 
-/**
- * Hook para crear un nuevo modificador.
- */
 export const useCreateModifierMutation = (): UseMutationResult<
   Modifier,
   ApiError,
@@ -118,9 +103,6 @@ export const useCreateModifierMutation = (): UseMutationResult<
   });
 };
 
-/**
- * Hook para actualizar un modificador existente (con actualización optimista).
- */
 export const useUpdateModifierMutation = (): UseMutationResult<
   Modifier,
   ApiError,
@@ -142,8 +124,7 @@ export const useUpdateModifierMutation = (): UseMutationResult<
       const previousDetail = queryClient.getQueryData<Modifier>(detailQueryKey);
 
       if (previousDetail) {
-        // Fusionar datos antiguos y nuevos
-        queryClient.setQueryData<Modifier>(detailQueryKey, (old) =>
+        queryClient.setQueryData<Modifier>(detailQueryKey, (old: Modifier | undefined) => 
           old ? { ...old, ...data } : undefined
         );
       }
@@ -177,9 +158,6 @@ export const useUpdateModifierMutation = (): UseMutationResult<
   });
 };
 
-/**
- * Hook para eliminar un modificador.
- */
 export const useDeleteModifierMutation = (): UseMutationResult<
   void,
   ApiError,
@@ -224,8 +202,7 @@ export const useDeleteModifierMutation = (): UseMutationResult<
       }
     },
 
-    onSettled: (data, error, deletedId, context) => { // Añadir contexto
-      // Invalidar listas generales
+    onSettled: (_data, error, deletedId, context) => {
       queryClient.invalidateQueries({ queryKey: modifierKeys.lists() });
       // Invalidar lista por grupo si se conoce el groupId (desde el contexto)
       if (context?.previousDetail?.groupId) {

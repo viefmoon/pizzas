@@ -1,9 +1,7 @@
 import React, { useMemo, useCallback } from "react";
-import { z } from "zod"; // Importar z para la aserción de tipo
+import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { SubmitHandler } from "react-hook-form";
 
-import { useAppTheme } from "@/app/styles/theme";
 import { useSnackbarStore } from "@/app/store/snackbarStore";
 import { getApiErrorMessage } from "@/app/lib/errorMapping";
 import GenericFormModal, {
@@ -56,11 +54,7 @@ const formFields: FormFieldConfig<ModifierFormInputs>[] = [
   { name: "isActive", label: "Activo", type: "switch", defaultValue: true },
 ];
 
-// Usar el schema de validación del formulario y omitir groupId si es necesario
-// Nota: modifierFormValidationSchema ya no incluye groupId, por lo que omit() no es estrictamente necesario aquí
-// Si necesitas omitir otros campos en el futuro, puedes hacerlo así:
-// const formSchema = modifierFormValidationSchema.omit({ /* otros campos */ });
-const formSchema = modifierFormValidationSchema; // Usar el schema directamente
+const formSchema = modifierFormValidationSchema;
 
 const ModifierFormModal: React.FC<Props> = ({
   visible,
@@ -69,7 +63,6 @@ const ModifierFormModal: React.FC<Props> = ({
   initialData,
   groupId,
 }) => {
-  const theme = useAppTheme();
   const queryClient = useQueryClient();
   const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
 

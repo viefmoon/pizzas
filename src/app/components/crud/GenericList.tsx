@@ -496,8 +496,7 @@ const GenericList = <TItem extends { id: string }>({
         data={processedItems}
         renderItem={renderGenericItem}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={80} // Añadir tamaño estimado del item
-        style={listStyle}
+        estimatedItemSize={80}
         contentContainerStyle={finalContentContainerStyle}
         ListEmptyComponent={
           processedItems.length === 0 ? ListEmptyComponent : null

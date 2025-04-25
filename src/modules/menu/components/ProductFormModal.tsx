@@ -26,7 +26,7 @@ import { useAppTheme, AppTheme } from "@/app/styles/theme";
 import {
   ProductFormInputs,
   productSchema,
-  ProductVariantInput,
+  ProductVariant,
   Product,
 } from "../schema/products.schema";
 import { ModifierGroup } from "../../modifiers/schema/modifierGroup.schema";
@@ -102,7 +102,6 @@ function ProductFormModal({
     reset,
     watch,
     setValue,
-    trigger,
     formState: { errors },
   } = useForm<ProductFormInputs>({
     resolver: zodResolver(productSchema),
@@ -154,43 +153,28 @@ function ProductFormModal({
 
   const hasVariants = watch("hasVariants");
   const currentImageUri = watch("imageUri");
-  const selectedModifierGroupIds = watch("modifierGroupIds") || [];
 
-  // --- Fetch Modifier Groups ---
   const { data: allModifierGroups, isLoading: isLoadingGroups } =
     useModifierGroupsQuery({}); // Ajustar filtros si es necesario
 
-  // Efecto para setear los IDs de los grupos asignados desde initialData
   useEffect(() => {
     if (visible) {
-      // if (isEditing && initialData) { // Log de depuración eliminado
-      //   console.log("Initial product data:", JSON.stringify(initialData, null, 2));
-      // }
-
-      // Setear IDs desde initialData si estamos editando
       if (isEditing && initialData?.modifierGroups) {
         if (Array.isArray(initialData.modifierGroups)) {
           const assignedIds = initialData.modifierGroups.map(
-            (group: ModifierGroup) => group.id // Añadir tipo explícito
+            (group: ModifierGroup) => group.id
           );
-          // console.log("Setting modifierGroupIds from initialData:", assignedIds); // Log de depuración eliminado
           setValue("modifierGroupIds", assignedIds);
         } else {
-          // console.warn("initialData.modifierGroups is not an array:", initialData.modifierGroups); // Log de depuración eliminado
           setValue("modifierGroupIds", []);
         }
       } else if (!isEditing) {
-        // Resetear al abrir para crear
-        // console.log("Resetting modifierGroupIds for new product"); // Log de depuración eliminado
         setValue("modifierGroupIds", []);
       } else if (isEditing && !initialData?.modifierGroups) {
-        // Resetear si estamos editando pero initialData no tiene grupos
-        // console.log("Resetting modifierGroupIds as none found in initialData"); // Log de depuración eliminado
         setValue("modifierGroupIds", []);
       }
     }
   }, [visible, isEditing, initialData, setValue, reset, defaultValues]);
-  // --- Fin Fetch Modifier Groups ---
 
   const handleImageSelected = useCallback(
     (uri: string, file: FileObject) => {
@@ -257,7 +241,7 @@ function ProductFormModal({
     setIsVariantModalVisible(true);
   };
 
-  const handleVariantSubmit = (variantData: ProductVariantInput) => {
+  const handleVariantSubmit = (variantData: ProductVariant) => {
     if (editingVariantIndex !== null) {
       const originalVariantId =
         initialData?.variants?.[editingVariantIndex]?.id;
@@ -270,11 +254,12 @@ function ProductFormModal({
         ...(originalVariantId && { id: originalVariantId }),
       };
 
-      if (!originalVariantId && "id" in dataToUpdate) {
-        delete dataToUpdate.id;
-      }
+      // Crear un nuevo objeto sin 'id' si no había uno original, usando desestructuración
+      const finalDataToUpdate = !originalVariantId && "id" in dataToUpdate
+        ? (({ id, ...rest }) => rest)(dataToUpdate) // Correcto: crea un nuevo objeto sin 'id'
+        : dataToUpdate;
 
-      updateVariant(editingVariantIndex, dataToUpdate as ProductVariantInput);
+      updateVariant(editingVariantIndex, finalDataToUpdate as ProductVariant);
     } else {
       const { id, price, ...restNewVariantData } = variantData;
       const newPriceAsNumber = Number(price);
@@ -282,7 +267,7 @@ function ProductFormModal({
         ...restNewVariantData,
         price: isNaN(newPriceAsNumber) ? 0 : newPriceAsNumber,
       };
-      appendVariant(newVariantData as ProductVariantInput);
+      appendVariant(newVariantData as ProductVariant);
     }
     setIsVariantModalVisible(false);
     setEditingVariantIndex(null);
@@ -299,7 +284,7 @@ function ProductFormModal({
 
   const variantInitialData =
     editingVariantIndex !== null
-      ? (variantFields[editingVariantIndex] as ProductVariantInput)
+      ? (variantFields[editingVariantIndex] as ProductVariant)
       : undefined;
 
   return (
@@ -551,7 +536,6 @@ function ProductFormModal({
 
               <Divider style={styles.divider} />
 
-              {/* Grupos de Modificadores */}
               <View style={styles.modifierGroupSection}>
                 <Text variant="titleMedium" style={styles.sectionTitle}>
                   Grupos de Modificadores
@@ -608,7 +592,6 @@ function ProductFormModal({
                   </HelperText>
                 )}
               </View>
-              {/* Fin Grupos Modificadores */}
             </Card.Content>
           </Card>
         </ScrollView>

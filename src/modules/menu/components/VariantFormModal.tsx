@@ -12,18 +12,15 @@ import {
 } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import {
-  ProductVariantInput,
-  productVariantSchema,
-} from "../schema/products.schema";
+import { ProductVariant } from "../schema/products.schema";
+import { productVariantSchema } from "../../../app/schemas/domain/product-variant.schema";
 import { useAppTheme } from "@/app/styles/theme";
 
 interface VariantFormModalProps {
   visible: boolean;
   onDismiss: () => void;
-  onSubmit: (data: ProductVariantInput) => void;
-  initialData?: Partial<ProductVariantInput>; // Hacerlo parcial para creación
+  onSubmit: (data: ProductVariant) => void; 
+  initialData?: Partial<ProductVariant>; 
 }
 
 function VariantFormModal({
@@ -36,22 +33,18 @@ function VariantFormModal({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const isEditing = !!initialData?.name;
 
-  // Quitamos <ProductVariantInput> para que los tipos se infieran correctamente
-  // El resolver se encargará de la validación y conversión al tipo ProductVariantInput
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm({
-    // Sin tipo explícito aquí
+  } = useForm<ProductVariant>({
     resolver: zodResolver(productVariantSchema),
     defaultValues: {
       name: initialData?.name ?? "",
-      // Usar 0 como default si no hay valor inicial, coerce lo manejará
       price: initialData?.price ?? 0,
       isActive: initialData?.isActive ?? true,
-      id: initialData?.id, // Incluir id en defaultValues si existe
+      id: initialData?.id,
     },
   });
 
@@ -59,19 +52,15 @@ function VariantFormModal({
     if (visible) {
       reset({
         name: initialData?.name ?? "",
-        // Usar 0 como default si no hay valor inicial
         price: initialData?.price ?? 0,
         isActive: initialData?.isActive ?? true,
-        id: initialData?.id, // Asegurarse de que el id se resetea correctamente
+        id: initialData?.id,
       });
     } else {
     }
   }, [visible, initialData, reset]);
 
-  // handleFormSubmit recibe los datos YA validados por Zod, por lo que data es ProductVariantInput
-  const handleFormSubmit = (data: ProductVariantInput) => {
-    // Ya no es necesario convertir price aquí, Zod lo hizo.
-    // Solo necesitamos asegurar que el ID se incluya si existe.
+  const handleFormSubmit = (data: ProductVariant) => {
     const finalData = {
       ...data,
       ...(initialData?.id && { id: initialData.id }),
@@ -164,9 +153,7 @@ function VariantFormModal({
                       onBlur={field.onBlur}
                       error={!!errors.price}
                       style={styles.input}
-                      keyboardType="decimal-pad" // Cambiado a decimal-pad
-                      // Podrías añadir un prefijo o sufijo si lo deseas
-                      // left={<TextInput.Affix text="$" />}
+                      keyboardType="decimal-pad"
                     />
                   );
                 }}
@@ -178,8 +165,6 @@ function VariantFormModal({
               )}
             </View>
 
-            {/* Separador opcional si quieres más distinción */}
-            {/* <Divider style={styles.divider} /> */}
             <View style={[styles.fieldContainer, styles.switchContainer]}>
               <Text style={styles.label}>Variante Activa</Text>
               <Controller
@@ -190,7 +175,6 @@ function VariantFormModal({
                 )}
               />
             </View>
-            {/* No suele haber error para un switch, pero si lo hubiera, iría aquí */}
           </Card.Content>
           <Card.Actions style={styles.actions}>
             <Button onPress={onDismiss} disabled={isSubmitting}>
@@ -228,16 +212,11 @@ const createStyles = (theme: ReturnType<typeof useAppTheme>) =>
       marginBottom: theme.spacing.m, // Espacio uniforme debajo de cada campo/grupo
     },
     input: {
-      // backgroundColor: 'transparent', // Usar el default de Paper dentro de Card
     },
-    // divider: { // Estilo para el separador opcional
-    //   marginVertical: theme.spacing.m,
-    // },
     switchContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      // Quitar padding vertical, el fieldContainer ya da margen inferior
     },
     label: {
       color: theme.colors.onSurfaceVariant,

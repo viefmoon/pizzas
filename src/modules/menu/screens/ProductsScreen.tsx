@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useState } from "react";
-import { View, StyleSheet, Alert } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { ActivityIndicator, Text, Portal } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
@@ -13,7 +13,7 @@ import {
   useUpdateProductMutation,
   useDeleteProductMutation,
 } from "../hooks/useProductsQueries";
-import { Product, ProductFormInputs } from "../types/products.types";
+import { Product, ProductFormInputs } from "../schema/products.schema";
 import { MenuStackParamList } from "@/modules/menu/navigation/types";
 import { useAppTheme, AppTheme } from "@/app/styles/theme";
 import { getApiErrorMessage } from "@/app/lib/errorMapping";
@@ -53,8 +53,13 @@ function ProductsScreen(): JSX.Element {
     debouncedSetSearch(query);
   };
 
-  const handleFilterChange = (value: "all" | "active" | "inactive") => {
-    setStatusFilter(value);
+  const handleFilterChange = (value: string | number) => {
+    if (value === "all" || value === "active" || value === "inactive") {
+        setStatusFilter(value);
+    } else {
+        console.warn("Valor de filtro inesperado:", value);
+        setStatusFilter("all");
+    }
   };
 
   const queryFilters = useMemo(
@@ -83,11 +88,9 @@ function ProductsScreen(): JSX.Element {
   const {
     isFormModalVisible,
     editingItem,
-    isDeleting,
     handleOpenCreateModal,
     handleOpenEditModal,
     handleCloseModals,
-    handleDeleteItem,
   } = useCrudScreenLogic<Product, ProductFormInputs, ProductFormInputs>({
     entityName: 'Producto',
     queryKey: ["products", queryFilters],
@@ -96,7 +99,7 @@ function ProductsScreen(): JSX.Element {
 
 
   const products = useMemo(() => {
-    return (productsResponse?.[0] ?? []).map((p) => ({
+    return (productsResponse?.[0] ?? []).map((p: Product) => ({ // Añadido tipo explícito
       ...p,
       _displayDescription: p.hasVariants
         ? `${p.variants?.length || 0} variante(s)`
@@ -105,8 +108,6 @@ function ProductsScreen(): JSX.Element {
           : "Precio no definido",
     }));
   }, [productsResponse]);
-
-  const totalProducts = productsResponse?.[1] ?? 0;
 
   const handleFormSubmit = useCallback(
     async (

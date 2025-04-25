@@ -4,21 +4,22 @@ import {
   useQueryClient,
   type UseQueryResult,
   type UseMutationResult,
-  type QueryKey,
 } from '@tanstack/react-query';
 import * as subcategoriesService from '../services/subcategoriesService';
 import {
   SubCategory,
   CreateSubCategoryDto,
   UpdateSubCategoryDto,
-  FindAllSubCategoriesDto,
-} from '../types/subcategories.types';
+  findAllSubCategoriesDtoSchema, 
+} from '../schema/subcategories.schema';
+import { z } from 'zod';
 import { PaginatedResponse } from '../../../app/types/api.types';
 import { ApiError } from '../../../app/lib/errors';
 import { useSnackbarStore, type SnackbarState } from '../../../app/store/snackbarStore';
 import { getApiErrorMessage } from '../../../app/lib/errorMapping';
 
-// --- Query Keys ---
+type FindAllSubCategoriesDto = z.infer<typeof findAllSubCategoriesDtoSchema>;
+
 const subcategoryKeys = {
   all: ['subcategories'] as const,
   lists: () => [...subcategoryKeys.all, 'list'] as const,
@@ -27,11 +28,8 @@ const subcategoryKeys = {
   detail: (id: string) => [...subcategoryKeys.details(), id] as const,
 };
 
-/**
- * Hook para obtener una lista paginada y filtrada de subcategorías.
- */
 export const useFindAllSubcategories = (
-  params: FindAllSubCategoriesDto = {},
+  params: FindAllSubCategoriesDto = { page: 1, limit: 10 },
   enabled: boolean = true,
 ): UseQueryResult<PaginatedResponse<SubCategory>, ApiError> => {
   const queryKey = subcategoryKeys.list(params);
@@ -42,9 +40,6 @@ export const useFindAllSubcategories = (
   });
 };
 
-/**
- * Hook para obtener una subcategoría específica por ID.
- */
 export const useFindOneSubcategory = (
   id: string | undefined,
   enabled: boolean = true,
@@ -62,9 +57,6 @@ type UpdateSubcategoryContext = {
     previousDetail?: SubCategory;
 };
 
-/**
- * Hook para crear una nueva subcategoría.
- */
 export const useCreateSubcategory = (): UseMutationResult<
   SubCategory,
   ApiError,
@@ -82,14 +74,11 @@ export const useCreateSubcategory = (): UseMutationResult<
     onError: (error) => {
       const message = getApiErrorMessage(error);
       showSnackbar({ message, type: 'error' });
-      console.error('Error creating subcategory:', error); // Añadir log de error
+      console.error('Error creating subcategory:', error);
     },
   });
 };
 
-/**
- * Hook para actualizar una subcategoría existente.
- */
 export const useUpdateSubcategory = (): UseMutationResult<
   SubCategory,
   ApiError,
@@ -111,7 +100,7 @@ export const useUpdateSubcategory = (): UseMutationResult<
       const previousDetail = queryClient.getQueryData<SubCategory>(detailQueryKey);
 
       if (previousDetail) {
-        queryClient.setQueryData<SubCategory>(detailQueryKey, (old) =>
+        queryClient.setQueryData<SubCategory>(detailQueryKey, (old: SubCategory | undefined) => // Añadido tipo explícito
           old ? { ...old, ...data } : undefined
         );
       }
@@ -140,9 +129,6 @@ export const useUpdateSubcategory = (): UseMutationResult<
   });
 };
 
-/**
- * Hook para eliminar (soft delete) una subcategoría.
- */
 export const useRemoveSubcategory = (): UseMutationResult<
   void,
   ApiError,
@@ -179,7 +165,7 @@ export const useRemoveSubcategory = (): UseMutationResult<
       }
     },
 
-    onSettled: (data, error, deletedId) => {
+    onSettled: (_data, error, deletedId) => {
       queryClient.invalidateQueries({ queryKey: subcategoryKeys.lists() });
 
       if (!error) {

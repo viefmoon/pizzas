@@ -1,8 +1,5 @@
 import React from 'react';
 import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { DrawerToggleButton } from '@react-navigation/drawer';
-import { Platform } from 'react-native';
-
 import { ModifiersStackParamList } from '@/app/navigation/types';
 import ModifierGroupsScreen from '../screens/ModifierGroupsScreen';
 import ModifiersScreen from '../screens/ModifiersScreen';
@@ -23,7 +20,7 @@ const ModifiersStackNavigator = () => {
       <Stack.Screen
         name="ModifierGroupsScreen"
         component={ModifierGroupsScreen}
-        options={({ navigation }): NativeStackNavigationOptions => ({
+        options={(): NativeStackNavigationOptions => ({
           title: 'Grupos de Modificadores',
         })}
       />

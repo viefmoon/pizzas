@@ -35,8 +35,6 @@ interface OrderItemDtoForBackend {
   basePrice: number;
   finalPrice: number;
   preparationNotes?: string | null;
-  // Modifiers might need a different structure for backend, adjust if needed
-  // modifiers?: { modifierId: string; modifierOptionId?: string; quantity: number; price: number }[];
 }
 
 // Definir la estructura completa del payload para onConfirmOrder (y exportarla)
@@ -56,7 +54,6 @@ export interface OrderDetailsForBackend {
 
 interface OrderCartDetailProps {
   visible: boolean;
-  // Actualizar la firma de onConfirmOrder
   onConfirmOrder: (details: OrderDetailsForBackend) => void;
   onClose?: () => void;
 }
@@ -189,7 +186,6 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
       // Mapear modifiers si es necesario y la estructura del backend es diferente
     }));
 
-    // Construir el payload completo
     const orderDetails: OrderDetailsForBackend = {
       userId: user?.id || '', // Asegurarse de tener un userId
       orderType,
@@ -204,18 +200,14 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
       notes: orderNotes || undefined,
     };
 
-    // Validar userId antes de enviar
     if (!orderDetails.userId) {
         console.error("Error: Falta el ID del usuario al confirmar la orden.");
-        // Opcional: Mostrar un snackbar de error al usuario
-        // showSnackbar({ message: "Error: No se pudo identificar al usuario.", type: "error" });
         return; // Detener el proceso si falta el userId
     }
 
 
     onConfirmOrder(orderDetails);
-    // Opcional: Limpiar el carrito después de confirmar (depende del flujo deseado)
-    // clearCart();
+    clearCart();
   };
 
   

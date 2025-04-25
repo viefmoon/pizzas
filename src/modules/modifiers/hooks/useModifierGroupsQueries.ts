@@ -5,19 +5,17 @@ import {
   type UseQueryOptions,
   type UseQueryResult,
   type UseMutationResult,
-  type QueryKey,
 } from '@tanstack/react-query';
 import { modifierGroupService } from "../services/modifierGroupService";
 import {
   ModifierGroup,
   CreateModifierGroupInput,
   UpdateModifierGroupInput,
-} from "../types/modifierGroup.types";
-import { ApiError } from '@/app/lib/errors'; // Asegurar importación de ApiError
-import { useSnackbarStore, type SnackbarState } from '@/app/store/snackbarStore'; // Importar Snackbar
-import { getApiErrorMessage } from '@/app/lib/errorMapping'; // Importar mapeo de errores
+} from "../schema/modifierGroup.schema";
+import { ApiError } from '@/app/lib/errors';
+import { useSnackbarStore, type SnackbarState } from '@/app/store/snackbarStore';
+import { getApiErrorMessage } from '@/app/lib/errorMapping';
 
-// --- Query Keys ---
 const modifierGroupKeys = {
   all: ['modifierGroups'] as const,
   lists: () => [...modifierGroupKeys.all, 'list'] as const,
@@ -26,8 +24,6 @@ const modifierGroupKeys = {
   detail: (id: string) => [...modifierGroupKeys.details(), id] as const,
 };
 
-
-// Definir tipo para los filtros basado en el servicio
 interface FindAllModifierGroupsQuery {
   page?: number;
   limit?: number;
@@ -35,11 +31,6 @@ interface FindAllModifierGroupsQuery {
   search?: string;
 }
 
-/**
- * Hook para obtener la lista de grupos de modificadores.
- * Nota: El servicio findAll devuelve ModifierGroup[], no una respuesta paginada.
- * Ajustar si el backend cambia.
- */
 export const useModifierGroupsQuery = (
   filters: FindAllModifierGroupsQuery = {},
   options?: Omit<
@@ -55,9 +46,6 @@ export const useModifierGroupsQuery = (
   });
 };
 
-/**
- * Hook para obtener un grupo de modificadores por ID.
- */
 export const useModifierGroupQuery = (
     id: string | undefined,
     options?: Omit<UseQueryOptions<ModifierGroup, ApiError>, 'queryKey' | 'queryFn'>
@@ -76,9 +64,6 @@ type UpdateModifierGroupContext = {
     previousDetail?: ModifierGroup;
 };
 
-/**
- * Hook para crear un nuevo grupo de modificadores.
- */
 export const useCreateModifierGroupMutation = (): UseMutationResult<
   ModifierGroup,
   ApiError,
@@ -101,9 +86,6 @@ export const useCreateModifierGroupMutation = (): UseMutationResult<
   });
 };
 
-/**
- * Hook para actualizar un grupo de modificadores existente (con actualización optimista).
- */
 export const useUpdateModifierGroupMutation = (): UseMutationResult<
   ModifierGroup,
   ApiError,
@@ -124,7 +106,7 @@ export const useUpdateModifierGroupMutation = (): UseMutationResult<
       const previousDetail = queryClient.getQueryData<ModifierGroup>(detailQueryKey);
 
       if (previousDetail) {
-        queryClient.setQueryData<ModifierGroup>(detailQueryKey, (old) =>
+        queryClient.setQueryData<ModifierGroup>(detailQueryKey, (old: ModifierGroup | undefined) => 
           old ? { ...old, ...data } : undefined
         );
       }
@@ -149,9 +131,6 @@ export const useUpdateModifierGroupMutation = (): UseMutationResult<
   });
 };
 
-/**
- * Hook para eliminar un grupo de modificadores.
- */
 export const useDeleteModifierGroupMutation = (): UseMutationResult<
   void,
   ApiError,
@@ -188,7 +167,7 @@ export const useDeleteModifierGroupMutation = (): UseMutationResult<
       }
     },
 
-    onSettled: (data, error, deletedId) => {
+    onSettled: (_data, error, deletedId) => {
       queryClient.invalidateQueries({ queryKey: modifierGroupKeys.lists() });
 
       if (!error) {

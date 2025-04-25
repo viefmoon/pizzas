@@ -34,8 +34,7 @@ import {
   CreateCategoryDto,
   UpdateCategoryDto,
   categoryFormSchema,
-  ActiveFilter,
-} from "../types/category.types";
+} from "../schema/category.schema";
 
 type RootStackParamList = {
   Categories: undefined;
@@ -60,11 +59,8 @@ const CategoriesScreen: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
-  const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
+  const [activeFilter, setActiveFilter] = useState<string | number>("all");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [localSelectedFile, setLocalSelectedFile] = useState<FileObject | null>(
-    null
-  );
 
   const {
     data: categoriesResponse,
@@ -153,12 +149,11 @@ const CategoriesScreen: React.FC = () => {
     setEditingCategory(null);
     setSelectedCategory(null);
     setIsUploadingImage(false);
-    setLocalSelectedFile(null);
   }, []);
 
-  const handleFileSelectedForUpload = useCallback((file: FileObject | null) => {
-    setLocalSelectedFile(file);
-  }, []);
+  const handleFilterChange = (value: string | number) => {
+      setActiveFilter(value);
+  };
 
   const handleFormSubmit = async (
     formData: CategoryFormData,
@@ -179,7 +174,6 @@ const CategoriesScreen: React.FC = () => {
     } else {
       createCategoryMutation.mutate(categoryDto as CreateCategoryDto);
     }
-    setLocalSelectedFile(null);
   };
 
   const handleDelete = (id: string) => {
@@ -256,7 +250,7 @@ const CategoriesScreen: React.FC = () => {
     };
   }, [selectedCategory]);
 
-  const filterOptions: FilterOption<ActiveFilter>[] = [
+  const filterOptions: FilterOption<string | number>[] = [
     { value: "all", label: "Todas" },
     { value: "active", label: "Activas" },
     { value: "inactive", label: "Inactivas" },
@@ -291,7 +285,7 @@ const CategoriesScreen: React.FC = () => {
     },
   ];
 
-  const imagePickerConfig: ImagePickerConfig<CategoryFormData, Category> = {
+  const imagePickerConfig: ImagePickerConfig<CategoryFormData> = {
     imageUriField: "imageUri",
     onImageUpload: async (file: FileObject) => {
       setIsUploadingImage(true);
@@ -308,13 +302,6 @@ const CategoriesScreen: React.FC = () => {
     determineFinalPhotoId: ImageUploadService.determinePhotoId,
     imagePickerSize: 150,
   };
-
-  const isProcessing =
-    isUploadingImage ||
-    createCategoryMutation.isPending ||
-    updateCategoryMutation.isPending ||
-    deleteCategoryMutation.isPending ||
-    (isLoadingCategories && !categoriesResponse);
 
   if (isLoadingCategories && !categoriesResponse) {
     return (
@@ -356,7 +343,7 @@ const CategoriesScreen: React.FC = () => {
         enableSearch={true}
         searchPlaceholder="Buscar categorías..."
         filterValue={activeFilter}
-        onFilterChange={setActiveFilter}
+        onFilterChange={handleFilterChange}
         filterOptions={filterOptions}
         renderItemActions={(item: Category) => (
           <IconButton
@@ -403,13 +390,12 @@ const CategoriesScreen: React.FC = () => {
           initialValues={formInitialValues}
           editingItem={editingCategory}
           isSubmitting={
-            createCategoryMutation.isPending || updateCategoryMutation.isPending
+            createCategoryMutation.isPending || updateCategoryMutation.isPending || isUploadingImage
           }
           modalTitle={(isEditing) =>
             isEditing ? "Editar Categoría" : "Nueva Categoría"
           }
           submitButtonLabel={(isEditing) => (isEditing ? "Guardar" : "Crear")}
-          onFileSelected={handleFileSelectedForUpload}
         />
 
         <GenericDetailModal
