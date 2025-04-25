@@ -12,12 +12,12 @@ import {
   useUpdateTable,
   useDeleteTable,
 } from '../hooks/useTablesQueries';
-import { Table, CreateTableDto, UpdateTableDto } from '../types/table.types';
+import { Table, CreateTableDto, UpdateTableDto } from '../schema/table.schema';
 import { TablesListScreenProps } from '../navigation/types';
 import { useAppTheme, AppTheme } from '../../../app/styles/theme';
 import { useCrudScreenLogic } from '../../../app/hooks/useCrudScreenLogic';
 
-const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) => {
+const TablesScreen: React.FC<TablesListScreenProps> = ({ route }) => {
   const theme = useAppTheme();
   const styles = getStyles(theme);
   const { areaId, areaName } = route.params;
@@ -92,7 +92,7 @@ const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) =>
     {
       field: 'capacity',
       label: 'Capacidad',
-      render: (value) => <Text style={styles.fieldValueText}>{value ?? 'No especificada'}</Text>
+      render: (value) => <Text style={styles.fieldValueText}>{value !== null && value !== undefined ? String(value) : 'No especificada'}</Text>
     }
   ], [styles.fieldValueText]);
 
@@ -104,8 +104,8 @@ const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) =>
       { label: 'Inactivas', value: 'false' },
   ], []);
 
-  const handleFilterChange = (value: string) => {
-      setFilterStatus(value);
+  const handleFilterChange = (value: string | number) => {
+      setFilterStatus(String(value));
   };
 
   const handleSearchChange = (query: string) => {
@@ -190,7 +190,6 @@ const TablesScreen: React.FC<TablesListScreenProps> = ({ route, navigation }) =>
         onSubmit={handleFormSubmit}
         editingItem={editingItem}
         isSubmitting={isSubmitting}
-        defaultAreaId={areaId}
       />
 
       <GenericDetailModal<Table>

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'; // Añadir import para useQuery
+import { useQuery } from '@tanstack/react-query'; 
 import apiClient from '../../../app/services/apiClient';
 import { ApiError } from '../../../app/lib/errors';
 import { API_PATHS } from '../../../app/constants/apiPaths';
@@ -9,7 +9,7 @@ import {
   CreateAreaDto,
   UpdateAreaDto,
   FindAllAreasDto,
-} from '../types/area.types'; // Asegurarse que Area esté importado
+} from '../schema/area.schema'; 
 
 
 export const getAreas = async (
@@ -85,8 +85,6 @@ export const deleteArea = async (id: string): Promise<void> => {
     );
   }
 };
-
-// --- React Query Hooks ---
 
 // Claves de Query para áreas
 const areaQueryKeys = {

@@ -14,7 +14,7 @@ import {
   IconButton,
   Surface,
   TouchableRipple,
-  Button,
+  // Button, // Eliminado: No usado
 } from "react-native-paper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import EncryptedStorage from 'react-native-encrypted-storage';
@@ -26,7 +26,7 @@ import { getApiErrorMessage } from "../../../app/lib/errorMapping";
 import { ApiError } from "../../../app/lib/errors";
 import { useThemeStore } from "../../../app/store/themeStore";
 import { useAuthStore } from "../../../app/store/authStore";
-import { LoginFormInputs, LoginResponseDto } from "../types/auth.types";
+import { LoginFormInputs, LoginResponseDto } from "../schema/auth.schema"; // Corregida ruta de importación
 import { authService } from "../services/authService";
 import LoginForm from "../components/LoginForm";
 
@@ -35,7 +35,7 @@ const LoginScreen = () => {
   const queryClient = useQueryClient();
   const navigation = useNavigation();
   const { showSnackbar } = useSnackbarStore();
-  const { themePreference, setThemePreference } = useThemeStore();
+  const { setThemePreference } = useThemeStore(); // Eliminado themePreference no usado
   const setTokens = useAuthStore((state) => state.setTokens);
 
   const [initialEmailOrUsername, setInitialEmailOrUsername] = useState<string | undefined>(undefined);
@@ -52,7 +52,6 @@ const LoginScreen = () => {
     }),
     onSuccess: async (data, variables) => {
       try {
-        // console.log("[LoginScreen] Respuesta API Login (data):", JSON.stringify(data, null, 2)); // Log temporal eliminado
         await setTokens(data.token, data.refreshToken, data.user ?? null);
         const { emailOrUsername, password, rememberMe } = variables;
 

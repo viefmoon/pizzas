@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 
-import { RegisterFormInputs, registerSchema } from "../types/auth.types";
+import { RegisterFormInputs, registerSchema } from "../schema/auth.schema"; // Corregida ruta de importación
 import { authService } from "../services/authService";
 import { useAppTheme } from "../../../app/styles/theme";
 import { useSnackbarStore } from "../../../app/store/snackbarStore";
