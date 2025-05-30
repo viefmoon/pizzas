@@ -1,18 +1,23 @@
-import React, { useMemo, useCallback, useEffect, useState } from 'react'; // Importar useEffect y useState
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, ActivityIndicator, Button, Appbar, IconButton, Portal } from 'react-native-paper'; // Importar Appbar, IconButton y Portal
+import { Text, ActivityIndicator, Button, Appbar, IconButton, Portal } from 'react-native-paper';
 import { useAppTheme, AppTheme } from '../../../app/styles/theme'; // Corregida ruta
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OrdersStackParamList } from '../../../app/navigation/types'; // Corregida ruta
-import { useGetOpenOrdersQuery, usePrintKitchenTicketMutation } from '../hooks/useOrdersQueries'; // Importar hook y mutación
+import { useGetOpenOrdersQuery, usePrintKitchenTicketMutation, useUpdateOrderMutation } from '../hooks/useOrdersQueries'; // Importar hooks y mutaciones
 import GenericList, { RenderItemConfig } from '../../../app/components/crud/GenericList'; // Importar GenericList
 import { Order, OrderStatusEnum, type OrderStatus } from '../types/orders.types'; // Importar OrderStatusEnum y el tipo OrderStatus
 import { getApiErrorMessage } from '../../../app/lib/errorMapping'; // Importar mapeo de errores
 import { format } from 'date-fns'; // Para formatear fechas
 import { es } from 'date-fns/locale'; // Locale español
 import PrinterSelectionModal from '../components/PrinterSelectionModal'; // Importar el modal
-import type { ThermalPrinter } from '../../printers/types/printer.types'; // Importar tipo de impresora
+import type { ThermalPrinter } from '../../printers/types/printer.types';
+// Importar el nuevo modal y el tipo de payload
+import EditOrderModal, { UpdateOrderPayload } from '../components/EditOrderModal';
+// Importar el hook de mutación (lo crearemos después)
+// import { useUpdateOrderMutation } from '../hooks/useOrdersQueries';
+import { useSnackbarStore } from '../../../app/store/snackbarStore'; // Para mostrar mensajes
 
 type OpenOrdersScreenProps = NativeStackScreenProps<OrdersStackParamList, 'OpenOrders'>;
 
@@ -34,7 +39,15 @@ const OpenOrdersScreen: React.FC<OpenOrdersScreenProps> = ({ navigation }) => {
   const styles = React.useMemo(() => createStyles(theme), [theme]);
   const [isPrinterModalVisible, setIsPrinterModalVisible] = useState(false);
   const [orderToPrintId, setOrderToPrintId] = useState<string | null>(null);
-  const printKitchenTicketMutation = usePrintKitchenTicketMutation(); // Instanciar la mutación
+  const printKitchenTicketMutation = usePrintKitchenTicketMutation();
+  const showSnackbar = useSnackbarStore((state) => state.showSnackbar); // Hook para snackbar (Corregido)
+
+  // Estados para el modal de edición
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null); // Cambiado a ID
+
+  // TODO: Instanciar la mutación de actualización cuando esté creada
+  const updateOrderMutation = useUpdateOrderMutation(); // Instanciar la mutación
 
   const {
     data: ordersData, // Renombrar para claridad, ahora es Order[] | undefined
@@ -62,9 +75,9 @@ const OpenOrdersScreen: React.FC<OpenOrdersScreenProps> = ({ navigation }) => {
   }, [refetch]);
 
   const handleOrderItemPress = (order: Order) => {
-    // TODO: Implementar navegación a pantalla de detalles de la orden si es necesario
-    console.log('Ver detalles de la orden:', order.id);
-    // navigation.navigate('OrderDetail', { orderId: order.id });
+    // Guardar solo el ID y abrir el modal
+    setEditingOrderId(order.id);
+    setIsEditModalVisible(true);
   };
 
   // Configuración para GenericList
@@ -131,7 +144,7 @@ const OpenOrdersScreen: React.FC<OpenOrdersScreenProps> = ({ navigation }) => {
       // Deshabilitar el botón si esta orden específica se está imprimiendo
       disabled={printKitchenTicketMutation.isPending && printKitchenTicketMutation.variables?.orderId === item.id}
     />
-  ), [handleOpenPrinterModal]); // Dependencia: handleOpenPrinterModal
+  ), [handleOpenPrinterModal, printKitchenTicketMutation.isPending]); // Añadir dependencia
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -159,6 +172,27 @@ const OpenOrdersScreen: React.FC<OpenOrdersScreenProps> = ({ navigation }) => {
           visible={isPrinterModalVisible}
           onDismiss={() => setIsPrinterModalVisible(false)}
           onPrinterSelect={handlePrinterSelect}
+        />
+        {/* Modal de Edición de Orden */}
+        <EditOrderModal
+          visible={isEditModalVisible}
+          orderId={editingOrderId} // Pasar ID en lugar del objeto
+          onClose={() => {
+            setIsEditModalVisible(false);
+            setEditingOrderId(null); // Limpiar ID
+          }}
+          onSaveChanges={async (orderId, payload) => { // orderId ya viene como argumento
+            // Llamar a la mutación de actualización
+            try {
+              await updateOrderMutation.mutateAsync({ orderId, payload });
+              // El hook useUpdateOrderMutation ya muestra el snackbar de éxito
+              setIsEditModalVisible(false);
+              setEditingOrderId(null); // Limpiar ID
+            } catch (error) {
+              // El hook useUpdateOrderMutation ya muestra el snackbar de error
+              console.error("Error al actualizar la orden desde el modal:", error);
+            }
+          }}
         />
       </Portal>
     </SafeAreaView>

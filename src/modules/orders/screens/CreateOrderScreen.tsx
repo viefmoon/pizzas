@@ -78,7 +78,7 @@ const CreateOrderScreen = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
-  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<
     string | null
   >(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -90,12 +90,12 @@ const CreateOrderScreen = () => {
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
-    setSelectedSubCategoryId(null);
+    setSelectedSubcategoryId(null);
     setNavigationLevel("subcategories");
   };
 
-  const handleSubCategorySelect = (subCategoryId: string) => {
-    setSelectedSubCategoryId(subCategoryId);
+  const handleSubCategorySelect = (subcategoryId: string) => {
+    setSelectedSubcategoryId(subcategoryId);
     setNavigationLevel("products");
   };
 
@@ -128,7 +128,7 @@ const CreateOrderScreen = () => {
   const handleGoBackInternal = () => {
      if (navigationLevel === "products") {
       setNavigationLevel("subcategories");
-      setSelectedSubCategoryId(null);
+      setSelectedSubcategoryId(null);
     } else if (navigationLevel === "subcategories") {
       setNavigationLevel("categories");
       setSelectedCategoryId(null);
@@ -219,10 +219,10 @@ const CreateOrderScreen = () => {
     return menu;
   };
 
-  const getSubCategories = () => {
-    if (!selectedCategory || !Array.isArray(selectedCategory.subCategories))
+  const getSubcategories = () => {
+    if (!selectedCategory || !Array.isArray(selectedCategory.subcategories))
       return [];
-    return selectedCategory.subCategories;
+    return selectedCategory.subcategories;
   };
 
   const getProducts = () => {
@@ -237,9 +237,9 @@ const CreateOrderScreen = () => {
       : null;
 
   const selectedSubCategory =
-    selectedCategory && Array.isArray(selectedCategory.subCategories)
-      ? selectedCategory.subCategories.find(
-          (sub: SubCategory) => sub.id === selectedSubCategoryId
+    selectedCategory && Array.isArray(selectedCategory.subcategories) // Corregido a lowercase
+      ? selectedCategory.subcategories.find( // Corregido a lowercase
+          (sub: SubCategory) => sub.id === selectedSubcategoryId
         )
       : null;
 
@@ -462,7 +462,7 @@ const CreateOrderScreen = () => {
         case "categories":
           return getCategories();
         case "subcategories":
-          return getSubCategories();
+          return getSubcategories();
         case "products":
           return getProducts();
         default:

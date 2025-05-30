@@ -1,16 +1,15 @@
 import { useMemo } from 'react'; // Importar useMemo
 
-import { useMutation, useQuery, useQueries, useQueryClient, UseQueryResult, QueryObserverResult } from '@tanstack/react-query'; // Añadir useQueries y QueryObserverResult
+import { useMutation, useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query'; // Añadir useQueries y QueryObserverResult
 import { orderService } from '../services/orderService';
-import { OrderStatus } from '../types/orders.types'; // Importar como valor
-import type { Order } from '../../../app/types/domain/order.types'; // Importar Order como tipo
+import type { Order } from '../../../app/schemas/domain/order.schema'; // Ruta corregida
 import type { OrderDetailsForBackend } from '../components/OrderCartDetail';
-// Asumiendo que FindAllOrdersDto está definido en types/orders.types.ts basado en el backend
 import type { FindAllOrdersDto } from '../types/orders.types';
 import type { PaginatedResponse } from '../../../app/types/api.types'; // Corregir ruta relativa
 import { ApiError } from '@/app/lib/errors';
 import { useSnackbarStore } from '@/app/store/snackbarStore';
 import { getApiErrorMessage } from '@/app/lib/errorMapping';
+import type { UpdateOrderPayload } from '../components/EditOrderModal'; // Importar payload
 
 // --- Query Keys (si se necesitan queries futuras para órdenes) ---
 const orderKeys = {
@@ -48,7 +47,36 @@ export const useCreateOrderMutation = () => {
   });
 };
 
-// Añadir aquí otros hooks para órdenes si son necesarios (useGetOrders, useUpdateOrder, etc.)
+/**
+ * Hook para actualizar una orden existente.
+ */
+export const useUpdateOrderMutation = () => {
+  const queryClient = useQueryClient();
+  const showSnackbar = useSnackbarStore((state) => state.showSnackbar);
+
+  // Definir el tipo de las variables de la mutación
+  type UpdateVariables = { orderId: string; payload: UpdateOrderPayload };
+
+  return useMutation<Order, ApiError, UpdateVariables>({
+    mutationFn: ({ orderId, payload }) => orderService.updateOrder(orderId, payload),
+    onSuccess: (updatedOrder, variables) => {
+      // Invalidar queries relevantes para refrescar datos
+      queryClient.invalidateQueries({ queryKey: orderKeys.lists() }); // Invalida todas las listas
+      queryClient.invalidateQueries({ queryKey: orderKeys.openToday() }); // Invalida la lista de órdenes abiertas
+      // Opcional: invalidar detalle específico si se implementa query de detalle
+      // queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+
+      showSnackbar({ message: `Orden #${updatedOrder.dailyNumber} actualizada`, type: 'success' });
+    },
+    onError: (error, variables) => {
+      const message = getApiErrorMessage(error);
+      showSnackbar({ message: `Error al actualizar orden #${variables.orderId}: ${message}`, type: 'error' });
+      console.error(`Error updating order ${variables.orderId}:`, error);
+    },
+  });
+};
+
+// Añadir aquí otros hooks para órdenes si son necesarios (useGetOrders, etc.)
 
 /**
  * Hook para obtener la lista de órdenes con filtros y paginación.
@@ -106,5 +134,30 @@ export const useGetOpenOrdersQuery = (
   });
 
   // La lógica de useQueries y combinación se elimina
+};
+
+
+/**
+ * Hook para obtener los detalles completos de una orden por su ID.
+ */
+export const useGetOrderByIdQuery = (
+  orderId: string | null | undefined,
+  options?: { enabled?: boolean }
+): UseQueryResult<Order, ApiError> => {
+  // Definir la clave de detalle usando el orderId
+  const detailQueryKey = useMemo(() => orderId ? [...orderKeys.details(), orderId] : [...orderKeys.details()], [orderId]);
+
+  return useQuery<Order, ApiError>({
+    queryKey: detailQueryKey,
+    queryFn: () => {
+      if (!orderId) {
+        // Si no hay orderId, no intentar hacer fetch y devolver un error o estado inicial
+        return Promise.reject(new Error("Order ID no proporcionado"));
+      }
+      return orderService.getOrderById(orderId);
+    },
+    enabled: !!orderId && (options?.enabled ?? true), // Habilitar solo si hay orderId y está habilitado externamente
+    // Opcional: añadir staleTime, cacheTime si es necesario
+  });
 };
 

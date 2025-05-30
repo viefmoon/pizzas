@@ -1,10 +1,11 @@
 import apiClient from "@/app/services/apiClient";
 import { ApiError } from "@/app/lib/errors";
 import { API_PATHS } from "@/app/constants/apiPaths";
-import type { Order } from "../../../app/types/domain/order.types";
+import type { Order } from "../../../app/schemas/domain/order.schema";
 import type { FindAllOrdersDto } from "../types/orders.types"; // FindAllOrdersDto se queda aquí
 import type { PaginatedResponse } from "../../../app/types/api.types"; // Importar PaginatedResponse
-import type { OrderDetailsForBackend } from "../components/OrderCartDetail"; // Importar la interfaz del payload
+import type { OrderDetailsForBackend } from "../components/OrderCartDetail"; // Importar la interfaz del payload de creación
+import type { UpdateOrderPayload } from "../components/EditOrderModal"; // Importar la interfaz del payload de actualización
 
 /**
  * Crea una nueva orden en el backend.
@@ -105,6 +106,48 @@ export const orderService = {
       throw ApiError.fromApiResponse(response.data, response.status);
     }
     // No se retorna nada en caso de éxito
+  },
+  /**
+   * Obtiene los detalles completos de una orden por su ID.
+   * @param orderId - El ID de la orden.
+   * @returns Una promesa que resuelve a la orden completa.
+   * @throws {ApiError} Si la petición falla.
+   */
+  getOrderById: async (orderId: string): Promise<Order> => {
+    const response = await apiClient.get<Order>(`${API_PATHS.ORDERS}/${orderId}`);
+
+    if (!response.ok || !response.data) {
+      console.error(`[orderService.getOrderById] Failed to fetch order ${orderId}:`, response);
+      throw ApiError.fromApiResponse(
+        response.data,
+        response.status
+      );
+    }
+    // TODO: Considerar validar la respuesta con Zod si es necesario
+    return response.data;
+  },
+
+  /**
+   * Actualiza una orden existente.
+   * @param orderId - El ID de la orden a actualizar.
+   * @param payload - Los datos a actualizar.
+   * @returns Una promesa que resuelve a la orden actualizada.
+   * @throws {ApiError} Si la petición falla.
+   */
+  updateOrder: async (orderId: string, payload: UpdateOrderPayload): Promise<Order> => {
+    const response = await apiClient.patch<Order>(
+      `${API_PATHS.ORDERS}/${orderId}`,
+      payload
+    );
+
+    if (!response.ok || !response.data) {
+      console.error(`[orderService.updateOrder] Failed to update order ${orderId}:`, response);
+      throw ApiError.fromApiResponse(
+        response.data,
+        response.status
+      );
+    }
+    return response.data;
   },
   // Añadir aquí otras funciones del servicio de órdenes si son necesarias (findOne, update, etc.)
 };

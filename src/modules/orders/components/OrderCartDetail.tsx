@@ -43,7 +43,7 @@ export interface OrderDetailsForBackend {
   orderType: OrderType;
   subtotal: number; // Añadido
   total: number; // Añadido
-  items: OrderItemDtoForBackend[]; // Añadido
+  items: OrderItemDtoForBackend[];
   tableId?: string;
   scheduledAt?: Date;
   customerName?: string;
@@ -65,28 +65,33 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
 }) => {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { items, removeItem, updateItemQuantity, subtotal, total, isCartVisible, clearCart } = useCart(); // Añadir clearCart
+  // Obtener estado del carrito Y del formulario desde el contexto
+  const {
+    items, removeItem, updateItemQuantity, subtotal, total, isCartVisible, clearCart,
+    orderType, setOrderType,
+    selectedAreaId, setSelectedAreaId,
+    selectedTableId, setSelectedTableId,
+    scheduledTime, setScheduledTime,
+    customerName, setCustomerName,
+    phoneNumber, setPhoneNumber,
+    deliveryAddress, setDeliveryAddress,
+    orderNotes, setOrderNotes,
+  } = useCart();
   const { user } = useAuthStore(); // Obtener usuario autenticado
 
-
-  const [orderType, setOrderType] = useState<OrderType>(OrderTypeEnum.DINE_IN); // Usar Enum
-  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
-  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  // Estados locales solo para UI (errores, visibilidad de menús/modales)
   const [areaMenuVisible, setAreaMenuVisible] = useState(false);
   const [tableMenuVisible, setTableMenuVisible] = useState(false);
   const [areaError, setAreaError] = useState<string | null>(null);
   const [tableError, setTableError] = useState<string | null>(null);
-  const [scheduledTime, setScheduledTime] = useState<Date | null>(null);
-  const [customerName, setCustomerName] = useState<string>('');
   const [customerNameError, setCustomerNameError] = useState<string | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [deliveryAddress, setDeliveryAddress] = useState<string>('');
   const [addressError, setAddressError] = useState<string | null>(null);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
-  const [orderNotes, setOrderNotes] = useState<string>('');
   const [isTimeAlertVisible, setTimeAlertVisible] = useState(false);
 
+
+  // --- Queries para Áreas y Mesas (sin cambios) ---
   const {
     data: areasData,
     isLoading: isLoadingAreas,
@@ -98,35 +103,25 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
     error: errorTables,
   } = useGetTablesByArea(selectedAreaId);
 
+  // useEffect(() => { // ELIMINADO - Ya no necesitamos limpiar campos al cambiar tipo de orden
+  //   // Resetear solo errores locales al cambiar tipo de orden
+  //   setAreaError(null);
+  //   setTableError(null);
+  //   setCustomerNameError(null);
+  //   setPhoneError(null);
+  //   setAddressError(null);
+  //   // Ya no limpiamos setSelectedAreaId, setSelectedTableId, etc.
+  // }, [orderType]);
+
+  // Limpiar errores locales al cambiar tipo de orden (más simple)
   useEffect(() => {
-    // Reset fields based on order type
     setAreaError(null);
     setTableError(null);
     setCustomerNameError(null);
     setPhoneError(null);
     setAddressError(null);
-
-    if (orderType !== OrderTypeEnum.DINE_IN) { // Usar Enum
-      setSelectedAreaId(null);
-      setSelectedTableId(null);
-    }
-    if (orderType !== OrderTypeEnum.TAKE_AWAY) { // Usar Enum
-       // If switching away from take away, clear name if needed
-       // setCustomerName(''); // Uncomment if name should clear
-    }
-     if (orderType !== OrderTypeEnum.DELIVERY) { // Usar Enum
-        setDeliveryAddress(''); // Clear address if not delivery
-     }
-     if (orderType === OrderTypeEnum.DINE_IN) { // Usar Enum
-        setCustomerName('');
-        setPhoneNumber('');
-        setDeliveryAddress('');
-     }
-     if (orderType === OrderTypeEnum.TAKE_AWAY) { // Usar Enum
-        setDeliveryAddress('');
-     }
-
   }, [orderType]);
+
 
   const handleConfirm = () => {
     setAreaError(null);
@@ -207,7 +202,6 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
 
 
     onConfirmOrder(orderDetails);
-    clearCart();
   };
 
   
@@ -231,7 +225,7 @@ const OrderCartDetail: React.FC<OrderCartDetailProps> = ({
     if (date < now) {
       hideTimePicker();
       setTimeAlertVisible(true);
-    } else {
+      // Actualizar estado global del contexto
       setScheduledTime(date);
       hideTimePicker();
     }

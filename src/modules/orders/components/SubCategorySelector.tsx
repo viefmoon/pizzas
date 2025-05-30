@@ -5,20 +5,20 @@ import type { SubCategory } from '../../../app/types/domain/subcategory.types';
 import { useAppTheme } from '@/app/styles/theme';
 
 interface SubCategorySelectorProps {
-  subCategories: SubCategory[];
-  selectedSubCategoryId: string | null;
-  onSelectSubCategory: (subCategoryId: string) => void;
+  subcategories: SubCategory[];
+  selectedSubcategoryId: string | null;
+  onSelectSubCategory: (subcategoryId: string) => void;
 }
 
 const SubCategorySelector = ({
-  subCategories,
-  selectedSubCategoryId,
+  subcategories,
+  selectedSubcategoryId,
   onSelectSubCategory,
 }: SubCategorySelectorProps) => {
   const theme = useAppTheme();
 
   const styles = StyleSheet.create({
-    subCategoriesContainer: {
+    subcategoriesContainer: {
       flexDirection: 'row',
       paddingHorizontal: theme.spacing.s,
       paddingBottom: theme.spacing.s,
@@ -48,21 +48,21 @@ const SubCategorySelector = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.subCategoriesContainer}
+      contentContainerStyle={styles.subcategoriesContainer}
     >
-      {subCategories.map((subcategory) => (
+      {subcategories.map((subcategory) => (
         <Card
           key={subcategory.id}
           style={[
             styles.subCategoryCard,
-            selectedSubCategoryId === subcategory.id && styles.selectedSubCategory,
+            selectedSubcategoryId === subcategory.id && styles.selectedSubCategory,
           ]}
           onPress={() => onSelectSubCategory(subcategory.id)}
         >
           <Text
             style={[
               styles.subCategoryText,
-              selectedSubCategoryId === subcategory.id && styles.selectedSubCategoryText,
+              selectedSubcategoryId === subcategory.id && styles.selectedSubCategoryText,
             ]}
           >
             {subcategory.name}

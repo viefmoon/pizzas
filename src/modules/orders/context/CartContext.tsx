@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react"; 
-import { Product } from "../types/orders.types";
+import { Product, OrderTypeEnum, type OrderType } from "../types/orders.types"; // Importar OrderType y Enum
 
 const generateId = () => {
   return (
@@ -35,6 +35,7 @@ export interface CartItem {
 }
 
 interface CartContextType {
+  // --- Items del carrito ---
   items: CartItem[];
   addItem: (
     product: Product,
@@ -52,6 +53,24 @@ interface CartContextType {
   isCartVisible: boolean;
   showCart: () => void;
   hideCart: () => void;
+
+  // --- Estado del formulario de la orden ---
+  orderType: OrderType;
+  setOrderType: (type: OrderType) => void;
+  selectedAreaId: string | null;
+  setSelectedAreaId: (id: string | null) => void;
+  selectedTableId: string | null;
+  setSelectedTableId: (id: string | null) => void;
+  scheduledTime: Date | null;
+  setScheduledTime: (time: Date | null) => void;
+  customerName: string;
+  setCustomerName: (name: string) => void;
+  phoneNumber: string;
+  setPhoneNumber: (phone: string) => void;
+  deliveryAddress: string;
+  setDeliveryAddress: (address: string) => void;
+  orderNotes: string;
+  setOrderNotes: (notes: string) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -67,8 +86,20 @@ export const useCart = (): CartContextType => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  // --- Estados del carrito ---
   const [items, setItems] = useState<CartItem[]>([]);
   const [isCartVisible, setIsCartVisible] = useState(false);
+
+  // --- Estados del formulario de la orden ---
+  const [orderType, setOrderType] = useState<OrderType>(OrderTypeEnum.DINE_IN);
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [scheduledTime, setScheduledTime] = useState<Date | null>(null);
+  const [customerName, setCustomerName] = useState<string>('');
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [deliveryAddress, setDeliveryAddress] = useState<string>('');
+  const [orderNotes, setOrderNotes] = useState<string>('');
+
 
   const subtotal = useMemo(() => {
     return items.reduce((sum, item: CartItem) => sum + item.totalPrice, 0);
@@ -143,9 +174,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
+  // Modificar clearCart para resetear todo
   const clearCart = () => {
     setItems([]);
+    // Resetear estado del formulario
+    setOrderType(OrderTypeEnum.DINE_IN);
+    setSelectedAreaId(null);
+    setSelectedTableId(null);
+    setScheduledTime(null);
+    setCustomerName('');
+    setPhoneNumber('');
+    setDeliveryAddress('');
+    setOrderNotes('');
+    // Opcional: resetear visibilidad si se desea cerrar el carrito al limpiar
+    // setIsCartVisible(false);
   };
+
   const showCart = useCallback(() => {
     setIsCartVisible(true);
   }, []);
@@ -154,7 +198,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsCartVisible(false);
   }, []);
 
-  const value = {
+  const value: CartContextType = {
+    // --- Carrito ---
     items,
     addItem,
     removeItem,
@@ -166,6 +211,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     isCartVisible,
     showCart,
     hideCart,
+    // --- Formulario ---
+    orderType,
+    setOrderType,
+    selectedAreaId,
+    setSelectedAreaId,
+    selectedTableId,
+    setSelectedTableId,
+    scheduledTime,
+    setScheduledTime,
+    customerName,
+    setCustomerName,
+    phoneNumber,
+    setPhoneNumber,
+    deliveryAddress,
+    setDeliveryAddress,
+    orderNotes,
+    setOrderNotes,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
